@@ -31,7 +31,8 @@ export const CONFIG = {
   // Polymarket market settings
   polymarket: {
     marketSlug: process.env.POLYMARKET_SLUG || "",
-    seriesId: process.env.POLYMARKET_SERIES_ID || "10192",
+    // BTC Up/Down 5m series id (Gamma). Override with POLYMARKET_SERIES_ID if needed.
+    seriesId: process.env.POLYMARKET_SERIES_ID || "10684",
     seriesSlug: process.env.POLYMARKET_SERIES_SLUG || "btc-up-or-down-5m",
     autoSelectLatest: (process.env.POLYMARKET_AUTO_SELECT_LATEST || "true").toLowerCase() === "true",
     liveDataWsUrl: process.env.POLYMARKET_LIVE_WS_URL || "wss://ws-live-data.polymarket.com",
