@@ -115,14 +115,40 @@ export class Trader {
       }
     }
 
-    const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
+    // --- Effective Polymarket prices ---
+    // Gamma/derived prices occasionally show 0/1 while the CLOB orderbook has real quotes.
+    // For entry + sanity checks, prefer explicit cents, but fall back to orderbook bestAsk/bestBid.
+    const poly = signals.polyMarketSnapshot;
 
-    // Market data sanity (prices): require BOTH sides to have a real, positive price in cents.
-    const upC = signals.polyPricesCents?.UP ?? null;
-    const downC = signals.polyPricesCents?.DOWN ?? null;
+    const rawUpC = signals.polyPricesCents?.UP ?? null;
+    const rawDownC = signals.polyPricesCents?.DOWN ?? null;
+
+    const obUpAsk = poly?.orderbook?.up?.bestAsk;
+    const obUpBid = poly?.orderbook?.up?.bestBid;
+    const obDownAsk = poly?.orderbook?.down?.bestAsk;
+    const obDownBid = poly?.orderbook?.down?.bestBid;
+
+    const fallbackUpC = (typeof obUpAsk === "number" && Number.isFinite(obUpAsk) && obUpAsk > 0)
+      ? (obUpAsk * 100)
+      : ((typeof obUpBid === "number" && Number.isFinite(obUpBid) && obUpBid > 0) ? (obUpBid * 100) : null);
+
+    const fallbackDownC = (typeof obDownAsk === "number" && Number.isFinite(obDownAsk) && obDownAsk > 0)
+      ? (obDownAsk * 100)
+      : ((typeof obDownBid === "number" && Number.isFinite(obDownBid) && obDownBid > 0) ? (obDownBid * 100) : null);
+
+    const upC = (typeof rawUpC === "number" && Number.isFinite(rawUpC) && rawUpC > 0) ? rawUpC : fallbackUpC;
+    const downC = (typeof rawDownC === "number" && Number.isFinite(rawDownC) && rawDownC > 0) ? rawDownC : fallbackDownC;
+
     const upCok = (typeof upC === "number" && Number.isFinite(upC) && upC > 0);
     const downCok = (typeof downC === "number" && Number.isFinite(downC) && downC > 0);
     const polyPricesSane = upCok && downCok;
+
+    const effectivePolyPrices = {
+      UP: upCok ? (upC / 100) : null,
+      DOWN: downCok ? (downC / 100) : null
+    };
+
+    const currentPolyPrice = side ? (effectivePolyPrices?.[side] ?? null) : null; // dollars (0..1)
 
     if (!side) entryBlockers.push("Missing side");
     if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
@@ -137,7 +163,6 @@ export class Trader {
     }
 
     // Market quality filters
-    const poly = signals.polyMarketSnapshot;
     const spreadUp = poly?.orderbook?.up?.spread;
     const spreadDown = poly?.orderbook?.down?.spread;
 
@@ -229,7 +254,7 @@ export class Trader {
     const blockers = [...entryBlockers];
     if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
     if (!indicatorsPopulated) blockers.push("Indicators not ready");
-    if (!polyPricesSane) blockers.push("Market data sanity: invalid Polymarket prices (0/NaN)");
+    if (!polyPricesSane) blockers.push("Market data sanity: invalid Polymarket prices (gamma 0/NaN and no valid orderbook quotes)");
     if (this.openTrade) blockers.push("Trade already open");
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
