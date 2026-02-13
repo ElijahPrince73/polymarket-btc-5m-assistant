@@ -117,6 +117,13 @@ export class Trader {
 
     const currentPolyPrice = side ? (signals.polyPrices?.[side] ?? null) : null; // dollars (0..1)
 
+    // Market data sanity (prices): require BOTH sides to have a real, positive price in cents.
+    const upC = signals.polyPricesCents?.UP ?? null;
+    const downC = signals.polyPricesCents?.DOWN ?? null;
+    const upCok = (typeof upC === "number" && Number.isFinite(upC) && upC > 0);
+    const downCok = (typeof downC === "number" && Number.isFinite(downC) && downC > 0);
+    const polyPricesSane = upCok && downCok;
+
     if (!side) entryBlockers.push("Missing side");
     if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
 
@@ -161,9 +168,10 @@ export class Trader {
       ? (CONFIG.paperTrading.weekendMinLiquidity ?? CONFIG.paperTrading.minLiquidity)
       : (CONFIG.paperTrading.minLiquidity ?? 0);
     const minLiquidity = effectiveMinLiquidity;
-    const hasLowLiquidity = (typeof liquidityNum === "number" && Number.isFinite(liquidityNum))
-      ? (liquidityNum < minLiquidity)
-      : false;
+
+    // Market data sanity: require liquidity to be a real, positive number.
+    const liquidityOk = (typeof liquidityNum === "number" && Number.isFinite(liquidityNum) && liquidityNum > 0);
+    const hasLowLiquidity = liquidityOk ? (liquidityNum < minLiquidity) : true;
 
     // Market volume filter is optional (disabled by default)
     const marketVolumeNum = signals.market?.volumeNum ?? null;
@@ -221,12 +229,14 @@ export class Trader {
     const blockers = [...entryBlockers];
     if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
     if (!indicatorsPopulated) blockers.push("Indicators not ready");
+    if (!polyPricesSane) blockers.push("Market data sanity: invalid Polymarket prices (0/NaN)");
     if (this.openTrade) blockers.push("Trade already open");
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
     if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m)`);
     if (hasBadSpread) blockers.push("High spread");
-    if (hasLowLiquidity) blockers.push(`Low liquidity (<${minLiquidity})`);
+    if (!liquidityOk) blockers.push("Market data sanity: liquidity missing/0");
+    if (hasLowLiquidity && liquidityOk) blockers.push(`Low liquidity (<${minLiquidity})`);
     if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
     if (isOutsideSchedule) blockers.push("Outside schedule (weekdays only / Friday cutoff)");
 
@@ -309,7 +319,7 @@ export class Trader {
     const wantsEnter = (recAction === "ENTER") || !strictRec;
 
     // No-trade if volume is below threshold(s)
-    if (canEnter && indicatorsPopulated && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    if (canEnter && indicatorsPopulated && polyPricesSane && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds

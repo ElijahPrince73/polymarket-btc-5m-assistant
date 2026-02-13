@@ -46,6 +46,7 @@ test('Trader can enter in loose rec gating by inferring side when rec.side is mi
     market: { slug: 'm1', liquidityNum: 100000 },
     polyMarketSnapshot: { orderbook: { up: { spread: 0.01 }, down: { spread: 0.01 } } },
     polyPrices: { UP: 0.01, DOWN: 0.02 },
+    polyPricesCents: { UP: 1, DOWN: 2 },
     modelUp: 0.7,
     modelDown: 0.3,
     indicators: {

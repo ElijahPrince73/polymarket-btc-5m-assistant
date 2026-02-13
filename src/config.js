@@ -17,7 +17,7 @@ export const CONFIG = {
   clobBaseUrl: "https://clob.polymarket.com",
 
   // Polling and candle settings
-  pollIntervalMs: 3_000, // slightly faster for 5m markets
+  pollIntervalMs: 2_000, // faster for 5m markets (higher frequency)
   candleWindowMinutes: 5,
 
   // Indicator settings (faster defaults for 5m markets)
@@ -63,13 +63,13 @@ export const CONFIG = {
     
     // Thresholds (higher = more hesitation)
     // 5m defaults tuned for higher-frequency paper trading
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.54,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.55,
-    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.58,
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.52,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.53,
+    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.55,
     
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.03,
-    edgeMid: Number(process.env.EDGE_MID) || 0.04,
-    edgeLate: Number(process.env.EDGE_LATE) || 0.07,
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.02,
+    edgeMid: Number(process.env.EDGE_MID) || 0.03,
+    edgeLate: Number(process.env.EDGE_LATE) || 0.05,
 
     // Extra strictness knobs (used to improve odds without killing trade count)
     // MID entries tend to be weaker; require a bit more strength.
@@ -77,8 +77,8 @@ export const CONFIG = {
     midEdgeBoost: Number(process.env.MID_EDGE_BOOST) || 0.01,
 
     // In loose mode (rec gating ignored) when side is inferred, require stronger signals.
-    inferredProbBoost: Number(process.env.INFERRED_PROB_BOOST) || 0.03,
-    inferredEdgeBoost: Number(process.env.INFERRED_EDGE_BOOST) || 0.03,
+    inferredProbBoost: Number(process.env.INFERRED_PROB_BOOST) || 0.01,
+    inferredEdgeBoost: Number(process.env.INFERRED_EDGE_BOOST) || 0.01,
     
     // Exit settings
     // Stop loss is enabled for Polymarket paper trades.
@@ -101,13 +101,13 @@ export const CONFIG = {
     
     // Market quality filters
     // Liquidity filter (Polymarket market.liquidityNum). Raise this to avoid thin markets.
-    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 2000,
+    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 500,
     // (disabled) Market volume filter. Use volatility/chop filters instead.
     // Set MIN_MARKET_VOLUME_NUM > 0 to re-enable.
     minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
     // Max allowed Polymarket orderbook spread (dollars). 0.008 = 0.8¢
-    // 0.020 = 2.0¢ (5m markets can be wider)
-    maxSpread: Number(process.env.MAX_SPREAD) || 0.020,
+    // 0.030 = 3.0¢ (max frequency; still blocks truly awful books)
+    maxSpread: Number(process.env.MAX_SPREAD) || 0.030,
 
     // Trading schedule filter (America/Los_Angeles)
     // If enabled, blocks weekend entries (with optional Sunday exception).
@@ -138,31 +138,31 @@ export const CONFIG = {
     // Avoid "dust" Polymarket prices where spread/tick noise dominates.
     // 0.005 = 0.5¢
     // 5m markets often have tiny prices; allow smaller but avoid true dust.
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.003,
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.002,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     // Avoid extremely skewed markets where one side is near-zero.
-    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.002,
+    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.001,
     
     // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
     // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
     // Moderate default: require ~0.20% range over last 20 minutes.
     // More permissive for 5m (higher frequency): require ~0.12% range over last 20 minutes.
-    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0012,
+    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0008,
 
     // Confidence filter: avoid coin-flip markets where the model is near 50/50.
     // We require max(modelUp, modelDown) >= this value to allow entries.
-    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.51,
+    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.50,
 
-    // RSI consolidation/regime filter: avoid known-bad RSI band.
-    // Default blocks entries when RSI is in [30,45) (observed as a losing bucket).
-    noTradeRsiMin: Number(process.env.NO_TRADE_RSI_MIN) || 30,
-    noTradeRsiMax: Number(process.env.NO_TRADE_RSI_MAX) || 45,
+    // RSI consolidation/regime filter: default DISABLED for max-frequency 5m.
+    // Set NO_TRADE_RSI_MIN/NO_TRADE_RSI_MAX to re-enable.
+    noTradeRsiMin: Number(process.env.NO_TRADE_RSI_MIN) || 0,
+    noTradeRsiMax: Number(process.env.NO_TRADE_RSI_MAX) || 0,
 
     // Time filters
-    noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 1,
+    noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 0.75,
 
     // Require enough 1m candles before allowing entries (helps avoid 50/50 startup)
-    minCandlesForEntry: Number(process.env.MIN_CANDLES_FOR_ENTRY) || 20,
+    minCandlesForEntry: Number(process.env.MIN_CANDLES_FOR_ENTRY) || 12,
     
     // Rec gating controls whether we require the engine to explicitly say ENTER.
     // - strict: must be Rec=ENTER
