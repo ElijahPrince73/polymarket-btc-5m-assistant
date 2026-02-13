@@ -20,13 +20,13 @@ export const CONFIG = {
   pollIntervalMs: 3_000, // slightly faster for 5m markets
   candleWindowMinutes: 5,
 
-  // Indicator settings
-  vwapSlopeLookbackMinutes: 5,
-  rsiPeriod: 14,
-  rsiMaPeriod: 14,
-  macdFast: 12,
-  macdSlow: 26,
-  macdSignal: 9,
+  // Indicator settings (faster defaults for 5m markets)
+  vwapSlopeLookbackMinutes: 3,
+  rsiPeriod: 9,
+  rsiMaPeriod: 9,
+  macdFast: 6,
+  macdSlow: 13,
+  macdSignal: 5,
 
   // Polymarket market settings
   polymarket: {
@@ -62,18 +62,19 @@ export const CONFIG = {
     contractSize: Number(process.env.PAPER_CONTRACT_SIZE) || 100,
     
     // Thresholds (higher = more hesitation)
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.56,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.59,
-    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.63,
+    // 5m defaults tuned for higher-frequency paper trading
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.54,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.55,
+    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.58,
     
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.05,
-    edgeMid: Number(process.env.EDGE_MID) || 0.08,
-    edgeLate: Number(process.env.EDGE_LATE) || 0.16,
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.03,
+    edgeMid: Number(process.env.EDGE_MID) || 0.04,
+    edgeLate: Number(process.env.EDGE_LATE) || 0.07,
 
     // Extra strictness knobs (used to improve odds without killing trade count)
     // MID entries tend to be weaker; require a bit more strength.
-    midProbBoost: Number(process.env.MID_PROB_BOOST) || 0.02,
-    midEdgeBoost: Number(process.env.MID_EDGE_BOOST) || 0.02,
+    midProbBoost: Number(process.env.MID_PROB_BOOST) || 0.01,
+    midEdgeBoost: Number(process.env.MID_EDGE_BOOST) || 0.01,
 
     // In loose mode (rec gating ignored) when side is inferred, require stronger signals.
     inferredProbBoost: Number(process.env.INFERRED_PROB_BOOST) || 0.03,
@@ -91,21 +92,22 @@ export const CONFIG = {
     exitFlipMinProb: Number(process.env.EXIT_FLIP_MIN_PROB) || 0.62,
     exitFlipMargin: Number(process.env.EXIT_FLIP_MARGIN) || 0.06,
     // Avoid noisy early flips: require trade to be open at least this long before flip-exit is allowed.
-    exitFlipMinHoldSeconds: Number(process.env.EXIT_FLIP_MIN_HOLD_SECONDS) || 30,
+    exitFlipMinHoldSeconds: Number(process.env.EXIT_FLIP_MIN_HOLD_SECONDS) || 15,
 
     // When a probability flip happens, optionally close and immediately open the other side.
     // Default OFF (analytics showed flips were a major drag on PnL). Set FLIP_ON_PROB_FLIP=true to re-enable.
     flipOnProbabilityFlip: (process.env.FLIP_ON_PROB_FLIP || "false").toLowerCase() === "true",
-    flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 180,
+    flipCooldownSeconds: Number(process.env.FLIP_COOLDOWN_SECONDS) || 60,
     
     // Market quality filters
     // Liquidity filter (Polymarket market.liquidityNum). Raise this to avoid thin markets.
-    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 10000,
+    minLiquidity: Number(process.env.MIN_LIQUIDITY) || 2000,
     // (disabled) Market volume filter. Use volatility/chop filters instead.
     // Set MIN_MARKET_VOLUME_NUM > 0 to re-enable.
     minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
     // Max allowed Polymarket orderbook spread (dollars). 0.008 = 0.8¢
-    maxSpread: Number(process.env.MAX_SPREAD) || 0.008,
+    // 0.020 = 2.0¢ (5m markets can be wider)
+    maxSpread: Number(process.env.MAX_SPREAD) || 0.020,
 
     // Trading schedule filter (America/Los_Angeles)
     // If enabled, blocks weekend entries (with optional Sunday exception).
@@ -135,20 +137,21 @@ export const CONFIG = {
     // Example: 0.002 = 0.2¢
     // Avoid "dust" Polymarket prices where spread/tick noise dominates.
     // 0.005 = 0.5¢
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.005,
+    // 5m markets often have tiny prices; allow smaller but avoid true dust.
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.003,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
-    // Avoid extremely skewed markets where one side is near-zero (often leads to bad fills/marking).
-    // Require the opposite side price to be at least this value (dollars).
-    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.004,
+    // Avoid extremely skewed markets where one side is near-zero.
+    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.002,
     
     // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
     // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
     // Moderate default: require ~0.20% range over last 20 minutes.
-    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.002,
+    // More permissive for 5m (higher frequency): require ~0.12% range over last 20 minutes.
+    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0012,
 
     // Confidence filter: avoid coin-flip markets where the model is near 50/50.
     // We require max(modelUp, modelDown) >= this value to allow entries.
-    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.53,
+    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.51,
 
     // RSI consolidation/regime filter: avoid known-bad RSI band.
     // Default blocks entries when RSI is in [30,45) (observed as a losing bucket).

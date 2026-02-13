@@ -1,4 +1,5 @@
 import { clamp } from "../utils.js";
+import { CONFIG } from "../config.js";
 
 export function computeEdge({ modelUp, modelDown, marketYes, marketNo }) {
   if (marketYes === null || marketNo === null) {
@@ -21,11 +22,27 @@ export function computeEdge({ modelUp, modelDown, marketYes, marketNo }) {
 }
 
 export function decide({ remainingMinutes, edgeUp, edgeDown, modelUp = null, modelDown = null }) {
-  const phase = remainingMinutes > 10 ? "EARLY" : remainingMinutes > 5 ? "MID" : "LATE";
+  const winMin = Number(CONFIG?.candleWindowMinutes) || 15;
 
-  const threshold = phase === "EARLY" ? 0.05 : phase === "MID" ? 0.1 : 0.2;
+  // Phase boundaries: scale with market window.
+  // For 5m markets we want phases to update much faster.
+  const earlyCut = winMin <= 6 ? 3.5 : 10;
+  const midCut = winMin <= 6 ? 2.0 : 5;
 
-  const minProb = phase === "EARLY" ? 0.55 : phase === "MID" ? 0.6 : 0.65;
+  const phase = remainingMinutes > earlyCut ? "EARLY" : remainingMinutes > midCut ? "MID" : "LATE";
+
+  // Use configurable thresholds (defaults tuned in config.js)
+  const threshold = phase === "EARLY"
+    ? CONFIG.paperTrading.edgeEarly
+    : phase === "MID"
+      ? CONFIG.paperTrading.edgeMid
+      : CONFIG.paperTrading.edgeLate;
+
+  const minProb = phase === "EARLY"
+    ? CONFIG.paperTrading.minProbEarly
+    : phase === "MID"
+      ? CONFIG.paperTrading.minProbMid
+      : CONFIG.paperTrading.minProbLate;
 
   if (edgeUp === null || edgeDown === null) {
     return { action: "NO_TRADE", side: null, phase, reason: "missing_market_data" };
