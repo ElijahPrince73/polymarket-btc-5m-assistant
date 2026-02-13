@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket BTC Trading Bot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Polymarket BTC Trading Bot</h1>
+        
+        <div class="section">
+            <h2>Status</h2>
+            <div id="status-message">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>Open Trade</h2>
+            <div id="open-trade">No open trade.</div>
+        </div>
+
+        <div class="section">
+            <h2>Ledger Summary</h2>
+            <div id="ledger-summary">Loading summary...</div>
+        </div>
+
+        <div class="section">
+            <h2>Analytics</h2>
+            <div id="analytics">
+                <div id="analytics-overview">Loading analytics...</div>
+                <div class="analytics-grid">
+                    <div>
+                        <h3>By Exit Reason</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-exit"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Entry Phase</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-phase"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Entry Price Bucket</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-price"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Side Inferred</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-inferred"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Entry Time Left</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-timeleft"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Entry Prob</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-prob"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Liquidity</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-liq"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Market Volume</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-mktvol"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Spread</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-spread"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Edge</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-edge"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By VWAP Dist</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-vwapdist"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By RSI</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-rsi"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Hold Time</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-hold"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By MAE (min uPnL)</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-mae"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By MFE (max uPnL)</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-mfe"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Side</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-side"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                    <div>
+                        <h3>By Rec Action</h3>
+                        <table class="mini-table"><thead><tr><th>Key</th><th>N</th><th>PnL ($)</th></tr></thead><tbody id="analytics-by-rec"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Recent Trades</h2>
+            <table id="recent-trades-table">
+                <thead>
+                    <tr>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Side</th>
+                        <th>Entry (¢)</th>
+                        <th>Exit (¢)</th>
+                        <th>PnL ($)</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-trades-body">
+                    <tr><td colspan="8">Loading recent trades...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
