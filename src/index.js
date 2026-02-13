@@ -103,7 +103,31 @@ function safeFileSlug(x) { return String(x ?? "").toLowerCase().replace(/[^a-z0-
 function extractNumericFromMarket(market) { const directKeys = ["priceToBeat", "price_to_beat", "strikePrice", "strike_price", "strike", "threshold", "thresholdPrice", "threshold_price", "targetPrice", "target_price", "referencePrice", "reference_price"]; for (const k of directKeys) { const v = market?.[k]; const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN; if (Number.isFinite(n)) return n; } const seen = new Set(); const stack = [{ obj: market, depth: 0 }]; while (stack.length) { const { obj, depth } = stack.pop(); if (!obj || typeof obj !== "object") continue; if (seen.has(obj) || depth > 6) continue; seen.add(obj); const entries = Array.isArray(obj) ? obj.entries() : Object.entries(obj); for (const [key, value] of entries) { const k = String(key).toLowerCase(); if (value && typeof value === "object") { stack.push({ obj: value, depth: depth + 1 }); continue; } if (!/(price|strike|threshold|target|beat)/i.test(k)) continue; const n = typeof value === "string" ? Number(value) : typeof value === "number" ? value : NaN; if (!Number.isFinite(n)) continue; if (n > 1000 && n < 2_000_000) return n; } } return null; }
 function priceToBeatFromPolymarketMarket(market) { const n = extractNumericFromMarket(market); if (n !== null) return n; return parsePriceToBeat(market); }
 const marketCache = { market: null, fetchedAtMs: 0 };
-async function resolveCurrentBtc5mMarket() { if (CONFIG.polymarket.marketSlug) { return await fetchMarketBySlug(CONFIG.polymarket.marketSlug); } if (!CONFIG.polymarket.autoSelectLatest) return null; const now = Date.now(); if (marketCache.market && now - marketCache.fetchedAtMs < CONFIG.pollIntervalMs) { return marketCache.market; } const events = await fetchLiveEventsBySeriesId({ seriesId: CONFIG.polymarket.seriesId, limit: 50 }); const markets = flattenEventMarkets(events); const picked = pickLatestLiveMarket(markets); marketCache.market = picked; marketCache.fetchedAtMs = now; return picked; }
+async function resolveCurrentBtc5mMarket() {
+  // If a slug is pinned but the market is closed/expired, fall back to auto-select.
+  if (CONFIG.polymarket.marketSlug) {
+    const m = await fetchMarketBySlug(CONFIG.polymarket.marketSlug);
+    if (m) {
+      const now = Date.now();
+      const endMs = m.endDate ? new Date(m.endDate).getTime() : null;
+      const isClosed = (String(m.closed ?? "").toLowerCase() === "true") || (endMs !== null && Number.isFinite(endMs) && now >= endMs);
+      if (!isClosed) return m;
+      console.warn("Pinned POLYMARKET_SLUG is closed/expired; falling back to auto-select latest:", CONFIG.polymarket.marketSlug);
+    }
+  }
+
+  if (!CONFIG.polymarket.autoSelectLatest) return null;
+  const now = Date.now();
+  if (marketCache.market && now - marketCache.fetchedAtMs < CONFIG.pollIntervalMs) {
+    return marketCache.market;
+  }
+  const events = await fetchLiveEventsBySeriesId({ seriesId: CONFIG.polymarket.seriesId, limit: 50 });
+  const markets = flattenEventMarkets(events);
+  const picked = pickLatestLiveMarket(markets);
+  marketCache.market = picked;
+  marketCache.fetchedAtMs = now;
+  return picked;
+}
 async function fetchPolymarketSnapshot() { const market = await resolveCurrentBtc5mMarket(); if (!market) return { ok: false, reason: "market_not_found" }; const outcomes = Array.isArray(market.outcomes) ? market.outcomes : JSON.parse(market.outcomes || "[]"); const outcomePrices = Array.isArray(market.outcomePrices) ? market.outcomePrices : JSON.parse(market.outcomePrices || "[]"); const clobTokenIds = Array.isArray(market.clobTokenIds) ? market.clobTokenIds : JSON.parse(market.clobTokenIds || "[]"); let upTokenId = null; let downTokenId = null; for (let i = 0; i < outcomes.length; i += 1) { const label = String(outcomes[i]); const tokenId = clobTokenIds[i] ? String(clobTokenIds[i]) : null; if (!tokenId) continue; if (label.toLowerCase() === CONFIG.polymarket.upOutcomeLabel.toLowerCase()) upTokenId = tokenId; if (label.toLowerCase() === CONFIG.polymarket.downOutcomeLabel.toLowerCase()) downTokenId = tokenId; } const upIndex = outcomes.findIndex((x) => String(x).toLowerCase() === CONFIG.polymarket.upOutcomeLabel.toLowerCase()); const downIndex = outcomes.findIndex((x) => String(x).toLowerCase() === CONFIG.polymarket.downOutcomeLabel.toLowerCase()); const gammaYes = upIndex >= 0 ? Number(outcomePrices[upIndex]) : null; const gammaNo = downIndex >= 0 ? Number(outcomePrices[downIndex]) : null; if (!upTokenId || !downTokenId) { return { ok: false, reason: "missing_token_ids", market, outcomes, clobTokenIds, outcomePrices }; } let upBuy = null; let downBuy = null; let upBookSummary = { bestBid: null, bestAsk: null, spread: null, bidLiquidity: null, askLiquidity: null }; let downBookSummary = { bestBid: null, bestAsk: null, spread: null, bidLiquidity: null, askLiquidity: null }; try { const [yesBuy, noBuy, upBook, downBook] = await Promise.all([ fetchClobPrice({ tokenId: upTokenId, side: "buy" }), fetchClobPrice({ tokenId: downTokenId, side: "buy" }), fetchOrderBook({ tokenId: upTokenId }), fetchOrderBook({ tokenId: downTokenId }) ]); upBuy = yesBuy; downBuy = noBuy; upBookSummary = summarizeOrderBook(upBook); downBookSummary = summarizeOrderBook(downBook); } catch { upBuy = null; downBuy = null; upBookSummary = { bestBid: Number(market.bestBid) || null, bestAsk: Number(market.bestAsk) || null, spread: Number(market.spread) || null, bidLiquidity: null, askLiquidity: null }; downBookSummary = { bestBid: null, bestAsk: null, spread: Number(market.spread) || null, bidLiquidity: null, askLiquidity: null }; } return { ok: true, market, tokens: { upTokenId, downTokenId }, prices: { up: upBuy ?? gammaYes, down: downBuy ?? gammaNo }, orderbook: { up: upBookSummary, down: downBookSummary } }; }
 function countVwapCrosses(closes, vwapSeries, lookback) { if (closes.length < lookback || vwapSeries.length < lookback) return null; let crosses = 0; for (let i = closes.length - lookback + 1; i < closes.length; i += 1) { const prev = closes[i - 1] - vwapSeries[i - 1]; const cur = closes[i] - vwapSeries[i]; if (prev === 0) continue; if ((prev > 0 && cur < 0) || (prev < 0 && cur > 0)) crosses += 1; } return crosses; }
 
