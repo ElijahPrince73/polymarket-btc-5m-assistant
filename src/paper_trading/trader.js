@@ -150,6 +150,12 @@ export class Trader {
 
     const currentPolyPrice = side ? (effectivePolyPrices?.[side] ?? null) : null; // dollars (0..1)
 
+    const effectivePriceForSide = (s) => {
+      if (!s) return null;
+      const p = effectivePolyPrices?.[s] ?? null;
+      return (typeof p === "number" && Number.isFinite(p) && p > 0) ? p : null;
+    };
+
     if (!side) entryBlockers.push("Missing side");
     if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
 
@@ -467,7 +473,7 @@ export class Trader {
       // If the Polymarket market rolled to a new slug, close the old trade so it can't get "stuck".
       // Note: we use the current market's contract price as a best-effort mark.
       if (trade.marketSlug && marketSlug && trade.marketSlug !== marketSlug) {
-        const exitPrice = signals.polyPrices?.[trade.side] ?? null;
+        const exitPrice = effectivePriceForSide(trade.side);
         if (exitPrice !== null) {
           await this.closeTrade(trade, exitPrice, "Market Rollover");
         }
@@ -475,7 +481,7 @@ export class Trader {
       }
 
       // Current mark-to-market PnL (for stop loss + MFE/MAE tracking)
-      const curPx = signals.polyPrices?.[trade.side] ?? null;
+      const curPx = effectivePriceForSide(trade.side);
       let stopLossHit = false;
       let pnlNow = null;
       if (curPx !== null) {
@@ -520,6 +526,16 @@ export class Trader {
       // If you want to re-enable flip exits later, restore the block that sets shouldExit here.
 
 
+      // Immediate take-profit: close as soon as we are profitable (mark-to-market).
+      // This is intentionally aggressive for max-frequency 5m behavior.
+      if (!shouldExit && (CONFIG.paperTrading.takeProfitImmediate ?? false) && pnlNow !== null) {
+        const tp = CONFIG.paperTrading.takeProfitPnlUsd ?? 0;
+        if (Number.isFinite(tp) && tp >= 0 && pnlNow >= tp) {
+          shouldExit = true;
+          exitReason = "Take Profit";
+        }
+      }
+
       // Conditional stop loss: only stop out when we are materially losing AND the model has flipped against us.
       // This avoids getting chopped out by noise when the signal still supports the position.
       if (!shouldExit && stopLossHit && opposingMoreLikely) {
@@ -534,14 +550,14 @@ export class Trader {
       }
 
       if (shouldExit) {
-        const exitPrice = signals.polyPrices?.[trade.side] ?? null;
+        const exitPrice = effectivePriceForSide(trade.side);
         if (exitPrice !== null) {
           await this.closeTrade(trade, exitPrice, exitReason);
 
           // Optional flip: immediately open the other side
           if (shouldFlip) {
             const newSide = trade.side === "UP" ? "DOWN" : "UP";
-            const entryPrice = signals.polyPrices?.[newSide] ?? null;
+            const entryPrice = effectivePriceForSide(newSide);
 
             const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
             const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;

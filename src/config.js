@@ -85,8 +85,12 @@ export const CONFIG = {
     // Stop loss is enabled for Polymarket paper trades.
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
     stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.20,
-    // Take profit remains unused for now.
-    takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08, // unused
+    // Take profit
+    // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
+    takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
+    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 0.01,
+    // Legacy/unused
+    takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
 
     // Dynamic exit: close when opposite side becomes more likely.
     // Example: if you're in UP and modelDown >= modelUp + exitFlipMargin AND modelDown >= exitFlipMinProb → exit.
