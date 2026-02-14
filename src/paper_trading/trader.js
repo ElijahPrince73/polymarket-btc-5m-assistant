@@ -321,6 +321,12 @@ export class Trader {
       blockers.push(`Poly price out of bounds (${(currentPolyPrice ?? NaN) * 100}¢)`);
     }
 
+    // Profitability filter: avoid expensive entries (>=0.5¢ was a major losing bucket)
+    const maxEntryPx = CONFIG.paperTrading.maxEntryPolyPrice ?? null;
+    if (typeof maxEntryPx === "number" && Number.isFinite(maxEntryPx) && typeof currentPolyPrice === "number" && Number.isFinite(currentPolyPrice)) {
+      if (currentPolyPrice > maxEntryPx) blockers.push(`Entry price too high (${(currentPolyPrice * 100).toFixed(2)}¢ > ${(maxEntryPx * 100).toFixed(2)}¢)`);
+    }
+
     // Opposite-side sanity: avoid markets that are effectively already decided.
     const minOpp = CONFIG.paperTrading.minOppositePolyPrice ?? 0;
     if (minOpp > 0) {
@@ -355,7 +361,9 @@ export class Trader {
     const wantsEnter = (recAction === "ENTER") || !strictRec;
 
     // No-trade if volume is below threshold(s)
-    if (canEnter && indicatorsPopulated && polyPricesSane && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    const entryPriceOk = !(typeof maxEntryPx === "number" && Number.isFinite(maxEntryPx) && typeof currentPolyPrice === "number" && Number.isFinite(currentPolyPrice) && currentPolyPrice > maxEntryPx);
+
+    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds
@@ -535,12 +543,20 @@ export class Trader {
 
 
       // Immediate take-profit: close as soon as we are profitable (mark-to-market).
-      // This is intentionally aggressive for max-frequency 5m behavior.
       if (!shouldExit && (CONFIG.paperTrading.takeProfitImmediate ?? false) && pnlNow !== null) {
         const tp = CONFIG.paperTrading.takeProfitPnlUsd ?? 0;
         if (Number.isFinite(tp) && tp >= 0 && pnlNow >= tp) {
           shouldExit = true;
           exitReason = "Take Profit";
+        }
+      }
+
+      // Time stop: if we can't get green quickly, cut losers before they snowball.
+      const loserMaxHold = CONFIG.paperTrading.loserMaxHoldSeconds ?? 0;
+      if (!shouldExit && pnlNow !== null && tradeAgeSec !== null && Number.isFinite(loserMaxHold) && loserMaxHold > 0) {
+        if (tradeAgeSec >= loserMaxHold && pnlNow < 0) {
+          shouldExit = true;
+          exitReason = "Time Stop";
         }
       }
 

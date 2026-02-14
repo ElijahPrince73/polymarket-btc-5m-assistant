@@ -84,6 +84,8 @@ export const CONFIG = {
     // Exit settings
     // Close before settlement to avoid rollover weirdness.
     exitBeforeEndMinutes: Number(process.env.EXIT_BEFORE_END_MIN) || 1.00,
+    // Time stop: if a trade can't go green quickly, cut it.
+    loserMaxHoldSeconds: Number(process.env.LOSER_MAX_HOLD_SECONDS) || 120,
 
     // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
     stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",
@@ -116,8 +118,8 @@ export const CONFIG = {
     // Set MIN_MARKET_VOLUME_NUM > 0 to re-enable.
     minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
     // Max allowed Polymarket orderbook spread (dollars). 0.008 = 0.8¢
-    // 0.030 = 3.0¢ (max frequency; still blocks truly awful books)
-    maxSpread: Number(process.env.MAX_SPREAD) || 0.030,
+    // Tighten spread for better fills
+    maxSpread: Number(process.env.MAX_SPREAD) || 0.020,
 
     // Trading schedule filter (America/Los_Angeles)
     // If enabled, blocks weekend entries (with optional Sunday exception).
@@ -150,23 +152,24 @@ export const CONFIG = {
     // 5m markets often have tiny prices; allow smaller but avoid true dust.
     minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.002,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
+    // Profitability filter: avoid paying up in 5m (most losses came from >=0.5¢ entries)
+    maxEntryPolyPrice: Number(process.env.MAX_ENTRY_POLY_PRICE) || 0.005,
     // Avoid extremely skewed markets where one side is near-zero.
-    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.001,
+    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.002,
     
     // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
     // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
     // Moderate default: require ~0.20% range over last 20 minutes.
     // More permissive for 5m (higher frequency): require ~0.12% range over last 20 minutes.
-    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0008,
+    minRangePct20: Number(process.env.MIN_RANGE_PCT_20) || 0.0012,
 
     // Confidence filter: avoid coin-flip markets where the model is near 50/50.
     // We require max(modelUp, modelDown) >= this value to allow entries.
-    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.50,
+    minModelMaxProb: Number(process.env.MIN_MODEL_MAX_PROB) || 0.53,
 
-    // RSI consolidation/regime filter: default DISABLED for max-frequency 5m.
-    // Set NO_TRADE_RSI_MIN/NO_TRADE_RSI_MAX to re-enable.
-    noTradeRsiMin: Number(process.env.NO_TRADE_RSI_MIN) || 0,
-    noTradeRsiMax: Number(process.env.NO_TRADE_RSI_MAX) || 0,
+    // RSI consolidation/regime filter: enabled for profitability (avoid bad band)
+    noTradeRsiMin: Number(process.env.NO_TRADE_RSI_MIN) || 30,
+    noTradeRsiMax: Number(process.env.NO_TRADE_RSI_MAX) || 45,
 
     // Time filters
     // For 5m, avoid new entries too close to settlement (rollover risk)

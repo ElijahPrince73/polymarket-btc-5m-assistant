@@ -32,6 +32,7 @@ test('Trader can enter in loose rec gating by inferring side when rec.side is mi
   CONFIG.paperTrading.maxPolyPrice = 0.98;
   CONFIG.paperTrading.minLiquidity = 0;
   CONFIG.paperTrading.maxSpread = 999;
+  CONFIG.paperTrading.maxEntryPolyPrice = 1;
 
   // Make thresholds easy to hit
   CONFIG.paperTrading.minProbEarly = 0.50;
