@@ -213,7 +213,12 @@ export class Trader {
 
     const isLowLiquidity = hasBadSpread || hasLowLiquidity || hasLowMarketVolume;
 
-    const isTooLateToEnter = timeLeftMin < CONFIG.paperTrading.noEntryFinalMinutes;
+    // Prefer Polymarket settlement timer (endDate) over candle-derived timeLeft.
+    const endDate = signals.market?.endDate ?? signals.polyMarketSnapshot?.market?.endDate ?? null;
+    const settlementLeftMin = endDate ? ((new Date(endDate).getTime() - Date.now()) / 60000) : null;
+    const timeLeftForEntry = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+
+    const isTooLateToEnter = timeLeftForEntry < CONFIG.paperTrading.noEntryFinalMinutes;
 
     // Weekday-only schedule filter (Pacific time). Exits are handled separately.
     const weekdaysOnly = CONFIG.paperTrading.weekdaysOnly ?? false;
@@ -264,7 +269,7 @@ export class Trader {
     if (this.openTrade) blockers.push("Trade already open");
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
-    if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m)`);
+    if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m to settlement)`);
     if (hasBadSpread) blockers.push("High spread");
     if (!liquidityOk) blockers.push("Market data sanity: liquidity missing/0");
     if (hasLowLiquidity && liquidityOk) blockers.push(`Low liquidity (<${minLiquidity})`);
@@ -546,11 +551,12 @@ export class Trader {
         exitReason = "Stop Loss";
       }
 
-      // Exit before settlement / candle end to reduce rollover risk
+      // Exit before settlement to reduce rollover risk
       const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
-      if (!shouldExit && typeof timeLeftMin === "number" && Number.isFinite(timeLeftMin) && timeLeftMin < exitBeforeEndMin) {
+      const timeLeftForExit = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+      if (!shouldExit && typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit) && timeLeftForExit < exitBeforeEndMin) {
         shouldExit = true;
-        exitReason = "End of Candle";
+        exitReason = "Pre-settlement Exit";
       }
 
       if (shouldExit) {
