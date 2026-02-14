@@ -82,9 +82,14 @@ export const CONFIG = {
     inferredEdgeBoost: Number(process.env.INFERRED_EDGE_BOOST) || 0.01,
     
     // Exit settings
-    // Stop loss is enabled for Polymarket paper trades.
+    // Close before settlement to avoid rollover weirdness.
+    exitBeforeEndMinutes: Number(process.env.EXIT_BEFORE_END_MIN) || 1.00,
+
+    // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
+    stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
     stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.20,
+
     // Take profit
     // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
     takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
@@ -164,7 +169,8 @@ export const CONFIG = {
     noTradeRsiMax: Number(process.env.NO_TRADE_RSI_MAX) || 0,
 
     // Time filters
-    noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 0.75,
+    // For 5m, avoid new entries too close to settlement (rollover risk)
+    noEntryFinalMinutes: Number(process.env.NO_ENTRY_FINAL_MIN) || 1.50,
 
     // Require enough 1m candles before allowing entries (helps avoid 50/50 startup)
     minCandlesForEntry: Number(process.env.MIN_CANDLES_FOR_ENTRY) || 12,

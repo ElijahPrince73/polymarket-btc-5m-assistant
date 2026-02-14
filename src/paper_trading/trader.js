@@ -476,6 +476,9 @@ export class Trader {
         const exitPrice = effectivePriceForSide(trade.side);
         if (exitPrice !== null) {
           await this.closeTrade(trade, exitPrice, "Market Rollover");
+        } else {
+          // If we can't fetch a live quote during rollover, force-close at entry to avoid being stuck open.
+          await this.closeTrade(trade, trade.entryPrice, "Market Rollover (no quote)");
         }
         return;
       }
@@ -537,14 +540,15 @@ export class Trader {
       }
 
       // Conditional stop loss: only stop out when we are materially losing AND the model has flipped against us.
-      // This avoids getting chopped out by noise when the signal still supports the position.
-      if (!shouldExit && stopLossHit && opposingMoreLikely) {
+      // Disabled by default for 5m.
+      if (!shouldExit && (CONFIG.paperTrading.stopLossEnabled ?? false) && stopLossHit && opposingMoreLikely) {
         shouldExit = true;
         exitReason = "Stop Loss";
       }
 
-      // Exit at end of candle
-      if (!shouldExit && timeLeftMin < 0.5) {
+      // Exit before settlement / candle end to reduce rollover risk
+      const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
+      if (!shouldExit && typeof timeLeftMin === "number" && Number.isFinite(timeLeftMin) && timeLeftMin < exitBeforeEndMin) {
         shouldExit = true;
         exitReason = "End of Candle";
       }
