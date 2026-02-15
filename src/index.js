@@ -21,6 +21,7 @@ if (CONFIG.priceFeed === "kraken") {
 import { fetchChainlinkBtcUsd } from "./data/chainlink.js";
 import { startChainlinkPriceStream } from "./data/chainlinkWs.js";
 import { startPolymarketChainlinkPriceStream } from "./data/polymarketLiveWs.js";
+import { startCoinbaseTradeStream } from "./data/binanceWs.js";
 import {
   fetchMarketBySlug,
   fetchLiveEventsBySeriesId,
@@ -201,6 +202,20 @@ async function startApp() {
   }
   const polyStream = startPolymarketChainlinkPriceStream({});
 
+  // Spot reference stream (Coinbase) for impulse/basis metrics
+  const spotTicks = [];
+  const spotStream = startCoinbaseTradeStream({
+    symbol: CONFIG.coinbase.symbol,
+    onUpdate: ({ price, ts }) => {
+      if (typeof price !== "number" || !Number.isFinite(price)) return;
+      const t = (typeof ts === "number" && Number.isFinite(ts)) ? ts : Date.now();
+      spotTicks.push({ t, price });
+      // keep ~5 minutes of ticks
+      const cutoff = Date.now() - 5 * 60_000;
+      while (spotTicks.length && spotTicks[0].t < cutoff) spotTicks.shift();
+    }
+  });
+
   // Start UI server
   try { startUIServer(); } catch (err) { console.error('Failed to start UI server:', err); }
 
@@ -362,6 +377,23 @@ async function startApp() {
     const rec = decide({ remainingMinutes: timeLeftMin, edgeUp: edge.edgeUp, edgeDown: edge.edgeDown, modelUp: timeAware.adjustedUp, modelDown: timeAware.adjustedDown });
     const predictNarrative = (timeAware.adjustedUp !== null && timeAware.adjustedDown !== null) ? (timeAware.adjustedUp > timeAware.adjustedDown ? "LONG" : "SHORT") : "NEUTRAL";
 
+    // Spot impulse (Coinbase) over last 60s
+    const spotLast = spotStream?.getLast?.() ?? { price: null, ts: null };
+    const spotNow = (typeof spotLast.price === "number" && Number.isFinite(spotLast.price)) ? spotLast.price : null;
+    let spotDelta1mPct = null;
+    if (spotNow !== null && spotTicks.length) {
+      const targetT = Date.now() - 60_000;
+      // find oldest tick >= target; fallback to oldest tick
+      let base = null;
+      for (let i = 0; i < spotTicks.length; i += 1) {
+        if (spotTicks[i].t >= targetT) { base = spotTicks[i].price; break; }
+      }
+      if (base === null) base = spotTicks[0]?.price ?? null;
+      if (typeof base === "number" && Number.isFinite(base) && base > 0) {
+        spotDelta1mPct = (spotNow - base) / base;
+      }
+    }
+
     const signalsForTrader = {
       rec,
       kline: klines1m.length ? klines1m[klines1m.length - 1] : null, // BTC candle (for indicators only)
@@ -373,7 +405,11 @@ async function startApp() {
       modelUp: timeAware.adjustedUp,
       modelDown: timeAware.adjustedDown,
       predictNarrative,
-      indicators: indicatorsData
+      indicators: indicatorsData,
+      spot: {
+        price: spotNow,
+        delta1mPct: spotDelta1mPct
+      }
     };
 
     // Expose a tiny runtime snapshot for the UI (simple text display)
@@ -381,6 +417,8 @@ async function startApp() {
       marketSlug: polySnapshot.ok ? (polySnapshot.market?.slug ?? null) : null,
       timeLeftMin,
       btcPrice: currentPrice,
+      spotPrice: spotNow,
+      spotDelta1mPct,
       modelUp: timeAware.adjustedUp,
       modelDown: timeAware.adjustedDown,
       narrative: predictNarrative,

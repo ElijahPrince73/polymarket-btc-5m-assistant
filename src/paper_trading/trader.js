@@ -303,6 +303,17 @@ export class Trader {
       blockers.push(`Choppy (range20 ${(rangePct20 * 100).toFixed(2)}% < ${(effectiveMinRangePct20 * 100).toFixed(2)}%)`);
     }
 
+    // Spot impulse filter (Coinbase spot)
+    const minImpulse = CONFIG.paperTrading.minBtcImpulsePct1m ?? 0;
+    const spotDelta1mPct = signals.spot?.delta1mPct ?? null;
+    if (typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) {
+      if (!(typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct))) {
+        blockers.push("Spot impulse unavailable");
+      } else if (Math.abs(spotDelta1mPct) < minImpulse) {
+        blockers.push(`Low impulse (spot1m ${(spotDelta1mPct * 100).toFixed(3)}% < ${(minImpulse * 100).toFixed(3)}%)`);
+      }
+    }
+
     // RSI regime filter (avoid empirically bad band)
     const rsiNow = signals.indicators?.rsiNow ?? null;
     const noTradeRsiMin = CONFIG.paperTrading.noTradeRsiMin;
@@ -363,7 +374,9 @@ export class Trader {
     // No-trade if volume is below threshold(s)
     const entryPriceOk = !(typeof maxEntryPx === "number" && Number.isFinite(maxEntryPx) && typeof currentPolyPrice === "number" && Number.isFinite(currentPolyPrice) && currentPolyPrice > maxEntryPx);
 
-    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    const impulseOk = !(typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) || (typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse);
+
+    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds

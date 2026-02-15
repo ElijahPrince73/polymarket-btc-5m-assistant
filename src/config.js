@@ -12,6 +12,14 @@ export const CONFIG = {
     pair: process.env.KRAKEN_PAIR || "XXBTZUSD"
   },
 
+  // Spot reference feed (used for impulse/basis comparisons)
+  // Note: current implementation uses Coinbase Exchange WS/REST.
+  coinbase: {
+    symbol: process.env.COINBASE_SYMBOL || "BTC-USD",
+    baseUrl: process.env.COINBASE_REST_BASE_URL || "https://api.exchange.coinbase.com",
+    wsBaseUrl: process.env.COINBASE_WS_URL || "wss://ws-feed.exchange.coinbase.com"
+  },
+
   // Polymarket API endpoints
   gammaBaseUrl: "https://gamma-api.polymarket.com",
   clobBaseUrl: "https://clob.polymarket.com",
@@ -138,6 +146,11 @@ export const CONFIG = {
     weekendProbBoost: Number(process.env.WEEKEND_PROB_BOOST) || 0.03,
     weekendEdgeBoost: Number(process.env.WEEKEND_EDGE_BOOST) || 0.03,
     requiredCandlesInDirection: Number(process.env.REQUIRED_CANDLES) || 2,
+
+    // Spot impulse filter (uses Coinbase spot as reference)
+    // Require the BTC spot price to have moved at least this much over the last 60s.
+    // Set to 0 to disable.
+    minBtcImpulsePct1m: Number(process.env.MIN_BTC_IMPULSE_PCT_1M) || 0.0003, // 0.03%
 
     // Volume filters (set to 0 to disable)
     // volumeRecent is sum of last 20x 1m candle volumes

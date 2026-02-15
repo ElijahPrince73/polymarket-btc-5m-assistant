@@ -37,6 +37,8 @@ test('Trader can enter in loose rec gating by inferring side when rec.side is mi
   // Make thresholds easy to hit
   CONFIG.paperTrading.minProbEarly = 0.50;
   CONFIG.paperTrading.edgeEarly = 0;
+  // Disable impulse filter for unit test
+  CONFIG.paperTrading.minBtcImpulsePct1m = 0;
 
   const t = new Trader();
   await t.initialize();
