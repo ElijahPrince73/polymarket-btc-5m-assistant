@@ -101,6 +101,8 @@ export const CONFIG = {
 
     // Cooldown after a losing trade (seconds): prevents rapid back-to-back losses.
     lossCooldownSeconds: Number(process.env.LOSS_COOLDOWN_SECONDS) || 30,
+    // Cooldown after a winning trade (seconds): reduces bursty trade patterns (safer for live).
+    winCooldownSeconds: Number(process.env.WIN_COOLDOWN_SECONDS) || 30,
 
     // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
     stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",

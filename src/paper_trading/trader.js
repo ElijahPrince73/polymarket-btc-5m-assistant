@@ -7,6 +7,7 @@ export class Trader {
     this.openTrade = null;
     this.lastFlipAtMs = 0;
     this.lastLossAtMs = 0;
+    this.lastWinAtMs = 0;
 
     // Debug / UI: why we did or didn't enter on the last check
     this.lastEntryStatus = {
@@ -253,10 +254,16 @@ export class Trader {
     // Wait until indicators are warmed up (enough candles)
     const canEnter = indicatorsReady;
 
-    // Loss cooldown: after a losing exit, wait before entering again.
+    // Cooldowns: after a losing OR winning exit, wait before entering again.
     const lossCooldownSec = CONFIG.paperTrading.lossCooldownSeconds ?? 0;
+    const winCooldownSec = CONFIG.paperTrading.winCooldownSeconds ?? 0;
+
     const inLossCooldown = (typeof lossCooldownSec === "number" && Number.isFinite(lossCooldownSec) && lossCooldownSec > 0 && this.lastLossAtMs)
       ? ((Date.now() - this.lastLossAtMs) < (lossCooldownSec * 1000))
+      : false;
+
+    const inWinCooldown = (typeof winCooldownSec === "number" && Number.isFinite(winCooldownSec) && winCooldownSec > 0 && this.lastWinAtMs)
+      ? ((Date.now() - this.lastWinAtMs) < (winCooldownSec * 1000))
       : false;
 
     // Require core indicators to be populated (prevents 50/50 / undefined warm states)
@@ -275,6 +282,7 @@ export class Trader {
     if (!polyPricesSane) blockers.push("Market data sanity: invalid Polymarket prices (gamma 0/NaN and no valid orderbook quotes)");
     if (this.openTrade) blockers.push("Trade already open");
     if (inLossCooldown) blockers.push(`Loss cooldown (${lossCooldownSec}s)`);
+    if (inWinCooldown) blockers.push(`Win cooldown (${winCooldownSec}s)`);
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
     if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m to settlement)`);
@@ -384,7 +392,7 @@ export class Trader {
 
     const impulseOk = !(typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) || (typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse);
 
-    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !inLossCooldown && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !inLossCooldown && !inWinCooldown && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds
@@ -665,9 +673,10 @@ export class Trader {
     const value = shares * exitPrice;
     const pnl = value - trade.contractSize;
 
-    // Record losing exits so we can apply a cooldown before the next entry.
-    if (Number.isFinite(pnl) && pnl < 0) {
-      this.lastLossAtMs = Date.now();
+    // Record exits so we can apply cooldowns before the next entry.
+    if (Number.isFinite(pnl)) {
+      if (pnl < 0) this.lastLossAtMs = Date.now();
+      else this.lastWinAtMs = Date.now();
     }
 
     trade.exitPrice = exitPrice;
