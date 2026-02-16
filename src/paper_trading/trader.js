@@ -575,8 +575,27 @@ export class Trader {
       // If you want to re-enable flip exits later, restore the block that sets shouldExit here.
 
 
+      // Trailing take-profit (recommended): once a trade has meaningful profit,
+      // allow it to run but exit on a pullback from maxUnrealizedPnl.
+      if (!shouldExit && (CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) && pnlNow !== null) {
+        const start = CONFIG.paperTrading.trailingStartUsd ?? 0;
+        const dd = CONFIG.paperTrading.trailingDrawdownUsd ?? 0;
+        const maxU = (typeof trade.maxUnrealizedPnl === "number" && Number.isFinite(trade.maxUnrealizedPnl)) ? trade.maxUnrealizedPnl : null;
+
+        if (Number.isFinite(start) && start > 0 && Number.isFinite(dd) && dd > 0 && maxU !== null) {
+          if (maxU >= start) {
+            const trail = maxU - dd;
+            if (pnlNow <= trail) {
+              shouldExit = true;
+              exitReason = `Trailing TP (max $${maxU.toFixed(2)}; dd $${dd.toFixed(2)})`;
+            }
+          }
+        }
+      }
+
       // Immediate take-profit: close as soon as we are profitable (mark-to-market).
-      if (!shouldExit && (CONFIG.paperTrading.takeProfitImmediate ?? false) && pnlNow !== null) {
+      // If trailing TP is enabled, we generally rely on trailing exits instead of immediate.
+      if (!shouldExit && !(CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) && (CONFIG.paperTrading.takeProfitImmediate ?? false) && pnlNow !== null) {
         const tp = CONFIG.paperTrading.takeProfitPnlUsd ?? 0;
         if (Number.isFinite(tp) && tp >= 0 && pnlNow >= tp) {
           shouldExit = true;

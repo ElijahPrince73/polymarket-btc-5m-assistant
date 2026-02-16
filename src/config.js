@@ -110,10 +110,19 @@ export const CONFIG = {
     stopLossPct: Number(process.env.STOP_LOSS_PCT) || 0.20,
 
     // Take profit
-    // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
-    takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
+    // NOTE: Immediate TP exits as soon as mark-to-market PnL is >= takeProfitPnlUsd.
+    // For 5m, trailing TP tends to behave better (lets winners run, then protects gains).
+    takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "false").toLowerCase() === "true",
     // Default loosened to let winners run a bit (can override via TAKE_PROFIT_PNL_USD env var)
     takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 25.0,
+
+    // Trailing take profit (recommended):
+    // - Once maxUnrealizedPnl >= trailingStartUsd, we track a trail = maxUnrealizedPnl - trailingDrawdownUsd.
+    // - If pnlNow falls back below the trail, we exit (locking in gains).
+    trailingTakeProfitEnabled: (process.env.TRAILING_TAKE_PROFIT_ENABLED || "true").toLowerCase() === "true",
+    trailingStartUsd: Number(process.env.TRAILING_TAKE_PROFIT_START_USD) || 10,
+    trailingDrawdownUsd: Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 5,
+
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
 
