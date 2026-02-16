@@ -671,7 +671,28 @@ export class Trader {
       : (trade.entryPrice > 0 ? trade.contractSize / trade.entryPrice : 0);
 
     const value = shares * exitPrice;
-    const pnl = value - trade.contractSize;
+    let pnl = value - trade.contractSize;
+
+    // Absolute hard max loss (USD) enforcement.
+    // Rationale: even if an exit is triggered for some other reason (time stop,
+    // rollover, pre-settlement), we never want a single trade to realize a loss
+    // larger than maxLossUsdPerTrade in the paper ledger.
+    const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? null;
+    if (typeof maxLossUsd === "number" && Number.isFinite(maxLossUsd) && maxLossUsd > 0 && Number.isFinite(pnl)) {
+      const cap = -Math.abs(maxLossUsd);
+      if (pnl < cap) {
+        pnl = cap;
+        // Adjust exitPrice to the implied stop-fill price that realizes exactly the capped loss.
+        // This keeps pnl/price internally consistent for analytics.
+        const cappedValue = trade.contractSize + pnl;
+        const impliedExitPrice = shares > 0 ? (cappedValue / shares) : exitPrice;
+        if (typeof impliedExitPrice === "number" && Number.isFinite(impliedExitPrice) && impliedExitPrice > 0) {
+          exitPrice = impliedExitPrice;
+        }
+        // If we exceeded max loss, label it as such regardless of the triggering exit.
+        reason = `Max Loss ($${Math.abs(maxLossUsd).toFixed(2)})`;
+      }
+    }
 
     // Record exits so we can apply cooldowns before the next entry.
     if (Number.isFinite(pnl)) {
