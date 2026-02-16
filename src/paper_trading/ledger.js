@@ -37,6 +37,11 @@ export function loadLedger() {
       losses: 0,
       totalPnL: 0,
       winRate: 0
+    },
+    meta: {
+      // Adds/subtracts from realized PnL for balance display without mutating historical trades.
+      // Example: set to -summary.totalPnL to "reset bankroll" back to startingBalance.
+      realizedOffset: 0
     }
   };
 }
@@ -104,6 +109,13 @@ export async function initializeLedger() {
   currentLedger = loadLedger();
   // Ensure summary is up-to-date on load
   currentLedger.summary = recalculateSummary(currentLedger.trades);
+  // Ensure meta exists
+  if (!currentLedger.meta || typeof currentLedger.meta !== "object") {
+    currentLedger.meta = { realizedOffset: 0 };
+  }
+  if (typeof currentLedger.meta.realizedOffset !== "number" || !Number.isFinite(currentLedger.meta.realizedOffset)) {
+    currentLedger.meta.realizedOffset = 0;
+  }
   await saveLedger(currentLedger); // Save to ensure clean format
   console.log("Ledger initialized. Trades:", currentLedger.trades.length, "Summary:", currentLedger.summary);
   return currentLedger;

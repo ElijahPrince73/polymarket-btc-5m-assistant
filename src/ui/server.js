@@ -234,7 +234,11 @@ app.get('/api/status', async (req, res) => {
     const summary = ledgerData.summary ?? recalculateSummary(ledgerData.trades ?? []);
 
     const starting = CONFIG.paperTrading.startingBalance ?? 1000;
-    const realized = typeof summary.totalPnL === 'number' ? summary.totalPnL : 0;
+    const baseRealized = typeof summary.totalPnL === 'number' ? summary.totalPnL : 0;
+    const offset = (ledgerData.meta && typeof ledgerData.meta.realizedOffset === 'number' && Number.isFinite(ledgerData.meta.realizedOffset))
+      ? ledgerData.meta.realizedOffset
+      : 0;
+    const realized = baseRealized + offset;
     const balance = starting + realized;
 
     res.json({

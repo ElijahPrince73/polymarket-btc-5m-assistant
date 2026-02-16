@@ -48,7 +48,11 @@ export class Trader {
     const ledger = getLedger();
     const summary = ledger.summary ?? recalculateSummary(ledger.trades ?? []);
     const starting = CONFIG.paperTrading.startingBalance ?? 1000;
-    const realized = typeof summary.totalPnL === "number" ? summary.totalPnL : 0;
+    const baseRealized = typeof summary.totalPnL === "number" ? summary.totalPnL : 0;
+    const offset = (ledger.meta && typeof ledger.meta.realizedOffset === "number" && Number.isFinite(ledger.meta.realizedOffset))
+      ? ledger.meta.realizedOffset
+      : 0;
+    const realized = baseRealized + offset;
     const balance = starting + realized;
     return { balance, starting, realized };
   }
