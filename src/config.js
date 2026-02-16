@@ -99,6 +99,9 @@ export const CONFIG = {
     // If pnlNow <= -maxLossUsdPerTrade, force exit.
     maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 20,
 
+    // Cooldown after a losing trade (seconds): prevents rapid back-to-back losses.
+    lossCooldownSeconds: Number(process.env.LOSS_COOLDOWN_SECONDS) || 30,
+
     // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
     stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
