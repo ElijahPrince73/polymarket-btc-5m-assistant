@@ -120,8 +120,8 @@ export const CONFIG = {
     // - Once maxUnrealizedPnl >= trailingStartUsd, we track a trail = maxUnrealizedPnl - trailingDrawdownUsd.
     // - If pnlNow falls back below the trail, we exit (locking in gains).
     trailingTakeProfitEnabled: (process.env.TRAILING_TAKE_PROFIT_ENABLED || "true").toLowerCase() === "true",
-    trailingStartUsd: Number(process.env.TRAILING_TAKE_PROFIT_START_USD) || 10,
-    trailingDrawdownUsd: Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 5,
+    trailingStartUsd: Number(process.env.TRAILING_TAKE_PROFIT_START_USD) || 20,
+    trailingDrawdownUsd: Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 10,
 
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
