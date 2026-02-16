@@ -8,23 +8,18 @@ function toNumber(x) {
   return Number.isFinite(n) ? n : null;
 }
 
-// Prepare the subscription message for Coinbase WebSocket
+// Prepare the subscription message for Coinbase Exchange WebSocket
 function getSubscriptionMessage(symbol) {
-  // Coinbase symbol format is typically BTC-USD. Ensure it's formatted correctly.
-  const formattedSymbol = String(symbol || CONFIG.coinbase.symbol).toUpperCase().replace('-0', '-'); 
-  // Example: BTC-USD remains BTC-USD, BTC0USD becomes BTC-USD. Ensure consistency.
+  // Coinbase Exchange product id format: e.g. BTC-USD
+  const formattedSymbol = String(symbol || CONFIG.coinbase.symbol).toUpperCase();
 
-  // Subscription request payload as per Coinbase WebSocket API docs:
-  // https://docs.cloud.coinbase.com/exchange/docs/websocket-feed
-  // Channel 'matches' for trades.
-  const message = JSON.stringify({
+  // Subscription request payload as per Coinbase Exchange WS docs:
+  // Channel 'matches' emits messages of type 'match' (one trade per message).
+  return JSON.stringify({
     type: "subscribe",
-    channels: [{
-      name: "matches", // Channel for trades
-      product_ids: [formattedSymbol] // Expects an array of product IDs, like ["BTC-USD"]
-    }]
+    product_ids: [formattedSymbol],
+    channels: ["matches"]
   });
-  return message;
 }
 
 export function startCoinbaseTradeStream({ symbol = CONFIG.coinbase.symbol, onUpdate } = {}) {
@@ -61,45 +56,29 @@ export function startCoinbaseTradeStream({ symbol = CONFIG.coinbase.symbol, onUp
       try {
         const msg = JSON.parse(buf.toString());
 
-        // Process messages from the 'matches' channel for trades
+        // Subscription confirmation
         if (msg.type === "subscriptions") {
-          console.log("WebSocket subscription confirmation:", msg);
-          // Check if the expected product_id is confirmed.
-          // This message structure might vary depending on subscription response.
-          // For basic setup, just logging is often enough.
-          if (msg.channels && msg.channels.length > 0 && msg.channels[0].product_ids.includes(symbol.toUpperCase().replace('-', '0'))) {
-              console.log(`Successfully subscribed to trades for ${symbol}.`);
-          } else {
-              console.warn("Subscription confirmation does not match expected symbol. Resending subscription.");
-              // Potentially resend subscription if confirmation is wrong.
-              try { ws.send(subscribeMessage); } catch(e) { console.error("Error resending subscription:", e); scheduleReconnect(); }
-          }
-        } else if (msg.type === "matches" && Array.isArray(msg.matches)) {
-          // Coinbase trade format in 'matches': [trade_id, timestamp_seconds, size, price, side]
-          for (const trade of msg.matches) {
-            if (Array.isArray(trade) && trade.length >= 4) {
-              const price = toNumber(trade[3]); // Price is the 4th element (index 3)
-              const timestampSeconds = toNumber(trade[1]); // Timestamp is the 2nd element (index 1)
+          // Example: { type:'subscriptions', channels:[{name:'matches', product_ids:['BTC-USD']}] }
+          // Don't spam logs; just accept.
+          return;
+        }
 
-              if (price !== null && !isNaN(timestampSeconds)) {
-                lastPrice = price;
-                lastTs = timestampSeconds * 1000; // Convert seconds to milliseconds
-                if (typeof onUpdate === "function") {
-                  onUpdate({ price: lastPrice, ts: lastTs });
-                }
-              }
-            }
+        // Trade messages (one trade per message)
+        if (msg.type === "match") {
+          const price = toNumber(msg.price);
+          const t = msg.time ? Date.parse(msg.time) : null;
+          if (price !== null) {
+            lastPrice = price;
+            lastTs = Number.isFinite(t) ? t : Date.now();
+            if (typeof onUpdate === "function") onUpdate({ price: lastPrice, ts: lastTs });
           }
-        } else if (msg.type === "error") {
+          return;
+        }
+
+        if (msg.type === "error") {
           console.error("Coinbase WebSocket Error:", msg.message, "Reason:", msg.reason);
-          // Handle specific errors. "unsubscribed" reason might mean the subscription was invalid.
-          if (msg.reason === "unsubscribed" || msg.reason === "websocket_closed" || msg.reason === "service_unavailable") {
-             console.log("WebSocket error requires reconnection.");
-             scheduleReconnect();
-          }
-        } else {
-            // Log other message types for debugging if needed
-            // console.log("Received WebSocket message type:", msg.type, msg);
+          scheduleReconnect();
+          return;
         }
       } catch (e) {
         console.error("Error processing WebSocket message:", e);
