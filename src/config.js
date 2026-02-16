@@ -95,6 +95,10 @@ export const CONFIG = {
     // Time stop: if a trade can't go green quickly, cut it.
     loserMaxHoldSeconds: Number(process.env.LOSER_MAX_HOLD_SECONDS) || 120,
 
+    // Hard max loss cap (USD): prevents one trade from wiping multiple small wins.
+    // If pnlNow <= -maxLossUsdPerTrade, force exit.
+    maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 20,
+
     // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
     stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
@@ -104,7 +108,7 @@ export const CONFIG = {
     // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
     takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
     // Default loosened to let winners run a bit (can override via TAKE_PROFIT_PNL_USD env var)
-    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 0.75,
+    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 3.0,
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
 

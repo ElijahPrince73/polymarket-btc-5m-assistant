@@ -564,6 +564,15 @@ export class Trader {
         }
       }
 
+      // Hard max loss cap (USD): prevents a single trade from wiping out many small wins.
+      const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? null;
+      if (!shouldExit && pnlNow !== null && typeof maxLossUsd === "number" && Number.isFinite(maxLossUsd) && maxLossUsd > 0) {
+        if (pnlNow <= -Math.abs(maxLossUsd)) {
+          shouldExit = true;
+          exitReason = `Max Loss ($${Math.abs(maxLossUsd).toFixed(2)})`;
+        }
+      }
+
       // Time stop: if we can't get green quickly, cut losers before they snowball.
       const loserMaxHold = CONFIG.paperTrading.loserMaxHoldSeconds ?? 0;
       if (!shouldExit && pnlNow !== null && tradeAgeSec !== null && Number.isFinite(loserMaxHold) && loserMaxHold > 0) {
