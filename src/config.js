@@ -111,7 +111,7 @@ export const CONFIG = {
     // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
     takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
     // Default loosened to let winners run a bit (can override via TAKE_PROFIT_PNL_USD env var)
-    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 3.0,
+    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 5.0,
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
 
