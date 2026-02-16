@@ -97,7 +97,7 @@ export const CONFIG = {
 
     // Hard max loss cap (USD): prevents one trade from wiping multiple small wins.
     // If pnlNow <= -maxLossUsdPerTrade, force exit.
-    maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 20,
+    maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 15,
 
     // Cooldown after a losing trade (seconds): prevents rapid back-to-back losses.
     lossCooldownSeconds: Number(process.env.LOSS_COOLDOWN_SECONDS) || 30,
@@ -113,7 +113,7 @@ export const CONFIG = {
     // If enabled, close as soon as mark-to-market PnL is >= takeProfitPnlUsd.
     takeProfitImmediate: (process.env.TAKE_PROFIT_IMMEDIATE || "true").toLowerCase() === "true",
     // Default loosened to let winners run a bit (can override via TAKE_PROFIT_PNL_USD env var)
-    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 5.0,
+    takeProfitPnlUsd: Number(process.env.TAKE_PROFIT_PNL_USD) || 10.0,
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
 
@@ -137,7 +137,8 @@ export const CONFIG = {
     minMarketVolumeNum: Number(process.env.MIN_MARKET_VOLUME_NUM) || 0,
     // Max allowed Polymarket orderbook spread (dollars). 0.008 = 0.8¢
     // Tighten spread for better fills
-    maxSpread: Number(process.env.MAX_SPREAD) || 0.020,
+    // Tightened to reduce adverse selection / churn in wide markets
+    maxSpread: Number(process.env.MAX_SPREAD) || 0.012,
 
     // Trading schedule filter (America/Los_Angeles)
     // If enabled, blocks weekend entries (with optional Sunday exception).
