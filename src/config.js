@@ -198,7 +198,8 @@ export const CONFIG = {
     minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.002,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
     // Profitability filter: avoid paying up in 5m (most losses came from >=0.5¢ entries)
-    maxEntryPolyPrice: Number(process.env.MAX_ENTRY_POLY_PRICE) || 0.005,
+    // Tightened: avoid paying up (0.5–1¢ bucket was negative). 0.0045 = 0.45¢
+    maxEntryPolyPrice: Number(process.env.MAX_ENTRY_POLY_PRICE) || 0.0045,
     // Avoid extremely skewed markets where one side is near-zero.
     minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.002,
     
