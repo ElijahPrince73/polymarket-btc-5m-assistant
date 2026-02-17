@@ -11,3 +11,6 @@ yarn-error.log*
 paper_trading/trades.json
 paper_trading/trades.backup-*.json
 paper_trading/liquidity_samples.jsonl
+
+# Secrets
+.env
