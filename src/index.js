@@ -499,6 +499,10 @@ async function startApp() {
     ].filter(Boolean).join("\n") + "\n");
 
     prevCurrentPrice = currentPrice;
+
+    // Throttle the main loop to avoid API spam + memory growth and to keep the UI responsive.
+    const interval = Number(CONFIG.pollIntervalMs) || 2000;
+    await sleep(Math.max(250, interval));
     } catch (err) {
       console.error("Loop error:", err);
       await sleep(1000);
