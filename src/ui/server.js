@@ -309,8 +309,15 @@ export function startUIServer() {
   // Warm the ledger so the UI doesn't throw on first load.
   initializeLedger().catch((e) => console.error("UI server ledger init failed:", e));
 
-  app.listen(port, () => {
+  console.log(`Starting UI server on port ${port}...`);
+  const server = app.listen(port, () => {
     console.log(`UI server running on http://localhost:${port}`);
     console.log(`To access remotely, use ngrok: ngrok http ${port}`);
   });
+
+  server.on('error', (err) => {
+    console.error('UI server failed to bind/listen:', err);
+  });
+
+  return server;
 }
