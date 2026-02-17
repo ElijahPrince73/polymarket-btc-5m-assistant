@@ -484,19 +484,24 @@ async function startApp() {
     
     appendCsvRow("./logs/signals.csv", csvHeader, [new Date().toISOString(), timing.elapsedMinutes.toFixed(3), signal, timeAware.adjustedUp, timeAware.adjustedDown, marketUp, marketDown, edge.edgeUp, edge.edgeDown, rec.action === "ENTER" ? `${rec.side}:${rec.phase}` : "NO_TRADE"]);
 
-    renderScreen([
-      displayMarketSlug, kv("Time left", fmtTimeLeft(timeLeftMin)), "", sepLine(), "",
-      kv("TA Predict", predictValue), kv("Heiken Ashi", (heikenLine.split(': ')[1] ?? heikenLine)?.replace(ANSI.reset,'') ?? "-"), kv("RSI", (rsiLine.split(': ')[1] ?? rsiLine)?.replace(ANSI.reset,'') ?? "-"),
-      kv("MACD", (macdLine.split(': ')[1] ?? macdLine)?.replace(ANSI.reset,'') ?? "-"), kv("Delta 1/3", (deltaLine.split(': ')[1] ?? deltaLine)?.replace(ANSI.reset,'') ?? "-"), kv("VWAP", (vwapLine.split(': ')[1] ?? vwapLine)?.replace(ANSI.reset,'') ?? "-"),
-      "", sepLine(), "",
-      kv("POLYMARKET", polyHeaderValue),
-      polySnapshot.ok && polySnapshot.market?.liquidityNum !== null ? kv("Liquidity", formatNumber(polySnapshot.market.liquidityNum, 0)) : null,
-      settlementLeftMin !== null ? kv("Time left", `${polyTimeLeftColor}${polyTimeLeftDisplay}${ANSI.reset}`) : null,
-      priceToBeat !== null ? kv("PRICE TO BEAT", `$${formatNumber(priceToBeat, 0)}`) : kv("PRICE TO BEAT", `${ANSI.gray}-${ANSI.reset}`),
-      currentPriceLine, "", sepLine(), "",
-      kv("ET | Session", `${ANSI.white}${fmtEtTime()}${ANSI.reset} | ${ANSI.white}${getBtcSession()}${ANSI.reset}`), "", sepLine(),
-      centerText(`${ANSI.dim}${ANSI.gray}created by @krajekis${ANSI.reset}`, screenWidth())
-    ].filter(Boolean).join("\n") + "\n");
+    // Render a TUI only when attached to a real TTY.
+    // Under PM2/non-interactive logs, printing the full screen every loop explodes log size
+    // and can stall the event loop (API endpoints time out).
+    if (process.stdout.isTTY) {
+      renderScreen([
+        displayMarketSlug, kv("Time left", fmtTimeLeft(timeLeftMin)), "", sepLine(), "",
+        kv("TA Predict", predictValue), kv("Heiken Ashi", (heikenLine.split(': ')[1] ?? heikenLine)?.replace(ANSI.reset,'') ?? "-"), kv("RSI", (rsiLine.split(': ')[1] ?? rsiLine)?.replace(ANSI.reset,'') ?? "-"),
+        kv("MACD", (macdLine.split(': ')[1] ?? macdLine)?.replace(ANSI.reset,'') ?? "-"), kv("Delta 1/3", (deltaLine.split(': ')[1] ?? deltaLine)?.replace(ANSI.reset,'') ?? "-"), kv("VWAP", (vwapLine.split(': ')[1] ?? vwapLine)?.replace(ANSI.reset,'') ?? "-"),
+        "", sepLine(), "",
+        kv("POLYMARKET", polyHeaderValue),
+        polySnapshot.ok && polySnapshot.market?.liquidityNum !== null ? kv("Liquidity", formatNumber(polySnapshot.market.liquidityNum, 0)) : null,
+        settlementLeftMin !== null ? kv("Time left", `${polyTimeLeftColor}${polyTimeLeftDisplay}${ANSI.reset}`) : null,
+        priceToBeat !== null ? kv("PRICE TO BEAT", `$${formatNumber(priceToBeat, 0)}`) : kv("PRICE TO BEAT", `${ANSI.gray}-${ANSI.reset}`),
+        currentPriceLine, "", sepLine(), "",
+        kv("ET | Session", `${ANSI.white}${fmtEtTime()}${ANSI.reset} | ${ANSI.white}${getBtcSession()}${ANSI.reset}`), "", sepLine(),
+        centerText(`${ANSI.dim}${ANSI.gray}created by @krajekis${ANSI.reset}`, screenWidth())
+      ].filter(Boolean).join("\n") + "\n");
+    }
 
     prevCurrentPrice = currentPrice;
 
