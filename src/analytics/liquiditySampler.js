@@ -37,10 +37,30 @@ export function recordLiquiditySample({ marketSlug, liquidityNum, spreadUp, spre
   }
 }
 
-export function readLiquiditySamples({ limit = 5000 } = {}) {
+export function readLiquiditySamples({ limit = 5000, maxBytes = 1024 * 1024 } = {}) {
+  // IMPORTANT: avoid reading the entire jsonl into memory.
+  // We read only the last maxBytes from the file and then take the last `limit` lines.
   const outPath = process.env.LIQ_SAMPLES_PATH || DEFAULT_PATH;
   if (!fs.existsSync(outPath)) return [];
-  const text = fs.readFileSync(outPath, 'utf8');
+
+  let text = '';
+  try {
+    const st = fs.statSync(outPath);
+    const size = st.size;
+    const start = Math.max(0, size - maxBytes);
+    const fd = fs.openSync(outPath, 'r');
+    try {
+      const buf = Buffer.alloc(size - start);
+      fs.readSync(fd, buf, 0, buf.length, start);
+      text = buf.toString('utf8');
+    } finally {
+      try { fs.closeSync(fd); } catch {}
+    }
+  } catch {
+    // Fallback: small file or stat/read failure
+    try { text = fs.readFileSync(outPath, 'utf8'); } catch { return []; }
+  }
+
   const lines = text.trim().split('\n').filter(Boolean);
   const slice = lines.slice(Math.max(0, lines.length - limit));
   const rows = [];
