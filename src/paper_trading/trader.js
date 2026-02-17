@@ -9,6 +9,9 @@ export class Trader {
     this.lastLossAtMs = 0;
     this.lastWinAtMs = 0;
 
+    // If we stop out via Max Loss, optionally skip the rest of that market (wait for next slug).
+    this.skipMarketUntilNextSlug = null;
+
     // Debug / UI: why we did or didn't enter on the last check
     this.lastEntryStatus = {
       at: null,
@@ -270,6 +273,10 @@ export class Trader {
       ? ((Date.now() - this.lastWinAtMs) < (winCooldownSec * 1000))
       : false;
 
+    // If we just hit a Max Loss stop in this market slug, skip entries until the slug changes.
+    const skipAfterMaxLoss = CONFIG.paperTrading.skipMarketAfterMaxLoss ?? false;
+    const inSkipMarket = Boolean(skipAfterMaxLoss && this.skipMarketUntilNextSlug && marketSlug && this.skipMarketUntilNextSlug === marketSlug);
+
     // Require core indicators to be populated (prevents 50/50 / undefined warm states)
     const ind = signals.indicators ?? {};
     const hasRsi = typeof ind.rsiNow === "number" && Number.isFinite(ind.rsiNow);
@@ -287,6 +294,7 @@ export class Trader {
     if (this.openTrade) blockers.push("Trade already open");
     if (inLossCooldown) blockers.push(`Loss cooldown (${lossCooldownSec}s)`);
     if (inWinCooldown) blockers.push(`Win cooldown (${winCooldownSec}s)`);
+    if (inSkipMarket) blockers.push("Skip market after Max Loss (wait for next 5m) ");
     if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
     if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
     if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m to settlement)`);
@@ -396,7 +404,7 @@ export class Trader {
 
     const impulseOk = !(typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) || (typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse);
 
-    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !inLossCooldown && !inWinCooldown && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !inLossCooldown && !inWinCooldown && !inSkipMarket && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
       const { phase, edge } = signals.rec;
       
       // Phase-based thresholds
@@ -721,6 +729,12 @@ export class Trader {
     if (Number.isFinite(pnl)) {
       if (pnl < 0) this.lastLossAtMs = Date.now();
       else this.lastWinAtMs = Date.now();
+    }
+
+    // If we stopped out, optionally skip re-entry for the remainder of this market slug.
+    // This avoids getting chopped multiple times in the same 5m window.
+    if (String(reason || "").startsWith("Max Loss") && trade?.marketSlug) {
+      this.skipMarketUntilNextSlug = trade.marketSlug;
     }
 
     trade.exitPrice = exitPrice;

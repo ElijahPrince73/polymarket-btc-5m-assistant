@@ -104,6 +104,9 @@ export const CONFIG = {
     // Cooldown after a winning trade (seconds): reduces bursty trade patterns (safer for live).
     winCooldownSeconds: Number(process.env.WIN_COOLDOWN_SECONDS) || 30,
 
+    // If true: after a Max Loss stopout, do not enter again until the market rolls to the next slug.
+    skipMarketAfterMaxLoss: (process.env.SKIP_MARKET_AFTER_MAX_LOSS || "true").toLowerCase() === "true",
+
     // Stop loss (disabled by default for 5m; rollover + chop made it a big drag)
     stopLossEnabled: (process.env.STOP_LOSS_ENABLED || "false").toLowerCase() === "true",
     // Example: 0.25 => cut the trade if it loses 25% of contractSize.
