@@ -27,7 +27,8 @@ console.log('Deriving/creating User API key for address:', signer.address);
 const creds = await client.createOrDeriveApiKey();
 
 console.log('\n--- Polymarket User API Credentials (KEEP SECRET) ---');
-console.log('CLOB_API_KEY=' + creds.apiKey);
+// NOTE: clob-client returns ApiKeyCreds with fields: { key, secret, passphrase }
+console.log('CLOB_API_KEY=' + creds.key);
 console.log('CLOB_SECRET=' + creds.secret);
 console.log('CLOB_PASSPHRASE=' + creds.passphrase);
 console.log('SIGNATURE_TYPE=0');
