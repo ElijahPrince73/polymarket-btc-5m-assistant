@@ -612,11 +612,69 @@ export class Trader {
       }
 
       // Hard max loss cap (USD): prevents a single trade from wiping out many small wins.
+      // Optional grace window: when breached, wait briefly for recovery if conditions still support the trade.
       const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? null;
+      const graceEnabled = CONFIG.paperTrading.maxLossGraceEnabled ?? false;
+      const graceSeconds = CONFIG.paperTrading.maxLossGraceSeconds ?? 0;
+      const recoverUsd = CONFIG.paperTrading.maxLossRecoverUsd ?? null;
+      const requireModelSupport = CONFIG.paperTrading.maxLossGraceRequireModelSupport ?? false;
+
       if (!shouldExit && pnlNow !== null && typeof maxLossUsd === "number" && Number.isFinite(maxLossUsd) && maxLossUsd > 0) {
-        if (pnlNow <= -Math.abs(maxLossUsd)) {
-          shouldExit = true;
-          exitReason = `Max Loss ($${Math.abs(maxLossUsd).toFixed(2)})`;
+        const maxLossAbs = Math.abs(maxLossUsd);
+        const breached = pnlNow <= -maxLossAbs;
+
+        // Compute a simple "model still supports trade" check
+        const sideProb = trade.side === "UP" ? upP : downP;
+        const oppProb = trade.side === "UP" ? downP : upP;
+        const modelSupports = (sideProb !== null && oppProb !== null)
+          ? (sideProb >= 0.55 && sideProb >= oppProb)
+          : false;
+
+        const okForGrace = Boolean(
+          graceEnabled &&
+          Number.isFinite(graceSeconds) && graceSeconds > 0 &&
+          // Don't play games near settlement
+          (typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit) ? (timeLeftForExit >= (CONFIG.paperTrading.exitBeforeEndMinutes ?? 1.0) + 0.25) : true) &&
+          // Don't grace in obvious bad market quality
+          !isLowLiquidity &&
+          (!requireModelSupport || modelSupports)
+        );
+
+        // If we're in grace and we recovered enough, cancel the pending stop.
+        const recoverThresh = (typeof recoverUsd === "number" && Number.isFinite(recoverUsd) && recoverUsd > 0)
+          ? -Math.abs(recoverUsd)
+          : -maxLossAbs + 1; // fallback: recover at least $1
+
+        if (trade.maxLossBreachAtMs && pnlNow > recoverThresh) {
+          trade.maxLossBreachAtMs = null;
+          await updateTrade(trade.id, { maxLossBreachAtMs: null });
+        }
+
+        if (breached) {
+          // Start grace timer once per trade
+          if (okForGrace) {
+            if (!trade.maxLossGraceUsed && !trade.maxLossBreachAtMs) {
+              trade.maxLossBreachAtMs = Date.now();
+              trade.maxLossGraceUsed = true;
+              await updateTrade(trade.id, { maxLossBreachAtMs: trade.maxLossBreachAtMs, maxLossGraceUsed: true });
+            }
+
+            if (trade.maxLossBreachAtMs) {
+              const elapsed = Date.now() - trade.maxLossBreachAtMs;
+              if (elapsed >= graceSeconds * 1000) {
+                shouldExit = true;
+                exitReason = `Max Loss ($${maxLossAbs.toFixed(2)})`;
+              }
+            } else {
+              // If we can't track breach time for some reason, fall back to exiting.
+              shouldExit = true;
+              exitReason = `Max Loss ($${maxLossAbs.toFixed(2)})`;
+            }
+          } else {
+            // No grace: exit immediately
+            shouldExit = true;
+            exitReason = `Max Loss ($${maxLossAbs.toFixed(2)})`;
+          }
         }
       }
 

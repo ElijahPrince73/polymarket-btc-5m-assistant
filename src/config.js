@@ -96,8 +96,17 @@ export const CONFIG = {
     loserMaxHoldSeconds: Number(process.env.LOSER_MAX_HOLD_SECONDS) || 120,
 
     // Hard max loss cap (USD): prevents one trade from wiping multiple small wins.
-    // If pnlNow <= -maxLossUsdPerTrade, force exit.
+    // If pnlNow <= -maxLossUsdPerTrade, force exit (unless max-loss grace is enabled).
     maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 15,
+
+    // Max-loss grace (optional): when pnl breaches -maxLossUsdPerTrade, allow a short grace window
+    // to recover (helps avoid wick/chop stop-outs) *only when conditions are supportive*.
+    maxLossGraceEnabled: (process.env.MAX_LOSS_GRACE_ENABLED || "true").toLowerCase() === "true",
+    maxLossGraceSeconds: Number(process.env.MAX_LOSS_GRACE_SECONDS) || 60,
+    // If PnL recovers above -maxLossRecoverUsd during grace, we cancel the pending stop.
+    maxLossRecoverUsd: Number(process.env.MAX_LOSS_RECOVER_USD) || 10,
+    // Require the model to still support the trade side during grace.
+    maxLossGraceRequireModelSupport: (process.env.MAX_LOSS_GRACE_REQUIRE_MODEL_SUPPORT || "true").toLowerCase() === "true",
 
     // Cooldown after a losing trade (seconds): prevents rapid back-to-back losses.
     lossCooldownSeconds: Number(process.env.LOSS_COOLDOWN_SECONDS) || 30,
