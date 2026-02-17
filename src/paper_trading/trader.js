@@ -630,11 +630,16 @@ export class Trader {
           ? (sideProb >= 0.55 && sideProb >= oppProb)
           : false;
 
+        const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
+        const timeLeftForExit = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+
         const okForGrace = Boolean(
           graceEnabled &&
           Number.isFinite(graceSeconds) && graceSeconds > 0 &&
           // Don't play games near settlement
-          (typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit) ? (timeLeftForExit >= (CONFIG.paperTrading.exitBeforeEndMinutes ?? 1.0) + 0.25) : true) &&
+          (typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit)
+            ? (timeLeftForExit >= exitBeforeEndMin + 0.25)
+            : true) &&
           // Don't grace in obvious bad market quality
           !isLowLiquidity &&
           (!requireModelSupport || modelSupports)
@@ -695,8 +700,7 @@ export class Trader {
       }
 
       // Exit before settlement to reduce rollover risk
-      const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
-      const timeLeftForExit = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+      // (exitBeforeEndMin/timeLeftForExit are already computed above for max-loss grace)
       if (!shouldExit && typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit) && timeLeftForExit < exitBeforeEndMin) {
         shouldExit = true;
         exitReason = "Pre-settlement Exit";
