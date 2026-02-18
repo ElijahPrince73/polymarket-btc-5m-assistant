@@ -35,10 +35,14 @@ export class LiveTrader {
     // Exit spam guard
     this._lastExitAttemptMsByToken = new Map();
 
-    // Paper-parity entry guards
+    // Paper-parity entry/exit guards
     this.lastLossAtMs = null;
     this.lastWinAtMs = null;
     this.skipMarketUntilNextSlug = null;
+
+    // Max-loss grace state (per tokenID)
+    this._maxLossBreachAtMsByToken = new Map();
+    this._maxLossGraceUsedByToken = new Map();
 
     // daily realized PnL (avg cost, best-effort)
     this.todayRealizedPnl = 0;
@@ -162,13 +166,87 @@ export class LiveTrader {
         // 2) Rollover exit (position token should be tied to a market; best-effort: if market slug changes, still ok)
         // (We don't have per-position slug mapping here; rely on pre-settlement mostly.)
 
-        // 3) Hard max loss
+        // 3) Hard max loss cap (with optional grace window)
         const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? 15;
-        if (u !== null && u <= -Math.abs(maxLossUsd)) {
-          this.lastLossAtMs = Date.now();
-          if (CONFIG.paperTrading.skipMarketAfterMaxLoss) this.skipMarketUntilNextSlug = marketSlug;
-          await this._sellPosition({ tokenID, qty, reason: `Max Loss ($${Number(maxLossUsd).toFixed(2)})` });
-          continue;
+        const graceEnabled = CONFIG.paperTrading.maxLossGraceEnabled ?? false;
+        const graceSeconds = CONFIG.paperTrading.maxLossGraceSeconds ?? 0;
+        const recoverUsd = CONFIG.paperTrading.maxLossRecoverUsd ?? null;
+        const requireModelSupport = CONFIG.paperTrading.maxLossGraceRequireModelSupport ?? false;
+
+        if (u !== null && typeof maxLossUsd === 'number' && Number.isFinite(maxLossUsd) && maxLossUsd > 0) {
+          const maxLossAbs = Math.abs(maxLossUsd);
+          const breached = u <= -maxLossAbs;
+
+          // model support: require side prob >= 0.55 and >= opposite
+          const isUp = String(p.outcome || '').toLowerCase() === 'up';
+          const sideProb = isUp ? signals.modelUp : signals.modelDown;
+          const oppProb = isUp ? signals.modelDown : signals.modelUp;
+          const modelSupports = (typeof sideProb === 'number' && Number.isFinite(sideProb) && typeof oppProb === 'number' && Number.isFinite(oppProb))
+            ? (sideProb >= 0.55 && sideProb >= oppProb)
+            : false;
+
+          // don't grace near settlement
+          const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 1;
+          const okTime = (typeof timeLeftForExit === 'number' && Number.isFinite(timeLeftForExit))
+            ? (timeLeftForExit >= exitBeforeEndMin + 0.25)
+            : true;
+
+          // don't grace in obvious bad liquidity
+          const liqNum = Number(signals?.market?.liquidityNum ?? NaN);
+          const minLiq = Number(CONFIG.paperTrading.minLiquidity ?? 0);
+          const isLowLiquidity = (Number.isFinite(minLiq) && minLiq > 0) ? (!(Number.isFinite(liqNum) && liqNum >= minLiq)) : false;
+
+          const okForGrace = Boolean(
+            graceEnabled &&
+            Number.isFinite(graceSeconds) && graceSeconds > 0 &&
+            okTime &&
+            !isLowLiquidity &&
+            (!requireModelSupport || modelSupports)
+          );
+
+          const recoverThresh = (typeof recoverUsd === 'number' && Number.isFinite(recoverUsd) && recoverUsd > 0)
+            ? -Math.abs(recoverUsd)
+            : (-maxLossAbs + 1);
+
+          // If we're in grace and we recovered enough, cancel pending stop
+          const breachAt = this._maxLossBreachAtMsByToken.get(tokenID) ?? null;
+          if (breachAt && u > recoverThresh) {
+            this._maxLossBreachAtMsByToken.delete(tokenID);
+          }
+
+          if (breached) {
+            if (okForGrace) {
+              const used = Boolean(this._maxLossGraceUsedByToken.get(tokenID));
+              if (!used && !breachAt) {
+                this._maxLossBreachAtMsByToken.set(tokenID, Date.now());
+                this._maxLossGraceUsedByToken.set(tokenID, true);
+              }
+
+              const started = this._maxLossBreachAtMsByToken.get(tokenID) ?? null;
+              if (started) {
+                const elapsed = Date.now() - started;
+                if (elapsed >= graceSeconds * 1000) {
+                  this.lastLossAtMs = Date.now();
+                  if (CONFIG.paperTrading.skipMarketAfterMaxLoss) this.skipMarketUntilNextSlug = marketSlug;
+                  await this._sellPosition({ tokenID, qty, reason: `Max Loss ($${maxLossAbs.toFixed(2)})` });
+                  continue;
+                }
+                // still within grace: do nothing this loop
+              } else {
+                // If we can't track breach time, fall back to exiting
+                this.lastLossAtMs = Date.now();
+                if (CONFIG.paperTrading.skipMarketAfterMaxLoss) this.skipMarketUntilNextSlug = marketSlug;
+                await this._sellPosition({ tokenID, qty, reason: `Max Loss ($${maxLossAbs.toFixed(2)})` });
+                continue;
+              }
+            } else {
+              // no grace: exit immediately
+              this.lastLossAtMs = Date.now();
+              if (CONFIG.paperTrading.skipMarketAfterMaxLoss) this.skipMarketUntilNextSlug = marketSlug;
+              await this._sellPosition({ tokenID, qty, reason: `Max Loss ($${maxLossAbs.toFixed(2)})` });
+              continue;
+            }
+          }
         }
 
         // 4) High-price take-profit (regardless of time left)
@@ -500,8 +578,10 @@ export class LiveTrader {
         resp
       });
 
-      // Reset trailing state so we don't re-trigger exits on a shrinking position
+      // Reset trailing + max-loss grace state so we don't re-trigger exits
       this.maxUnrealizedByToken.delete(tokenID);
+      this._maxLossBreachAtMsByToken.delete(tokenID);
+      this._maxLossGraceUsedByToken.delete(tokenID);
       this.open = null;
 
       return resp;
