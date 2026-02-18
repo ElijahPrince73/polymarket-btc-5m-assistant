@@ -554,26 +554,49 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!tradesResponse.ok) throw new Error('trades endpoint returned non-200');
       lastTradesCache = Array.isArray(trades) ? trades : [];
 
-      refreshReasonFilter(lastTradesCache);
-
-      // Today/yesterday KPIs
-      const keyToday = todayKey();
-      const keyYesterday = yesterdayKey();
-      const buckets = { [keyToday]: { pnl: 0, n: 0 }, [keyYesterday]: { pnl: 0, n: 0 } };
-      for (const t of lastTradesCache) {
-        if (!t || t.status !== 'CLOSED') continue;
-        const ts = t.exitTime || t.timestamp || t.entryTime;
-        if (!ts) continue;
-        const dk = dayKey(ts);
-        if (!buckets[dk]) continue;
-        buckets[dk].pnl += (Number(t.pnl) || 0);
-        buckets[dk].n += 1;
+      // Render trades table
+      if (modeNow === 'LIVE') {
+        const rows = lastTradesCache.slice(0, Number(tradesLimitSel?.value || 50));
+        if (recentTradesBody) {
+          recentTradesBody.innerHTML = rows.length
+            ? rows.map(t => {
+                const ts = t.match_time ? new Date(Number(t.match_time) * 1000).toLocaleTimeString() : '';
+                return `<tr>` +
+                  `<td>${ts}</td>` +
+                  `<td>${t.outcome || ''}</td>` +
+                  `<td>${t.side || ''}</td>` +
+                  `<td>${t.size || ''}</td>` +
+                  `<td>${t.price || ''}</td>` +
+                  `<td>${t.status || ''}</td>` +
+                `</tr>`;
+              }).join('')
+            : '<tr><td colspan="6">No live trades yet.</td></tr>';
+        }
       }
 
-      setKpi(kpiPnlToday, '$' + formatCurrency(buckets[keyToday].pnl, 2), buckets[keyToday].pnl >= 0 ? 'positive' : 'negative');
-      setKpi(kpiTradesToday, `Trades: ${buckets[keyToday].n}`, null);
-      setKpi(kpiPnlYesterday, '$' + formatCurrency(buckets[keyYesterday].pnl, 2), buckets[keyYesterday].pnl >= 0 ? 'positive' : 'negative');
-      setKpi(kpiTradesYesterday, `Trades: ${buckets[keyYesterday].n}`, null);
+      // In LIVE mode, the trade objects differ (CLOB schema). Skip paper-only filters/KPIs.
+      if (modeNow !== 'LIVE') {
+        refreshReasonFilter(lastTradesCache);
+
+        // Today/yesterday KPIs (paper closed trades)
+        const keyToday = todayKey();
+        const keyYesterday = yesterdayKey();
+        const buckets = { [keyToday]: { pnl: 0, n: 0 }, [keyYesterday]: { pnl: 0, n: 0 } };
+        for (const t of lastTradesCache) {
+          if (!t || t.status !== 'CLOSED') continue;
+          const ts = t.exitTime || t.timestamp || t.entryTime;
+          if (!ts) continue;
+          const dk = dayKey(ts);
+          if (!buckets[dk]) continue;
+          buckets[dk].pnl += (Number(t.pnl) || 0);
+          buckets[dk].n += 1;
+        }
+
+        setKpi(kpiPnlToday, '$' + formatCurrency(buckets[keyToday].pnl, 2), buckets[keyToday].pnl >= 0 ? 'positive' : 'negative');
+        setKpi(kpiTradesToday, `Trades: ${buckets[keyToday].n}`, null);
+        setKpi(kpiPnlYesterday, '$' + formatCurrency(buckets[keyYesterday].pnl, 2), buckets[keyYesterday].pnl >= 0 ? 'positive' : 'negative');
+        setKpi(kpiTradesYesterday, `Trades: ${buckets[keyYesterday].n}`, null);
+      }
 
       updatePnlHistogram(lastTradesCache, { limit: 200, bins: 18 });
       renderTradesTable();
