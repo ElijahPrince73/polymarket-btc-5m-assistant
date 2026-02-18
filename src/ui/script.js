@@ -435,11 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
           `Max Exposure:    $${formatCurrency(lt?.limits?.maxOpenExposureUsd ?? 0)}\n` +
           `Max Daily Loss:  $${formatCurrency(lt?.limits?.maxDailyLossUsd ?? 0)}\n`;
 
-        // KPIs (LIVE)
+        // KPIs (LIVE) — keep simple
         setKpi(kpiBalance, '$' + formatCurrency(liveBalUsd), null);
-        setKpi(kpiRealized, 'Realized: (live TBD)', null);
+        setKpi(kpiRealized, 'Realized: (available via /api/live/analytics)', null);
 
-        // Equity curve: not wired for live yet.
+        // Disable charts in LIVE mode
         updateEquityCurve([], 0);
       } else {
         ledgerSummaryDiv.textContent =
@@ -474,32 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- analytics ----
     try {
+      // Analytics are intentionally hidden/disabled in LIVE mode UI.
       if ((lastStatusCache?.mode || 'PAPER') === 'LIVE') {
-        const aRes = await fetch('/api/live/analytics');
-        const analytics = await aRes.json();
-        if (!aRes.ok) throw new Error('live analytics endpoint returned non-200');
-
-        const fmt = (n, d = 2) => (typeof n === 'number' && Number.isFinite(n)) ? n.toFixed(d) : 'N/A';
-
-        if (analyticsOverviewDiv) {
-          analyticsOverviewDiv.textContent = [
-            `LIVE realized PnL (avg-cost): $${fmt(analytics.realizedTotal)}`,
-            `Today (${analytics.todayKey}): $${fmt(analytics.realizedToday)}`,
-            `Yesterday (${analytics.yesterdayKey}): $${fmt(analytics.realizedYesterday)}`,
-            `Trades (fills): ${analytics.tradesCount ?? 0}`,
-            '',
-            'Note: Win-rate / closed-trade analytics still TBD (needs entry→exit pairing + exit reasons).'
-          ].join('\n');
-        }
-
-        // KPIs (LIVE realized)
-        setKpi(kpiRealized, 'Realized: $' + fmt(analytics.realizedTotal), (Number(analytics.realizedTotal) >= 0 ? 'positive' : 'negative'));
-        setKpi(kpiPnlToday, '$' + fmt(analytics.realizedToday), (Number(analytics.realizedToday) >= 0 ? 'positive' : 'negative'));
-        setKpi(kpiTradesToday, `Fills: ${analytics.tradesCount ?? 0}`, null);
-        setKpi(kpiPnlYesterday, '$' + fmt(analytics.realizedYesterday), (Number(analytics.realizedYesterday) >= 0 ? 'positive' : 'negative'));
-        setKpi(kpiTradesYesterday, '', null);
-
-        if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">LIVE: grouping analytics pending.</td></tr>';
+        if (analyticsOverviewDiv) analyticsOverviewDiv.textContent = '';
+        if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">—</td></tr>';
       } else {
         const aRes = await fetch('/api/analytics');
         const analytics = await aRes.json();

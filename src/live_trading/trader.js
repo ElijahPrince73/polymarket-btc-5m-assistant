@@ -32,6 +32,9 @@ export class LiveTrader {
     // trailing PnL state by tokenID
     this.maxUnrealizedByToken = new Map();
 
+    // Exit spam guard
+    this._lastExitAttemptMsByToken = new Map();
+
     // daily realized PnL (avg cost, best-effort)
     this.todayRealizedPnl = 0;
     this.todayKey = null;
@@ -101,8 +104,20 @@ export class LiveTrader {
     const positions = allPositions.filter((p) => allowedTokenIDs.has(p.tokenID));
 
     // Update daily realized PnL (avg-cost, best-effort)
-    const pnl = computeRealizedPnlAvgCost(this._cachedTrades);
-    this.todayRealizedPnl = pnl.realizedTotal;
+    // NOTE: CLOB returns trades across days; compute today's realized using match_time day bucket.
+    const tz = 'America/Los_Angeles';
+    const dayKeyFromEpochSec = (epochSec) => {
+      const d = new Date(Number(epochSec) * 1000);
+      return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    };
+    const todayKey = dayKeyFromEpochSec(Math.floor(Date.now() / 1000));
+    const tradesToday = (Array.isArray(this._cachedTrades) ? this._cachedTrades : []).filter(t => {
+      const mt = t?.match_time;
+      if (!mt) return false;
+      return dayKeyFromEpochSec(mt) === todayKey;
+    });
+    const pnlToday = computeRealizedPnlAvgCost(tradesToday);
+    this.todayRealizedPnl = pnlToday.realizedTotal;
 
     // Daily loss kill-switch
     if (this.todayRealizedPnl <= -Math.abs(CONFIG.liveTrading.maxDailyLossUsd || 0)) {
@@ -234,6 +249,13 @@ export class LiveTrader {
 
   async _sellPosition({ tokenID, qty, reason }) {
     const size = Math.max(5, Math.floor(Number(qty)));
+
+    // Cooldown to avoid spamming SELL attempts when allowance/balance is missing.
+    const cooldownMs = 30_000;
+    const now = Date.now();
+    const last = this._lastExitAttemptMsByToken.get(tokenID) ?? 0;
+    if (now - last < cooldownMs) return null;
+    this._lastExitAttemptMsByToken.set(tokenID, now);
 
     // Ensure conditional token allowance is set (required for SELL).
     // If allowance is 0, attempt to set it via updateBalanceAllowance.
