@@ -35,6 +35,9 @@ export class LiveTrader {
     // Exit spam guard
     this._lastExitAttemptMsByToken = new Map();
 
+    // Track conditional allowance attempts so we can pre-approve before exits
+    this._ensuredConditionalAllowanceAtMsByToken = new Map();
+
     // Paper-parity entry/exit guards
     this.lastLossAtMs = null;
     this.lastWinAtMs = null;
@@ -173,6 +176,9 @@ export class LiveTrader {
         const tokenID = p.tokenID;
         const qty = Number(p.qty || 0);
         if (!tokenID || !isNum(qty) || qty <= 0) continue;
+
+        // Pre-approve conditional token allowance (best-effort) so exits can actually post.
+        await this._ensureConditionalAllowance(tokenID);
 
         if (p.tradable === false) continue;
 
@@ -607,6 +613,31 @@ export class LiveTrader {
         ts: new Date().toISOString(),
         marketSlug,
         side,
+        tokenID,
+        error: e?.response?.data || e?.message || String(e)
+      });
+    }
+  }
+
+  async _ensureConditionalAllowance(tokenID) {
+    const cooldownMs = 5 * 60_000;
+    const now = Date.now();
+    const last = this._ensuredConditionalAllowanceAtMsByToken.get(tokenID) ?? 0;
+    if (now - last < cooldownMs) return;
+    this._ensuredConditionalAllowanceAtMsByToken.set(tokenID, now);
+
+    try {
+      const ba = await this.client.getBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+      const allowance = Number(ba?.allowance ?? 0);
+      const balance = Number(ba?.balance ?? 0);
+      if (Number.isFinite(balance) && balance > 0 && (!Number.isFinite(allowance) || allowance <= 0)) {
+        await this.client.updateBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+        await appendLiveTrade({ type: 'COND_ALLOWANCE_UPDATE', ts: new Date().toISOString(), tokenID, balance });
+      }
+    } catch (e) {
+      await appendLiveTrade({
+        type: 'COND_ALLOWANCE_UPDATE_FAILED',
+        ts: new Date().toISOString(),
         tokenID,
         error: e?.response?.data || e?.message || String(e)
       });
