@@ -96,8 +96,12 @@ async function fetchMarkBestEffort(client, tokenID) {
 
     return { mark: null, tradable: false };
   } catch (e) {
-    // If there's no orderbook for the token, do NOT use last trade fallbacks—can't exit anyway.
-    if (e?.response?.status === 404) return { mark: null, tradable: false };
+    // If there's no orderbook for the token (404), it's expired/non-tradable.
+    // Return silently without error logging—this is expected for old tokens.
+    if (e?.response?.status === 404 || e?.status === 404 || String(e?.message).includes('404')) {
+      return { mark: null, tradable: false };
+    }
+    // For other errors, continue to fallback
   }
 
   // 2) Fallback: last trade price (useful when the book fetch is flaky/timeouts)
