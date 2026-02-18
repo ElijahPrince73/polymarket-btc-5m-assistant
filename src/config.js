@@ -245,6 +245,12 @@ export const CONFIG = {
     maxDailyLossUsd: Number(process.env.LIVE_MAX_DAILY_LOSS_USD) || 30,
     dailyLossReset: (process.env.LIVE_DAILY_LOSS_RESET || "midnight_pt").toLowerCase(),
 
+    // Optional: ignore fills before this epoch second when computing today's realized PnL
+    // (useful if we deployed risk controls late and want a clean slate without deleting history)
+    pnlStartEpochSec: (process.env.LIVE_PNL_START_EPOCH_SEC != null && String(process.env.LIVE_PNL_START_EPOCH_SEC).trim() !== '')
+      ? Number(process.env.LIVE_PNL_START_EPOCH_SEC)
+      : null,
+
     // Execution preferences
     allowMarketOrders: (process.env.LIVE_ALLOW_MARKET_ORDERS || "false").toLowerCase() === "true",
     // Safety default: post-only until full position lifecycle (fills + exits) is implemented.

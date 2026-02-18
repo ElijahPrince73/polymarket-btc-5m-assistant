@@ -374,13 +374,20 @@ app.get('/api/live/analytics', async (req, res) => {
 
     // Realized PnL by day (approx: recompute pnl cumulatively and sample per-day end)
     // For now: compute "today realized" by only including trades from today. (Not perfect avg-cost across boundaries, but good enough for daily kill-switch display.)
+    const pnlStart = CONFIG.liveTrading?.pnlStartEpochSec;
     const tradesToday = (Array.isArray(trades) ? trades : []).filter(t => {
-      const k = t?.match_time ? dayKeyFromEpochSec(t.match_time, tz) : null;
-      return k === todayKey;
+      const mt = Number(t?.match_time || 0);
+      const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
+      if (k !== todayKey) return false;
+      if (typeof pnlStart === 'number' && Number.isFinite(pnlStart) && mt < pnlStart) return false;
+      return true;
     });
     const tradesYesterday = (Array.isArray(trades) ? trades : []).filter(t => {
-      const k = t?.match_time ? dayKeyFromEpochSec(t.match_time, tz) : null;
-      return k === yesterdayKey;
+      const mt = Number(t?.match_time || 0);
+      const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
+      if (k !== yesterdayKey) return false;
+      if (typeof pnlStart === 'number' && Number.isFinite(pnlStart) && mt < pnlStart) return false;
+      return true;
     });
 
     const pnlToday = computeRealizedPnlAvgCost(tradesToday);

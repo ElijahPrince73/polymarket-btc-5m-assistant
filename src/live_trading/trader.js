@@ -136,10 +136,13 @@ export class LiveTrader {
       return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
     };
     const todayKey = dayKeyFromEpochSec(Math.floor(Date.now() / 1000));
+    const pnlStart = CONFIG.liveTrading?.pnlStartEpochSec;
     const tradesToday = (Array.isArray(this._cachedTrades) ? this._cachedTrades : []).filter(t => {
-      const mt = t?.match_time;
+      const mt = Number(t?.match_time || 0);
       if (!mt) return false;
-      return dayKeyFromEpochSec(mt) === todayKey;
+      if (dayKeyFromEpochSec(mt) !== todayKey) return false;
+      if (typeof pnlStart === 'number' && Number.isFinite(pnlStart) && mt < pnlStart) return false;
+      return true;
     });
     const pnlToday = computeRealizedPnlAvgCost(tradesToday);
     this.todayRealizedPnl = pnlToday.realizedTotal;
