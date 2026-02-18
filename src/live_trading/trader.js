@@ -232,6 +232,18 @@ export class LiveTrader {
   async _sellPosition({ tokenID, qty, reason }) {
     const size = Math.max(5, Math.floor(Number(qty)));
 
+    // Ensure conditional token allowance is set (required for SELL).
+    // If allowance is 0, attempt to set it via updateBalanceAllowance.
+    try {
+      const ba = await this.client.getBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+      const allowance = Number(ba?.allowance ?? 0);
+      if (!Number.isFinite(allowance) || allowance <= 0) {
+        await this.client.updateBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+      }
+    } catch {
+      // best-effort; proceed
+    }
+
     // "fill-now" exit: use current sell quote (best bid) as a marketable limit.
     let price = null;
     try {
