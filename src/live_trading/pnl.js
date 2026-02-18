@@ -26,14 +26,19 @@ export function computeRealizedPnlAvgCost(trades) {
       cur.qty += size;
       cur.cost += size * price;
     } else if (side === 'SELL') {
+      if (cur.qty <= 0) {
+        // No inventory tracked for this token; ignore to avoid negative inventory / bogus PnL.
+        continue;
+      }
+
+      const sellQty = Math.min(size, cur.qty);
       const avgCost = cur.qty > 0 ? (cur.cost / cur.qty) : 0;
-      const realized = (price - avgCost) * size;
+      const realized = (price - avgCost) * sellQty;
       realizedByToken.set(tokenID, (realizedByToken.get(tokenID) || 0) + realized);
 
       // reduce inventory
-      const newQty = cur.qty - size;
-      cur.qty = newQty;
-      cur.cost = Math.max(0, cur.cost - avgCost * size);
+      cur.qty = cur.qty - sellQty;
+      cur.cost = Math.max(0, cur.cost - avgCost * sellQty);
     }
 
     inv.set(tokenID, cur);
