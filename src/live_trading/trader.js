@@ -52,8 +52,12 @@ export class LiveTrader {
     this.todayKey = null;
 
     // throttle expensive calls
-    this._lastTradesFetchMs = 0;
+    this._lastTradesFetchAttemptMs = 0;
+    this._lastTradesFetchSuccessMs = 0;
     this._cachedTrades = [];
+
+    // adaptive polling hint
+    this._hadTradablePositionLastLoop = false;
   }
 
   async init() {
@@ -114,10 +118,18 @@ export class LiveTrader {
 
     // Pull trades periodically (used to infer positions + realized PnL)
     const now = Date.now();
-    if (now - this._lastTradesFetchMs > 5_000) {
+
+    // Adaptive polling:
+    // - when flat: 5s is fine
+    // - when in a tradable position or near settlement: poll faster so exits don't lag
+    const nearSettlement = (typeof timeLeftForExit === 'number' && Number.isFinite(timeLeftForExit)) ? (timeLeftForExit <= 2.0) : false;
+    const desiredTtlMs = (this._hadTradablePositionLastLoop || nearSettlement) ? 1500 : 5000;
+
+    if (now - this._lastTradesFetchSuccessMs > desiredTtlMs) {
+      this._lastTradesFetchAttemptMs = now;
       try {
         this._cachedTrades = await this.client.getTrades();
-        this._lastTradesFetchMs = now;
+        this._lastTradesFetchSuccessMs = now;
       } catch {
         // keep old cache
       }
@@ -169,6 +181,7 @@ export class LiveTrader {
     // --- EXIT LOGIC (fill-now exits) ---
     // If we have any position, we manage exits first.
     if (positions.length) {
+      this._hadTradablePositionLastLoop = true;
       setEntryStatus([`Position open (tradable): ${positions.length}`]);
       const exitBefore = CONFIG.paperTrading.exitBeforeEndMinutes ?? 1;
 
@@ -326,6 +339,9 @@ export class LiveTrader {
       // If we have positions, do not enter new ones.
       return;
     }
+
+    // Flat
+    this._hadTradablePositionLastLoop = false;
 
     // From here on, compute entry blockers like paper and expose them in /api/status.
     const blockers = [];
@@ -645,6 +661,15 @@ export class LiveTrader {
   }
 
   async _sellPosition({ tokenID, qty, reason }) {
+    // Force a fresh trade snapshot right before attempting an exit.
+    // This reduces the chance we're exiting based on stale position size.
+    try {
+      this._cachedTrades = await this.client.getTrades();
+      this._lastTradesFetchSuccessMs = Date.now();
+    } catch {
+      // best-effort
+    }
+
     let size = Math.max(5, Math.floor(Number(qty)));
 
     // Cooldown to avoid spamming SELL attempts when allowance/balance is missing.

@@ -296,6 +296,11 @@ app.get('/api/status', async (req, res) => {
           remainingLossBudgetUsd: (typeof (getLiveTrader?.()?.todayRealizedPnl) === 'number' && Number.isFinite(getLiveTrader?.()?.todayRealizedPnl))
             ? (Number(CONFIG.liveTrading?.maxDailyLossUsd ?? 0) + Number(getLiveTrader?.()?.todayRealizedPnl))
             : null
+        },
+        dataAgeSec: {
+          trades: (typeof (getLiveTrader?.()?._lastTradesFetchSuccessMs) === 'number' && getLiveTrader()._lastTradesFetchSuccessMs > 0)
+            ? Math.max(0, (Date.now() - getLiveTrader()._lastTradesFetchSuccessMs) / 1000)
+            : null
         }
       },
 
