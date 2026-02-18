@@ -11,7 +11,13 @@ export function computeRealizedPnlAvgCost(trades) {
   const inv = new Map();
   const realizedByToken = new Map();
 
-  for (const t of Array.isArray(trades) ? trades : []) {
+  const sorted = (Array.isArray(trades) ? trades : []).slice().sort((a, b) => {
+    const ta = Number(a?.match_time ?? 0);
+    const tb = Number(b?.match_time ?? 0);
+    return ta - tb;
+  });
+
+  for (const t of sorted) {
     const tokenID = t?.asset_id;
     if (!tokenID) continue;
 
