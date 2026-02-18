@@ -15,3 +15,4 @@ memory/
 # Secrets
 .env
 .env.*
+live_trading/trades.json
