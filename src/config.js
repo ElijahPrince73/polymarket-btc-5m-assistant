@@ -261,7 +261,10 @@ export const CONFIG = {
     // Example: 0.90 means if mark >= 0.90 (90¢), exit.
     takeProfitPrice: (process.env.LIVE_TAKE_PROFIT_PRICE != null && String(process.env.LIVE_TAKE_PROFIT_PRICE).trim() !== '')
       ? Number(process.env.LIVE_TAKE_PROFIT_PRICE)
-      : null
+      : null,
+
+    // If true, manage exits for ALL open positions (even older tokenIDs), and do not enter until flat.
+    manageAllPositions: (process.env.LIVE_MANAGE_ALL_POSITIONS || 'true').toLowerCase() === 'true'
   },
 
   // UI server settings

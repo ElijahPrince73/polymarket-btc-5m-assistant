@@ -120,13 +120,16 @@ export class LiveTrader {
       }
     }
 
-    // Only manage positions for the CURRENT live market tokens (prevents trying to sell old/expired tokens).
+    // Token IDs for current market (still used for entries)
     const upTokenId = pickTokenId(market, CONFIG.polymarket.upOutcomeLabel);
     const downTokenId = pickTokenId(market, CONFIG.polymarket.downOutcomeLabel);
-    const allowedTokenIDs = new Set([upTokenId, downTokenId].filter(Boolean));
 
     const allPositions = await enrichPositionsWithMarks(computePositionsFromTrades(this._cachedTrades));
-    const positions = allPositions.filter((p) => allowedTokenIDs.has(p.tokenID));
+
+    // Exits: either manage all open positions, or only current market positions.
+    const positions = (CONFIG.liveTrading?.manageAllPositions)
+      ? allPositions
+      : allPositions.filter((p) => new Set([upTokenId, downTokenId].filter(Boolean)).has(p.tokenID));
 
     // Update daily realized PnL (avg-cost, best-effort)
     // NOTE: CLOB returns trades across days; compute today's realized using match_time day bucket.
