@@ -329,6 +329,8 @@ async function startApp() {
 
     // --- Indicator Calculations ---
     let indicatorsData = {};
+    // include candle count for paper/live parity gating
+    indicatorsData.candleCount = klines1m?.length ?? 0;
     if (klines1m && klines1m.length >= CONFIG.candleWindowMinutes) {
       const closes = klines1m.map(c => c.close);
       indicatorsData.vwapSeries = computeVwapSeries(klines1m);

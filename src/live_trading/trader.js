@@ -35,6 +35,11 @@ export class LiveTrader {
     // Exit spam guard
     this._lastExitAttemptMsByToken = new Map();
 
+    // Paper-parity entry guards
+    this.lastLossAtMs = null;
+    this.lastWinAtMs = null;
+    this.skipMarketUntilNextSlug = null;
+
     // daily realized PnL (avg cost, best-effort)
     this.todayRealizedPnl = 0;
     this.todayKey = null;
@@ -149,6 +154,7 @@ export class LiveTrader {
 
         // 1) Pre-settlement exit
         if (isNum(timeLeftForExit) && timeLeftForExit <= exitBefore) {
+          this.lastWinAtMs = Date.now();
           await this._sellPosition({ tokenID, qty, reason: 'Pre-settlement Exit' });
           continue;
         }
@@ -159,6 +165,8 @@ export class LiveTrader {
         // 3) Hard max loss
         const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? 15;
         if (u !== null && u <= -Math.abs(maxLossUsd)) {
+          this.lastLossAtMs = Date.now();
+          if (CONFIG.paperTrading.skipMarketAfterMaxLoss) this.skipMarketUntilNextSlug = marketSlug;
           await this._sellPosition({ tokenID, qty, reason: `Max Loss ($${Number(maxLossUsd).toFixed(2)})` });
           continue;
         }
@@ -166,6 +174,7 @@ export class LiveTrader {
         // 4) High-price take-profit (regardless of time left)
         const tpPrice = CONFIG.liveTrading?.takeProfitPrice;
         if (isNum(tpPrice) && isNum(p.mark) && p.mark >= tpPrice) {
+          this.lastWinAtMs = Date.now();
           await this._sellPosition({ tokenID, qty, reason: `Take Profit (mark >= ${(tpPrice * 100).toFixed(0)}¢)` });
           continue;
         }
@@ -181,6 +190,7 @@ export class LiveTrader {
           u !== null &&
           u <= 0
         ) {
+          this.lastLossAtMs = Date.now();
           await this._sellPosition({ tokenID, qty, reason: `Time Stop (${Number(maxHoldSec).toFixed(0)}s)` });
           continue;
         }
@@ -193,6 +203,7 @@ export class LiveTrader {
           if (isNum(start) && isNum(dd) && maxU !== null && maxU >= start) {
             const trail = maxU - dd;
             if (u <= trail) {
+              this.lastWinAtMs = Date.now();
               await this._sellPosition({ tokenID, qty, reason: `Trailing TP (max $${maxU.toFixed(2)}; dd $${dd.toFixed(2)})` });
               continue;
             }
@@ -204,13 +215,148 @@ export class LiveTrader {
       return;
     }
 
-    // --- ENTRY LOGIC ---
+    // --- ENTRY LOGIC (paper-parity gating) ---
     const rec = signals?.rec;
     if (!rec) return;
 
-    if (rec.action !== 'ENTER') return;
+    const strictRec = String(CONFIG.paperTrading?.recGating || 'loose').toLowerCase() === 'strict';
+    const wantsEnter = (rec.action === 'ENTER') || !strictRec;
+    if (!wantsEnter) return;
+
+    // Prefer Polymarket settlement timer for entry timing too.
+    const timeLeftForEntry = (typeof settlementLeftMin === 'number' && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+
+    // Too late to enter
+    const noEntryFinal = CONFIG.paperTrading.noEntryFinalMinutes ?? 1.5;
+    const isTooLateToEnter = (typeof timeLeftForEntry === 'number' && Number.isFinite(timeLeftForEntry))
+      ? (timeLeftForEntry < noEntryFinal)
+      : false;
+    if (isTooLateToEnter) return;
+
+    // Cooldowns
+    const lossCooldownSec = CONFIG.paperTrading.lossCooldownSeconds ?? 0;
+    const winCooldownSec = CONFIG.paperTrading.winCooldownSeconds ?? 0;
+    const inLossCooldown = (lossCooldownSec > 0 && this.lastLossAtMs) ? ((Date.now() - this.lastLossAtMs) < (lossCooldownSec * 1000)) : false;
+    const inWinCooldown = (winCooldownSec > 0 && this.lastWinAtMs) ? ((Date.now() - this.lastWinAtMs) < (winCooldownSec * 1000)) : false;
+    if (inLossCooldown || inWinCooldown) return;
+
+    // Skip this market after a max-loss stop until next slug
+    const skipAfterMaxLoss = CONFIG.paperTrading.skipMarketAfterMaxLoss ?? false;
+    const inSkipMarket = Boolean(skipAfterMaxLoss && this.skipMarketUntilNextSlug && marketSlug && this.skipMarketUntilNextSlug === marketSlug);
+    if (inSkipMarket) return;
+
+    // Warmup/indicator readiness
+    const candleCount = signals?.indicators?.candleCount ?? signals?.indicators?.candles1mCount ?? signals?.indicators?.closesCount ?? null;
+    const minCandles = CONFIG.paperTrading.minCandlesForEntry ?? 12;
+    // If candleCount isn't provided, fall back to UI runtime candleCount via signals.kline presence.
+    const effectiveCandleCount = (typeof candleCount === 'number' && Number.isFinite(candleCount)) ? candleCount : null;
+    if (effectiveCandleCount !== null && effectiveCandleCount < minCandles) return;
+
+    const ind = signals.indicators ?? {};
+    const hasRsi = typeof ind.rsiNow === 'number' && Number.isFinite(ind.rsiNow);
+    const hasVwap = typeof ind.vwapNow === 'number' && Number.isFinite(ind.vwapNow);
+    const hasVwapSlope = typeof ind.vwapSlope === 'number' && Number.isFinite(ind.vwapSlope);
+    const hasMacd = typeof ind.macd?.hist === 'number' && Number.isFinite(ind.macd.hist);
+    const hasHeiken = typeof ind.heikenColor === 'string' && ind.heikenColor.length > 0 && typeof ind.heikenCount === 'number' && Number.isFinite(ind.heikenCount);
+    const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
+    if (!indicatorsPopulated) return;
+
+    // Weekend tightening + schedule
+    const weekdaysOnly = CONFIG.paperTrading.weekdaysOnly ?? false;
+    const allowSundayAfterHour = CONFIG.paperTrading.allowSundayAfterHour ?? -1;
+    const noEntryAfterFridayHour = CONFIG.paperTrading.noEntryAfterFridayHour ?? -1;
+    const nowDt = new Date();
+    const wd = nowDt.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/Los_Angeles' });
+    const hour = Number(nowDt.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Los_Angeles' }));
+    const isWeekend = (wd === 'Sat' || wd === 'Sun');
+    const isSundayAllowed = (wd === 'Sun' && Number.isFinite(allowSundayAfterHour) && allowSundayAfterHour >= 0 && hour >= allowSundayAfterHour);
+    const isFridayAfter = (wd === 'Fri' && Number.isFinite(noEntryAfterFridayHour) && noEntryAfterFridayHour >= 0 && hour >= noEntryAfterFridayHour);
+    if (weekdaysOnly && ((isWeekend && !isSundayAllowed) || isFridayAfter)) return;
+
+    const weekendTightening = Boolean(CONFIG.paperTrading.weekendTighteningEnabled ?? true) && isWeekend;
+
+    // Market quality: liquidity + spread
+    const mkt = signals.market;
+    const liq = Number(mkt?.liquidityNum ?? NaN);
+    const minLiq = weekendTightening ? (CONFIG.paperTrading.weekendMinLiquidity ?? CONFIG.paperTrading.minLiquidity) : (CONFIG.paperTrading.minLiquidity ?? 0);
+    if (Number.isFinite(minLiq) && minLiq > 0) {
+      if (!(Number.isFinite(liq) && liq >= minLiq)) return;
+    }
+
+    const spreadUp = signals.polyMarketSnapshot?.orderbook?.up?.spread ?? null;
+    const spreadDown = signals.polyMarketSnapshot?.orderbook?.down?.spread ?? null;
+    const maxSpread = weekendTightening ? (CONFIG.paperTrading.weekendMaxSpread ?? CONFIG.paperTrading.maxSpread) : (CONFIG.paperTrading.maxSpread ?? null);
 
     const side = rec.side;
+    const currentSpread = side === 'DOWN' ? spreadDown : spreadUp;
+    if (typeof maxSpread === 'number' && Number.isFinite(maxSpread) && typeof currentSpread === 'number' && Number.isFinite(currentSpread)) {
+      if (currentSpread > maxSpread) return;
+    }
+
+    // Confidence + chop + impulse + RSI band
+    const upP0 = (typeof signals.modelUp === 'number') ? signals.modelUp : null;
+    const downP0 = (typeof signals.modelDown === 'number') ? signals.modelDown : null;
+    const baseMinModelMaxProb = CONFIG.paperTrading.minModelMaxProb ?? 0;
+    const effectiveMinModelMaxProb = weekendTightening ? (CONFIG.paperTrading.weekendMinModelMaxProb ?? baseMinModelMaxProb) : baseMinModelMaxProb;
+    if (effectiveMinModelMaxProb > 0 && upP0 !== null && downP0 !== null) {
+      const m = Math.max(upP0, downP0);
+      if (m < effectiveMinModelMaxProb) return;
+    }
+
+    const rangePct20 = signals.indicators?.rangePct20 ?? null;
+    const baseMinRangePct20 = CONFIG.paperTrading.minRangePct20 ?? 0;
+    const effectiveMinRangePct20 = weekendTightening ? (CONFIG.paperTrading.weekendMinRangePct20 ?? baseMinRangePct20) : baseMinRangePct20;
+    if (typeof rangePct20 === 'number' && Number.isFinite(rangePct20) && effectiveMinRangePct20 > 0 && rangePct20 < effectiveMinRangePct20) return;
+
+    const minImpulse = CONFIG.paperTrading.minBtcImpulsePct1m ?? 0;
+    const spotDelta1mPct = signals.spot?.delta1mPct ?? null;
+    if (typeof minImpulse === 'number' && Number.isFinite(minImpulse) && minImpulse > 0) {
+      if (!(typeof spotDelta1mPct === 'number' && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse)) return;
+    }
+
+    const rsiNow = signals.indicators?.rsiNow ?? null;
+    const noTradeRsiMin = CONFIG.paperTrading.noTradeRsiMin;
+    const noTradeRsiMax = CONFIG.paperTrading.noTradeRsiMax;
+    if (typeof rsiNow === 'number' && Number.isFinite(rsiNow) && Number.isFinite(noTradeRsiMin) && Number.isFinite(noTradeRsiMax)) {
+      if (rsiNow >= noTradeRsiMin && rsiNow < noTradeRsiMax) return;
+    }
+
+    // Polymarket price sanity + profitability cap
+    const currentPolyPrice = side === 'DOWN' ? signals.polyPrices?.DOWN : signals.polyPrices?.UP;
+    const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.002;
+    const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.98;
+    if (!(typeof currentPolyPrice === 'number' && Number.isFinite(currentPolyPrice) && currentPolyPrice >= minPoly && currentPolyPrice <= maxPoly)) return;
+
+    const maxEntryPx = CONFIG.paperTrading.maxEntryPolyPrice ?? null;
+    if (typeof maxEntryPx === 'number' && Number.isFinite(maxEntryPx) && currentPolyPrice > maxEntryPx) return;
+
+    const minOpp = CONFIG.paperTrading.minOppositePolyPrice ?? 0;
+    if (typeof minOpp === 'number' && Number.isFinite(minOpp) && minOpp > 0) {
+      const oppPx = side === 'DOWN' ? signals.polyPrices?.UP : signals.polyPrices?.DOWN;
+      if (typeof oppPx === 'number' && Number.isFinite(oppPx) && oppPx < minOpp) return;
+    }
+
+    // Thresholds (phase-based) — match paper.
+    const phase = rec.phase;
+    let minProbReq, edgeReq;
+    if (phase === 'EARLY') { minProbReq = CONFIG.paperTrading.minProbEarly; edgeReq = CONFIG.paperTrading.edgeEarly; }
+    else if (phase === 'MID') { minProbReq = CONFIG.paperTrading.minProbMid; edgeReq = CONFIG.paperTrading.edgeMid; }
+    else { minProbReq = CONFIG.paperTrading.minProbLate; edgeReq = CONFIG.paperTrading.edgeLate; }
+
+    if (weekendTightening) {
+      minProbReq += (CONFIG.paperTrading.weekendProbBoost ?? 0);
+      edgeReq += (CONFIG.paperTrading.weekendEdgeBoost ?? 0);
+    }
+    if (phase === 'MID') {
+      minProbReq += (CONFIG.paperTrading.midProbBoost ?? 0);
+      edgeReq += (CONFIG.paperTrading.midEdgeBoost ?? 0);
+    }
+
+    const modelProb = side === 'DOWN' ? signals.modelDown : signals.modelUp;
+    const edge = rec.edge ?? 0;
+    if (!(typeof modelProb === 'number' && Number.isFinite(modelProb) && modelProb >= minProbReq)) return;
+    if (!((edge || 0) >= edgeReq)) return;
+
     const tokenID = side === 'DOWN' ? downTokenId : upTokenId;
     if (!tokenID) return;
 
