@@ -332,15 +332,24 @@ app.get('/api/live/trades', async (req, res) => {
   }
 });
 
-// LIVE: open orders from CLOB
+function withTimeout(promise, ms, label = 'operation') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+  ]);
+}
+
+// LIVE: open orders from CLOB (best-effort; don't take down UI on CLOB timeouts)
 app.get('/api/live/open-orders', async (req, res) => {
   try {
     const client = getClobClient();
-    const open = await client.getOpenOrders();
+    const open = await withTimeout(client.getOpenOrders(), 6000, 'getOpenOrders');
     res.json(open);
   } catch (error) {
     console.error('Error fetching LIVE open orders:', error);
-    res.status(500).json({ error: 'Failed to fetch live open orders.' });
+    // Return empty array instead of 500 so UI stays responsive during CLOB outages.
+    res.setHeader('x-openorders-warning', 'clob_unavailable');
+    res.json([]);
   }
 });
 
