@@ -290,6 +290,13 @@ app.get('/api/status', async (req, res) => {
         limits: CONFIG.liveTrading || null,
         collateral: liveCollateral,
         tradesCount: Array.isArray(liveLedger) ? liveLedger.length : 0,
+        daily: {
+          realizedPnlUsd: CONFIG.liveTrading?.enabled ? (getLiveTrader?.()?.todayRealizedPnl ?? null) : null,
+          maxDailyLossUsd: CONFIG.liveTrading?.maxDailyLossUsd ?? null,
+          remainingLossBudgetUsd: (typeof (getLiveTrader?.()?.todayRealizedPnl) === 'number' && Number.isFinite(getLiveTrader?.()?.todayRealizedPnl))
+            ? (Number(CONFIG.liveTrading?.maxDailyLossUsd ?? 0) + Number(getLiveTrader?.()?.todayRealizedPnl))
+            : null
+        }
       },
 
       // Very simple runtime snapshot (set by index.js)
@@ -374,24 +381,22 @@ app.get('/api/live/analytics', async (req, res) => {
 
     // Realized PnL by day (approx: recompute pnl cumulatively and sample per-day end)
     // For now: compute "today realized" by only including trades from today. (Not perfect avg-cost across boundaries, but good enough for daily kill-switch display.)
-    const pnlStart = CONFIG.liveTrading?.pnlStartEpochSec;
     const tradesToday = (Array.isArray(trades) ? trades : []).filter(t => {
       const mt = Number(t?.match_time || 0);
       const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
-      if (k !== todayKey) return false;
-      if (typeof pnlStart === 'number' && Number.isFinite(pnlStart) && mt < pnlStart) return false;
-      return true;
+      return k === todayKey;
     });
     const tradesYesterday = (Array.isArray(trades) ? trades : []).filter(t => {
       const mt = Number(t?.match_time || 0);
       const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
-      if (k !== yesterdayKey) return false;
-      if (typeof pnlStart === 'number' && Number.isFinite(pnlStart) && mt < pnlStart) return false;
-      return true;
+      return k === yesterdayKey;
     });
 
     const pnlToday = computeRealizedPnlAvgCost(tradesToday);
     const pnlYesterday = computeRealizedPnlAvgCost(tradesYesterday);
+
+    const baseline = Number(CONFIG.liveTrading?.dailyLossBaselineUsd ?? 0) || 0;
+    const realizedTodayEffective = (pnlToday.realizedTotal || 0) - baseline;
 
     res.json({
       tz,
@@ -399,7 +404,9 @@ app.get('/api/live/analytics', async (req, res) => {
       yesterdayKey,
       tradesCount: Array.isArray(trades) ? trades.length : 0,
       realizedTotal: pnl.realizedTotal,
-      realizedToday: pnlToday.realizedTotal,
+      realizedTodayRaw: pnlToday.realizedTotal,
+      dailyLossBaselineUsd: baseline,
+      realizedToday: realizedTodayEffective,
       realizedYesterday: pnlYesterday.realizedTotal,
       inventoryByToken: pnl.inventoryByToken,
       realizedByToken: pnl.realizedByToken
