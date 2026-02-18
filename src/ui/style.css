@@ -139,6 +139,17 @@ h3 {
     background: rgba(255,255,255,0.02);
     border-radius: 12px;
     padding: 12px;
+
+    /* Prevent Chart.js canvases from causing layout growth */
+    height: 260px;
+    max-height: 260px;
+    overflow: hidden;
+}
+
+.card canvas {
+    display: block;
+    width: 100% !important;
+    height: 200px !important;
 }
 
 .card-title {
