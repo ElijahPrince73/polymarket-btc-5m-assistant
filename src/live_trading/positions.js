@@ -79,25 +79,32 @@ async function mapLimit(items, limit, fn) {
 }
 
 async function fetchMarkBestEffort(client, tokenID) {
-  if (!tokenID) return null;
+  if (!tokenID) return { mark: null, tradable: false };
 
   // 1) Prefer orderbook midpoint (fast + stable when available)
   try {
     const book = await client.getOrderBook(String(tokenID));
     const bestBid = Array.isArray(book?.bids) && book.bids.length ? toNum(book.bids[0]?.price) : null;
     const bestAsk = Array.isArray(book?.asks) && book.asks.length ? toNum(book.asks[0]?.price) : null;
-    if (bestBid !== null && bestAsk !== null) return (bestBid + bestAsk) / 2;
-    if (bestBid !== null) return bestBid;
-    if (bestAsk !== null) return bestAsk;
-  } catch {
-    // ignore
+
+    // If the orderbook exists but is empty, it's effectively not tradable right now.
+    const tradable = Boolean(bestBid !== null || bestAsk !== null);
+
+    if (bestBid !== null && bestAsk !== null) return { mark: (bestBid + bestAsk) / 2, tradable };
+    if (bestBid !== null) return { mark: bestBid, tradable };
+    if (bestAsk !== null) return { mark: bestAsk, tradable };
+
+    return { mark: null, tradable: false };
+  } catch (e) {
+    // If there's no orderbook for the token, do NOT use last trade fallbacks—can't exit anyway.
+    if (e?.response?.status === 404) return { mark: null, tradable: false };
   }
 
-  // 2) Fallback: last trade price (works even if book is thin)
+  // 2) Fallback: last trade price (useful when the book fetch is flaky/timeouts)
   try {
     const last = await client.getLastTradePrice(String(tokenID));
     const px = (typeof last === 'object' && last !== null) ? toNum(last?.price ?? last?.last_price) : toNum(last);
-    if (px !== null) return px;
+    if (px !== null) return { mark: px, tradable: true };
   } catch {
     // ignore
   }
@@ -105,9 +112,10 @@ async function fetchMarkBestEffort(client, tokenID) {
   // 3) Legacy fallback: our existing price fetcher
   try {
     const px = await fetchClobPrice({ tokenId: String(tokenID), side: 'sell' });
-    return toNum(px);
+    const n = toNum(px);
+    return { mark: n, tradable: n !== null };
   } catch {
-    return null;
+    return { mark: null, tradable: false };
   }
 }
 
@@ -117,14 +125,14 @@ export async function enrichPositionsWithMarks(positions) {
 
   // Concurrency limit to avoid hanging the UI when many positions exist.
   const enriched = await mapLimit(ps, 6, async (p) => {
-    const mark = await fetchMarkBestEffort(client, p.tokenID);
+    const { mark, tradable } = await fetchMarkBestEffort(client, p.tokenID);
 
     let unrealizedPnl = null;
     if (mark !== null && p.avgEntry !== null) {
       unrealizedPnl = (mark - p.avgEntry) * p.qty;
     }
 
-    return { ...p, mark, unrealizedPnl };
+    return { ...p, mark, tradable, unrealizedPnl };
   });
 
   return enriched;

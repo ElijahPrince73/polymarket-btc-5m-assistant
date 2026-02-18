@@ -166,6 +166,8 @@ export class LiveTrader {
         const qty = Number(p.qty || 0);
         if (!tokenID || !isNum(qty) || qty <= 0) continue;
 
+        if (p.tradable === false) continue;
+
         const u = (typeof p.unrealizedPnl === 'number' && Number.isFinite(p.unrealizedPnl)) ? p.unrealizedPnl : null;
 
         // Track MFE for trailing exits
