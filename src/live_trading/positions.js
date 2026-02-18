@@ -1,4 +1,5 @@
 import { fetchClobPrice } from '../data/polymarket.js';
+import { getClobClient } from './clob.js';
 
 function toNum(x) {
   const n = Number(x);
@@ -60,23 +61,71 @@ export function computePositionsFromTrades(trades) {
   return positions;
 }
 
-export async function enrichPositionsWithMarks(positions) {
-  const out = [];
-  for (const p of Array.isArray(positions) ? positions : []) {
-    let mark = null;
-    try {
-      // mid-ish mark: use buy quote as conservative (what it costs to enter), for pnl use sell quote.
-      mark = await fetchClobPrice({ tokenId: p.tokenID, side: 'sell' });
-    } catch {
-      mark = null;
+async function mapLimit(items, limit, fn) {
+  const arr = Array.isArray(items) ? items : [];
+  const out = new Array(arr.length);
+  let idx = 0;
+
+  const workers = new Array(Math.max(1, limit)).fill(0).map(async () => {
+    while (true) {
+      const i = idx++;
+      if (i >= arr.length) break;
+      out[i] = await fn(arr[i], i);
     }
+  });
+
+  await Promise.all(workers);
+  return out;
+}
+
+async function fetchMarkBestEffort(client, tokenID) {
+  if (!tokenID) return null;
+
+  // 1) Prefer orderbook midpoint (fast + stable when available)
+  try {
+    const book = await client.getOrderBook(String(tokenID));
+    const bestBid = Array.isArray(book?.bids) && book.bids.length ? toNum(book.bids[0]?.price) : null;
+    const bestAsk = Array.isArray(book?.asks) && book.asks.length ? toNum(book.asks[0]?.price) : null;
+    if (bestBid !== null && bestAsk !== null) return (bestBid + bestAsk) / 2;
+    if (bestBid !== null) return bestBid;
+    if (bestAsk !== null) return bestAsk;
+  } catch {
+    // ignore
+  }
+
+  // 2) Fallback: last trade price (works even if book is thin)
+  try {
+    const last = await client.getLastTradePrice(String(tokenID));
+    const px = (typeof last === 'object' && last !== null) ? toNum(last?.price ?? last?.last_price) : toNum(last);
+    if (px !== null) return px;
+  } catch {
+    // ignore
+  }
+
+  // 3) Legacy fallback: our existing price fetcher
+  try {
+    const px = await fetchClobPrice({ tokenId: String(tokenID), side: 'sell' });
+    return toNum(px);
+  } catch {
+    return null;
+  }
+}
+
+export async function enrichPositionsWithMarks(positions) {
+  const client = getClobClient();
+  const ps = Array.isArray(positions) ? positions : [];
+
+  // Concurrency limit to avoid hanging the UI when many positions exist.
+  const enriched = await mapLimit(ps, 6, async (p) => {
+    const mark = await fetchMarkBestEffort(client, p.tokenID);
 
     let unrealizedPnl = null;
     if (mark !== null && p.avgEntry !== null) {
       unrealizedPnl = (mark - p.avgEntry) * p.qty;
     }
 
-    out.push({ ...p, mark, unrealizedPnl });
-  }
-  return out;
+    return { ...p, mark, unrealizedPnl };
+  });
+
+  return enriched;
 }
