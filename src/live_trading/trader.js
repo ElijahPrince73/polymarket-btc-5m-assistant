@@ -92,7 +92,13 @@ export class LiveTrader {
       }
     }
 
-    const positions = await enrichPositionsWithMarks(computePositionsFromTrades(this._cachedTrades));
+    // Only manage positions for the CURRENT live market tokens (prevents trying to sell old/expired tokens).
+    const upTokenId = pickTokenId(market, CONFIG.polymarket.upOutcomeLabel);
+    const downTokenId = pickTokenId(market, CONFIG.polymarket.downOutcomeLabel);
+    const allowedTokenIDs = new Set([upTokenId, downTokenId].filter(Boolean));
+
+    const allPositions = await enrichPositionsWithMarks(computePositionsFromTrades(this._cachedTrades));
+    const positions = allPositions.filter((p) => allowedTokenIDs.has(p.tokenID));
 
     // Update daily realized PnL (avg-cost, best-effort)
     const pnl = computeRealizedPnlAvgCost(this._cachedTrades);
@@ -159,9 +165,6 @@ export class LiveTrader {
     // --- ENTRY LOGIC ---
     const rec = signals?.rec;
     if (!rec) return;
-
-    const upTokenId = pickTokenId(market, CONFIG.polymarket.upOutcomeLabel);
-    const downTokenId = pickTokenId(market, CONFIG.polymarket.downOutcomeLabel);
 
     if (rec.action !== 'ENTER') return;
 
