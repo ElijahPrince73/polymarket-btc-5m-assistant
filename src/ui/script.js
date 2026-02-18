@@ -305,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastStatusCache = statusData;
 
       const rt = statusData.runtime;
+      const mode = statusData.mode || 'PAPER';
       if (!statusData?.status?.ok) {
         statusMessage.textContent = 'Not OK';
       } else if (!rt) {
@@ -413,8 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         openTradeDiv.textContent = 'No open trade.';
         openTradeDiv.classList.add('closed');
       }
-
-      const mode = statusData.mode || 'PAPER';
 
       // Ledger summary
       const summary = statusData.ledgerSummary || { totalTrades: 0, wins: 0, losses: 0, totalPnL: 0, winRate: 0 };
