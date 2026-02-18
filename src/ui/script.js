@@ -351,23 +351,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mode === 'LIVE') {
         // In LIVE mode, show open orders (best-effort) instead of paper open trade.
         try {
-          const oRes = await fetch('/api/live/open-orders');
+          const [oRes, pRes] = await Promise.all([
+            fetch('/api/live/open-orders'),
+            fetch('/api/live/positions')
+          ]);
           const open = await oRes.json();
-          if (!oRes.ok) throw new Error('open-orders non-200');
+          const pos = await pRes.json();
 
-          const count = open?.count ?? (Array.isArray(open) ? open.length : 0);
-          const first = Array.isArray(open?.data) ? open.data[0] : (Array.isArray(open) ? open[0] : null);
+          const openCount = open?.count ?? (Array.isArray(open) ? open.length : 0);
+          const firstOpen = Array.isArray(open?.data) ? open.data[0] : (Array.isArray(open) ? open[0] : null);
+
+          const positions = Array.isArray(pos) ? pos : [];
+          const firstPos = positions[0] || null;
 
           openTradeDiv.textContent =
-            `LIVE Open Orders: ${count}\n` +
-            (first ? (`\nFirst:\n` +
-              `  id: ${String(first.id || '').slice(0, 10)}\n` +
-              `  side: ${first.side || 'N/A'}\n` +
-              `  price: ${first.price || 'N/A'}\n` +
-              `  size: ${first.original_size || first.size || 'N/A'}\n`) : '');
+            `LIVE Open Orders: ${openCount}\n` +
+            (firstOpen ? (`\nFirst Order:\n` +
+              `  id: ${String(firstOpen.id || '').slice(0, 10)}\n` +
+              `  side: ${firstOpen.side || 'N/A'}\n` +
+              `  price: ${firstOpen.price || 'N/A'}\n` +
+              `  size: ${firstOpen.original_size || firstOpen.size || 'N/A'}\n`) : '') +
+            `\nLIVE Positions: ${positions.length}\n` +
+            (firstPos ? (`\nFirst Position:\n` +
+              `  token: ${String(firstPos.tokenID || '').slice(0, 10)}...\n` +
+              `  outcome: ${firstPos.outcome || 'N/A'}\n` +
+              `  qty: ${Number(firstPos.qty || 0).toFixed(4)}\n` +
+              `  avgEntry: ${firstPos.avgEntry != null ? (Number(firstPos.avgEntry) * 100).toFixed(2) + '¢' : 'N/A'}\n` +
+              `  mark: ${firstPos.mark != null ? (Number(firstPos.mark) * 100).toFixed(2) + '¢' : 'N/A'}\n` +
+              `  uPnL: ${firstPos.unrealizedPnl != null ? ('$' + Number(firstPos.unrealizedPnl).toFixed(2)) : 'N/A'}\n`) : '');
+
           openTradeDiv.classList.remove('closed');
         } catch {
-          openTradeDiv.textContent = 'LIVE: unable to load open orders.';
+          openTradeDiv.textContent = 'LIVE: unable to load open orders / positions.';
           openTradeDiv.classList.add('closed');
         }
       } else if (statusData.openTrade) {

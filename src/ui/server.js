@@ -11,6 +11,7 @@ import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquid
 
 import { fetchCollateralBalance, getClobClient } from '../live_trading/clob.js';
 import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
+import { computePositionsFromTrades, enrichPositionsWithMarks } from '../live_trading/positions.js';
 
 // Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
@@ -330,6 +331,20 @@ app.get('/api/live/open-orders', async (req, res) => {
   } catch (error) {
     console.error('Error fetching LIVE open orders:', error);
     res.status(500).json({ error: 'Failed to fetch live open orders.' });
+  }
+});
+
+// LIVE: positions inferred from trade history (best-effort)
+app.get('/api/live/positions', async (req, res) => {
+  try {
+    const client = getClobClient();
+    const trades = await client.getTrades();
+    const positions = computePositionsFromTrades(trades);
+    const enriched = await enrichPositionsWithMarks(positions);
+    res.json(enriched);
+  } catch (error) {
+    console.error('Error fetching LIVE positions:', error);
+    res.status(500).json({ error: 'Failed to fetch live positions.' });
   }
 });
 
