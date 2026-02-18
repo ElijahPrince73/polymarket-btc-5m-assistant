@@ -248,7 +248,13 @@ export const CONFIG = {
     // Execution preferences
     allowMarketOrders: (process.env.LIVE_ALLOW_MARKET_ORDERS || "false").toLowerCase() === "true",
     // Safety default: post-only until full position lifecycle (fills + exits) is implemented.
-    postOnly: (process.env.LIVE_POST_ONLY || "true").toLowerCase() === "true"
+    postOnly: (process.env.LIVE_POST_ONLY || "true").toLowerCase() === "true",
+
+    // Take-profit on high-priced outcome token regardless of time left.
+    // Example: 0.90 means if mark >= 0.90 (90¢), exit.
+    takeProfitPrice: (process.env.LIVE_TAKE_PROFIT_PRICE != null && String(process.env.LIVE_TAKE_PROFIT_PRICE).trim() !== '')
+      ? Number(process.env.LIVE_TAKE_PROFIT_PRICE)
+      : null
   },
 
   // UI server settings

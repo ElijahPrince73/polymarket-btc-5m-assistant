@@ -158,7 +158,14 @@ export class LiveTrader {
           continue;
         }
 
-        // 4) Trailing TP
+        // 4) High-price take-profit (regardless of time left)
+        const tpPrice = CONFIG.liveTrading?.takeProfitPrice;
+        if (isNum(tpPrice) && isNum(p.mark) && p.mark >= tpPrice) {
+          await this._sellPosition({ tokenID, qty, reason: `Take Profit (mark >= ${(tpPrice * 100).toFixed(0)}¢)` });
+          continue;
+        }
+
+        // 5) Trailing TP
         if (u !== null && (CONFIG.paperTrading.trailingTakeProfitEnabled ?? false)) {
           const start = CONFIG.paperTrading.trailingStartUsd ?? 20;
           const dd = CONFIG.paperTrading.trailingDrawdownUsd ?? 10;
