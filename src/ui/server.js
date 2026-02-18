@@ -12,6 +12,7 @@ import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquid
 import { fetchCollateralBalance, getClobClient } from '../live_trading/clob.js';
 import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
 import { computePositionsFromTrades, enrichPositionsWithMarks } from '../live_trading/positions.js';
+import { computeRealizedPnlAvgCost } from '../live_trading/pnl.js';
 
 // Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
@@ -345,6 +346,58 @@ app.get('/api/live/positions', async (req, res) => {
   } catch (error) {
     console.error('Error fetching LIVE positions:', error);
     res.status(500).json({ error: 'Failed to fetch live positions.' });
+  }
+});
+
+function dayKeyFromEpochSec(epochSec, tz = 'America/Los_Angeles') {
+  const d = new Date(Number(epochSec) * 1000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+
+// LIVE: realized PnL + inventory from CLOB trades (best-effort)
+app.get('/api/live/analytics', async (req, res) => {
+  try {
+    const client = getClobClient();
+    const trades = await client.getTrades();
+
+    const pnl = computeRealizedPnlAvgCost(trades);
+
+    const tz = process.env.UI_TZ || 'America/Los_Angeles';
+    const todayKey = dayKeyFromEpochSec(Math.floor(Date.now() / 1000), tz);
+    const yesterdayKey = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    })();
+
+    // Realized PnL by day (approx: recompute pnl cumulatively and sample per-day end)
+    // For now: compute "today realized" by only including trades from today. (Not perfect avg-cost across boundaries, but good enough for daily kill-switch display.)
+    const tradesToday = (Array.isArray(trades) ? trades : []).filter(t => {
+      const k = t?.match_time ? dayKeyFromEpochSec(t.match_time, tz) : null;
+      return k === todayKey;
+    });
+    const tradesYesterday = (Array.isArray(trades) ? trades : []).filter(t => {
+      const k = t?.match_time ? dayKeyFromEpochSec(t.match_time, tz) : null;
+      return k === yesterdayKey;
+    });
+
+    const pnlToday = computeRealizedPnlAvgCost(tradesToday);
+    const pnlYesterday = computeRealizedPnlAvgCost(tradesYesterday);
+
+    res.json({
+      tz,
+      todayKey,
+      yesterdayKey,
+      tradesCount: Array.isArray(trades) ? trades.length : 0,
+      realizedTotal: pnl.realizedTotal,
+      realizedToday: pnlToday.realizedTotal,
+      realizedYesterday: pnlYesterday.realizedTotal,
+      inventoryByToken: pnl.inventoryByToken,
+      realizedByToken: pnl.realizedByToken
+    });
+  } catch (error) {
+    console.error('Error fetching LIVE analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch live analytics.' });
   }
 });
 

@@ -475,9 +475,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- analytics ----
     try {
       if ((lastStatusCache?.mode || 'PAPER') === 'LIVE') {
-        // Live analytics not wired yet (needs filled-position accounting).
-        if (analyticsOverviewDiv) analyticsOverviewDiv.textContent = 'LIVE mode: paper analytics are archived. Live analytics (PnL/winrate) will populate once live fills + exits are implemented.';
-        if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">LIVE mode: analytics pending.</td></tr>';
+        const aRes = await fetch('/api/live/analytics');
+        const analytics = await aRes.json();
+        if (!aRes.ok) throw new Error('live analytics endpoint returned non-200');
+
+        const fmt = (n, d = 2) => (typeof n === 'number' && Number.isFinite(n)) ? n.toFixed(d) : 'N/A';
+
+        if (analyticsOverviewDiv) {
+          analyticsOverviewDiv.textContent = [
+            `LIVE realized PnL (avg-cost): $${fmt(analytics.realizedTotal)}`,
+            `Today (${analytics.todayKey}): $${fmt(analytics.realizedToday)}`,
+            `Yesterday (${analytics.yesterdayKey}): $${fmt(analytics.realizedYesterday)}`,
+            `Trades (fills): ${analytics.tradesCount ?? 0}`,
+            '',
+            'Note: Win-rate / closed-trade analytics still TBD (needs entry→exit pairing + exit reasons).'
+          ].join('\n');
+        }
+
+        // KPIs (LIVE realized)
+        setKpi(kpiRealized, 'Realized: $' + fmt(analytics.realizedTotal), (Number(analytics.realizedTotal) >= 0 ? 'positive' : 'negative'));
+        setKpi(kpiPnlToday, '$' + fmt(analytics.realizedToday), (Number(analytics.realizedToday) >= 0 ? 'positive' : 'negative'));
+        setKpi(kpiTradesToday, `Fills: ${analytics.tradesCount ?? 0}`, null);
+        setKpi(kpiPnlYesterday, '$' + fmt(analytics.realizedYesterday), (Number(analytics.realizedYesterday) >= 0 ? 'positive' : 'negative'));
+        setKpi(kpiTradesYesterday, '', null);
+
+        if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">LIVE: grouping analytics pending.</td></tr>';
       } else {
         const aRes = await fetch('/api/analytics');
         const analytics = await aRes.json();
