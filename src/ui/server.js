@@ -1,12 +1,16 @@
+import 'dotenv/config';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 
 import { CONFIG } from '../config.js';
-import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // To fetch trade data and summary
-import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // To get current open trade status
+import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // Paper ledger
+import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // Paper trader status
 import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquiditySampler.js';
+
+import { fetchCollateralBalance } from '../live_trading/clob.js';
+import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
 
 // Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
@@ -241,23 +245,50 @@ app.get('/api/status', async (req, res) => {
     const realized = baseRealized + offset;
     const balance = starting + realized;
 
+    // Live collateral (best-effort)
+    let liveCollateral = null;
+    if (CONFIG.liveTrading?.enabled) {
+      try {
+        liveCollateral = await fetchCollateralBalance();
+      } catch (e) {
+        liveCollateral = { error: e?.message || String(e) };
+      }
+    }
+
+    const liveLedger = CONFIG.liveTrading?.enabled ? (getLiveLedger()?.trades ?? []) : [];
+
     res.json({
       status: {
         ok: true,
         updatedAt: new Date().toISOString()
       },
+      mode: CONFIG.liveTrading?.enabled ? 'LIVE' : 'PAPER',
+
+      // PAPER
       openTrade,
       entryDebug,
       ledgerSummary: summary,
       balance: { starting, realized, balance },
       paperTrading: {
+        enabled: CONFIG.paperTrading.enabled,
         stakePct: CONFIG.paperTrading.stakePct,
         minTradeUsd: CONFIG.paperTrading.minTradeUsd,
         maxTradeUsd: CONFIG.paperTrading.maxTradeUsd,
         stopLossPct: CONFIG.paperTrading.stopLossPct,
         flipOnProbabilityFlip: CONFIG.paperTrading.flipOnProbabilityFlip
       },
-      // Very simple live runtime snapshot (set by index.js)
+
+      // LIVE
+      liveTrading: {
+        enabled: Boolean(CONFIG.liveTrading?.enabled),
+        funder: process.env.FUNDER_ADDRESS || null,
+        signatureType: process.env.SIGNATURE_TYPE || null,
+        limits: CONFIG.liveTrading || null,
+        collateral: liveCollateral,
+        tradesCount: Array.isArray(liveLedger) ? liveLedger.length : 0,
+      },
+
+      // Very simple runtime snapshot (set by index.js)
       runtime: globalThis.__uiStatus ?? null
     });
   } catch (error) {
@@ -306,8 +337,9 @@ app.get('/', (req, res) => {
 });
 
 export function startUIServer() {
-  // Warm the ledger so the UI doesn't throw on first load.
-  initializeLedger().catch((e) => console.error("UI server ledger init failed:", e));
+  // Warm ledgers so the UI doesn't throw on first load.
+  initializeLedger().catch((e) => console.error("UI server (paper) ledger init failed:", e));
+  initializeLiveLedger().catch((e) => console.error("UI server (live) ledger init failed:", e));
 
   console.log(`Starting UI server on port ${port}...`);
   const server = app.listen(port, () => {

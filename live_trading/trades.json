@@ -1,0 +1,29 @@
+{
+  "trades": [
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T09:35:59.398Z",
+      "marketSlug": "btc-updown-5m-1771407300",
+      "side": "UP",
+      "tokenID": "82760636604612466921465614818197028982945025609371483239869805849327072358600",
+      "price": 0.58,
+      "size": 12,
+      "usdNotional": 6.959999999999999,
+      "orderID": "0xbcc7db11b35d0217d4681beca5323fb75ed8071fb0da581f4df6bf092ffa1534",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xbcc7db11b35d0217d4681beca5323fb75ed8071fb0da581f4df6bf092ffa1534",
+        "takingAmount": "12",
+        "makingAmount": "6.48",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x9527f42756f5c1197a84088c9194de3b02582f0fede607e5c05ec0f07ddfd78b"
+        ],
+        "success": true
+      }
+    }
+  ],
+  "meta": {
+    "createdAt": "2026-02-18T09:35:06.131Z"
+  }
+}

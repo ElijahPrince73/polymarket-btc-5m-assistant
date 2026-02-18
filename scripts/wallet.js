@@ -15,6 +15,7 @@ const funder = process.env.FUNDER_ADDRESS || signer.address;
 
 const client = new ClobClient(host, chainId, signer, creds, sig, funder);
 
-// COLLATERAL balance/allowance (don’t pass token_id="USDC")
+await client.updateBalanceAllowance({ asset_type: 'COLLATERAL' });
 const bal = await client.getBalanceAllowance({ asset_type: 'COLLATERAL' });
+
 console.log(bal);

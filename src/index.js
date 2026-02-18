@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { CONFIG } from "./config.js";
 // Data providers - dynamically select based on config.priceFeed
 let klineProvider = null;
@@ -52,6 +53,7 @@ import { applyGlobalProxyFromEnv } from "./net/proxy.js";
 
 // Paper trading modules
 import { Trader, initializeTrader, getTraderInstance, getOpenTrade } from "./paper_trading/trader.js";
+import { initializeLiveTrader, getLiveTrader } from "./live_trading/trader.js";
 import { initializeLedger } from "./paper_trading/ledger.js";
 // UI Server
 import { startUIServer } from "./ui/server.js";
@@ -230,8 +232,18 @@ async function startApp() {
 
   let trader = null;
   if (CONFIG.paperTrading.enabled) {
-    trader = getTraderInstance(); // Assuming getTraderInstance() retrieves the singleton
+    trader = getTraderInstance();
     if (!trader) console.warn("Trader instance not available, paper trading will be disabled.");
+  }
+
+  let liveTrader = null;
+  if (CONFIG.liveTrading?.enabled) {
+    try {
+      liveTrader = await initializeLiveTrader();
+    } catch (e) {
+      console.error('Failed to initialize live trader:', e);
+      liveTrader = null;
+    }
   }
 
   while (true) {
@@ -429,6 +441,7 @@ async function startApp() {
     };
 
     if (CONFIG.paperTrading.enabled && trader) await trader.processSignals(signalsForTrader, klines1m);
+    if (CONFIG.liveTrading?.enabled && liveTrader) await liveTrader.processSignals(signalsForTrader);
 
     // --- Console UI Rendering ---
     const vwapSlopeLabel = indicatorsData.vwapSlope === null || indicatorsData.vwapSlope === undefined ? "-" : indicatorsData.vwapSlope > 0 ? "UP" : indicatorsData.vwapSlope < 0 ? "DOWN" : "FLAT";

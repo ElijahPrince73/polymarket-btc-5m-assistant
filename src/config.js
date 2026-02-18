@@ -233,6 +233,23 @@ export const CONFIG = {
     forcedEntriesEnabled: (process.env.FORCED_ENTRIES || "false").toLowerCase() === "true"
   },
 
+  // Live trading settings (Polymarket CLOB)
+  liveTrading: {
+    enabled: (process.env.LIVE_TRADING_ENABLED || "false").toLowerCase() === "true",
+
+    // Conservative defaults; scale up later as bankroll grows.
+    maxPerTradeUsd: Number(process.env.LIVE_MAX_PER_TRADE_USD) || 7,
+    maxOpenExposureUsd: Number(process.env.LIVE_MAX_OPEN_EXPOSURE_USD) || 10,
+    // Kill switch: if realized PnL for the day <= -maxDailyLossUsd, stop live trading.
+    // Reset mode: "midnight_pt" (default)
+    maxDailyLossUsd: Number(process.env.LIVE_MAX_DAILY_LOSS_USD) || 30,
+    dailyLossReset: (process.env.LIVE_DAILY_LOSS_RESET || "midnight_pt").toLowerCase(),
+
+    // Execution preferences
+    allowMarketOrders: (process.env.LIVE_ALLOW_MARKET_ORDERS || "false").toLowerCase() === "true",
+    postOnly: (process.env.LIVE_POST_ONLY || "false").toLowerCase() === "true"
+  },
+
   // UI server settings
   uiPort: Number(process.env.UI_PORT) || 3000
 };
