@@ -12,6 +12,7 @@ import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquid
 import { fetchCollateralBalance, getClobClient } from '../live_trading/clob.js';
 import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
 import { computePositionsFromTrades, enrichPositionsWithMarks } from '../live_trading/positions.js';
+import { getLiveTrader } from '../live_trading/trader.js';
 import { computeRealizedPnlAvgCost } from '../live_trading/pnl.js';
 
 // Use __dirname polyfill for ES modules
@@ -235,7 +236,8 @@ app.get('/api/status', async (req, res) => {
     const ledgerData = getLedger();
     const openTrade = getOpenTrade();
     const trader = getTraderInstance?.() ?? null;
-    const entryDebug = trader?.lastEntryStatus ?? null;
+    const liveTrader = getLiveTrader?.() ?? null;
+    const entryDebug = (CONFIG.liveTrading?.enabled ? (liveTrader?.lastEntryStatus ?? null) : (trader?.lastEntryStatus ?? null));
 
     const summary = ledgerData.summary ?? recalculateSummary(ledgerData.trades ?? []);
 

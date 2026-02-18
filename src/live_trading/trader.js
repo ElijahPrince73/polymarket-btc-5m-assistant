@@ -87,6 +87,14 @@ export class LiveTrader {
 
     if (!CONFIG.liveTrading?.enabled) return;
 
+    const setEntryStatus = (blockers = []) => {
+      this.lastEntryStatus = {
+        at: new Date().toISOString(),
+        eligible: blockers.length === 0,
+        blockers
+      };
+    };
+
     const market = signals?.market;
     const marketSlug = market?.slug;
     const timeLeftMin = signals?.timeLeftMin;
@@ -96,7 +104,10 @@ export class LiveTrader {
     const settlementLeftMin = endDate ? ((new Date(endDate).getTime() - Date.now()) / 60000) : null;
     const timeLeftForExit = (typeof settlementLeftMin === 'number' && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
 
-    if (!market || !marketSlug) return;
+    if (!market || !marketSlug) {
+      setEntryStatus(['No market loaded']);
+      return;
+    }
 
     // Pull trades periodically (used to infer positions + realized PnL)
     const now = Date.now();
@@ -135,12 +146,14 @@ export class LiveTrader {
 
     // Daily loss kill-switch
     if (this.todayRealizedPnl <= -Math.abs(CONFIG.liveTrading.maxDailyLossUsd || 0)) {
+      setEntryStatus([`Daily loss kill-switch hit ($${this.todayRealizedPnl.toFixed(2)} <= -$${Math.abs(CONFIG.liveTrading.maxDailyLossUsd || 0).toFixed(2)})`]);
       return;
     }
 
     // --- EXIT LOGIC (fill-now exits) ---
     // If we have any position, we manage exits first.
     if (positions.length) {
+      setEntryStatus(['Position open']);
       const exitBefore = CONFIG.paperTrading.exitBeforeEndMinutes ?? 1;
 
       for (const p of positions) {
@@ -293,13 +306,24 @@ export class LiveTrader {
       return;
     }
 
+    // From here on, compute entry blockers like paper and expose them in /api/status.
+    const blockers = [];
+
     // --- ENTRY LOGIC (paper-parity gating) ---
     const rec = signals?.rec;
-    if (!rec) return;
+    if (!rec) {
+      blockers.push('No rec');
+      setEntryStatus(blockers);
+      return;
+    }
 
     const strictRec = String(CONFIG.paperTrading?.recGating || 'loose').toLowerCase() === 'strict';
     const wantsEnter = (rec.action === 'ENTER') || !strictRec;
-    if (!wantsEnter) return;
+    if (!wantsEnter) {
+      blockers.push(`Rec=${rec.action || 'NONE'} (strict)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     // Prefer Polymarket settlement timer for entry timing too.
     const timeLeftForEntry = (typeof settlementLeftMin === 'number' && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
@@ -309,26 +333,43 @@ export class LiveTrader {
     const isTooLateToEnter = (typeof timeLeftForEntry === 'number' && Number.isFinite(timeLeftForEntry))
       ? (timeLeftForEntry < noEntryFinal)
       : false;
-    if (isTooLateToEnter) return;
+    if (isTooLateToEnter) {
+      blockers.push(`Too late (<${noEntryFinal}m to settlement)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     // Cooldowns
     const lossCooldownSec = CONFIG.paperTrading.lossCooldownSeconds ?? 0;
     const winCooldownSec = CONFIG.paperTrading.winCooldownSeconds ?? 0;
     const inLossCooldown = (lossCooldownSec > 0 && this.lastLossAtMs) ? ((Date.now() - this.lastLossAtMs) < (lossCooldownSec * 1000)) : false;
     const inWinCooldown = (winCooldownSec > 0 && this.lastWinAtMs) ? ((Date.now() - this.lastWinAtMs) < (winCooldownSec * 1000)) : false;
-    if (inLossCooldown || inWinCooldown) return;
+    if (inLossCooldown || inWinCooldown) {
+      if (inLossCooldown) blockers.push(`Loss cooldown (${lossCooldownSec}s)`);
+      if (inWinCooldown) blockers.push(`Win cooldown (${winCooldownSec}s)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     // Skip this market after a max-loss stop until next slug
     const skipAfterMaxLoss = CONFIG.paperTrading.skipMarketAfterMaxLoss ?? false;
     const inSkipMarket = Boolean(skipAfterMaxLoss && this.skipMarketUntilNextSlug && marketSlug && this.skipMarketUntilNextSlug === marketSlug);
-    if (inSkipMarket) return;
+    if (inSkipMarket) {
+      blockers.push('Skip market after Max Loss (wait for next 5m)');
+      setEntryStatus(blockers);
+      return;
+    }
 
     // Warmup/indicator readiness
     const candleCount = signals?.indicators?.candleCount ?? signals?.indicators?.candles1mCount ?? signals?.indicators?.closesCount ?? null;
     const minCandles = CONFIG.paperTrading.minCandlesForEntry ?? 12;
     // If candleCount isn't provided, fall back to UI runtime candleCount via signals.kline presence.
     const effectiveCandleCount = (typeof candleCount === 'number' && Number.isFinite(candleCount)) ? candleCount : null;
-    if (effectiveCandleCount !== null && effectiveCandleCount < minCandles) return;
+    if (effectiveCandleCount !== null && effectiveCandleCount < minCandles) {
+      blockers.push(`Warmup: candles ${effectiveCandleCount}/${minCandles}`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     const ind = signals.indicators ?? {};
     const hasRsi = typeof ind.rsiNow === 'number' && Number.isFinite(ind.rsiNow);
@@ -337,7 +378,11 @@ export class LiveTrader {
     const hasMacd = typeof ind.macd?.hist === 'number' && Number.isFinite(ind.macd.hist);
     const hasHeiken = typeof ind.heikenColor === 'string' && ind.heikenColor.length > 0 && typeof ind.heikenCount === 'number' && Number.isFinite(ind.heikenCount);
     const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
-    if (!indicatorsPopulated) return;
+    if (!indicatorsPopulated) {
+      blockers.push('Indicators not ready');
+      setEntryStatus(blockers);
+      return;
+    }
 
     // Weekend tightening + schedule
     const weekdaysOnly = CONFIG.paperTrading.weekdaysOnly ?? false;
@@ -349,7 +394,11 @@ export class LiveTrader {
     const isWeekend = (wd === 'Sat' || wd === 'Sun');
     const isSundayAllowed = (wd === 'Sun' && Number.isFinite(allowSundayAfterHour) && allowSundayAfterHour >= 0 && hour >= allowSundayAfterHour);
     const isFridayAfter = (wd === 'Fri' && Number.isFinite(noEntryAfterFridayHour) && noEntryAfterFridayHour >= 0 && hour >= noEntryAfterFridayHour);
-    if (weekdaysOnly && ((isWeekend && !isSundayAllowed) || isFridayAfter)) return;
+    if (weekdaysOnly && ((isWeekend && !isSundayAllowed) || isFridayAfter)) {
+      blockers.push('Outside schedule (weekdays only / Friday cutoff)');
+      setEntryStatus(blockers);
+      return;
+    }
 
     const weekendTightening = Boolean(CONFIG.paperTrading.weekendTighteningEnabled ?? true) && isWeekend;
 
@@ -358,7 +407,11 @@ export class LiveTrader {
     const liq = Number(mkt?.liquidityNum ?? NaN);
     const minLiq = weekendTightening ? (CONFIG.paperTrading.weekendMinLiquidity ?? CONFIG.paperTrading.minLiquidity) : (CONFIG.paperTrading.minLiquidity ?? 0);
     if (Number.isFinite(minLiq) && minLiq > 0) {
-      if (!(Number.isFinite(liq) && liq >= minLiq)) return;
+      if (!(Number.isFinite(liq) && liq >= minLiq)) {
+        blockers.push(`Low liquidity (<${minLiq})`);
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     const spreadUp = signals.polyMarketSnapshot?.orderbook?.up?.spread ?? null;
@@ -368,7 +421,11 @@ export class LiveTrader {
     const side = rec.side;
     const currentSpread = side === 'DOWN' ? spreadDown : spreadUp;
     if (typeof maxSpread === 'number' && Number.isFinite(maxSpread) && typeof currentSpread === 'number' && Number.isFinite(currentSpread)) {
-      if (currentSpread > maxSpread) return;
+      if (currentSpread > maxSpread) {
+        blockers.push('High spread');
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     // Confidence + chop + impulse + RSI band
@@ -378,40 +435,68 @@ export class LiveTrader {
     const effectiveMinModelMaxProb = weekendTightening ? (CONFIG.paperTrading.weekendMinModelMaxProb ?? baseMinModelMaxProb) : baseMinModelMaxProb;
     if (effectiveMinModelMaxProb > 0 && upP0 !== null && downP0 !== null) {
       const m = Math.max(upP0, downP0);
-      if (m < effectiveMinModelMaxProb) return;
+      if (m < effectiveMinModelMaxProb) {
+        blockers.push(`Low conviction (maxProb ${(m * 100).toFixed(1)}% < ${(effectiveMinModelMaxProb * 100).toFixed(1)}%)`);
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     const rangePct20 = signals.indicators?.rangePct20 ?? null;
     const baseMinRangePct20 = CONFIG.paperTrading.minRangePct20 ?? 0;
     const effectiveMinRangePct20 = weekendTightening ? (CONFIG.paperTrading.weekendMinRangePct20 ?? baseMinRangePct20) : baseMinRangePct20;
-    if (typeof rangePct20 === 'number' && Number.isFinite(rangePct20) && effectiveMinRangePct20 > 0 && rangePct20 < effectiveMinRangePct20) return;
+    if (typeof rangePct20 === 'number' && Number.isFinite(rangePct20) && effectiveMinRangePct20 > 0 && rangePct20 < effectiveMinRangePct20) {
+      blockers.push(`Choppy (range20 ${(rangePct20 * 100).toFixed(2)}% < ${(effectiveMinRangePct20 * 100).toFixed(2)}%)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     const minImpulse = CONFIG.paperTrading.minBtcImpulsePct1m ?? 0;
     const spotDelta1mPct = signals.spot?.delta1mPct ?? null;
     if (typeof minImpulse === 'number' && Number.isFinite(minImpulse) && minImpulse > 0) {
-      if (!(typeof spotDelta1mPct === 'number' && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse)) return;
+      if (!(typeof spotDelta1mPct === 'number' && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse)) {
+        blockers.push('Low impulse');
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     const rsiNow = signals.indicators?.rsiNow ?? null;
     const noTradeRsiMin = CONFIG.paperTrading.noTradeRsiMin;
     const noTradeRsiMax = CONFIG.paperTrading.noTradeRsiMax;
     if (typeof rsiNow === 'number' && Number.isFinite(rsiNow) && Number.isFinite(noTradeRsiMin) && Number.isFinite(noTradeRsiMax)) {
-      if (rsiNow >= noTradeRsiMin && rsiNow < noTradeRsiMax) return;
+      if (rsiNow >= noTradeRsiMin && rsiNow < noTradeRsiMax) {
+        blockers.push(`RSI in no-trade band (${rsiNow.toFixed(1)} in [${noTradeRsiMin},${noTradeRsiMax}))`);
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     // Polymarket price sanity + profitability cap
     const currentPolyPrice = side === 'DOWN' ? signals.polyPrices?.DOWN : signals.polyPrices?.UP;
     const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.002;
     const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.98;
-    if (!(typeof currentPolyPrice === 'number' && Number.isFinite(currentPolyPrice) && currentPolyPrice >= minPoly && currentPolyPrice <= maxPoly)) return;
+    if (!(typeof currentPolyPrice === 'number' && Number.isFinite(currentPolyPrice) && currentPolyPrice >= minPoly && currentPolyPrice <= maxPoly)) {
+      blockers.push(`Poly price out of bounds (${(currentPolyPrice ?? NaN) * 100}¢)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     const maxEntryPx = CONFIG.paperTrading.maxEntryPolyPrice ?? null;
-    if (typeof maxEntryPx === 'number' && Number.isFinite(maxEntryPx) && currentPolyPrice > maxEntryPx) return;
+    if (typeof maxEntryPx === 'number' && Number.isFinite(maxEntryPx) && currentPolyPrice > maxEntryPx) {
+      blockers.push(`Entry price too high (${(currentPolyPrice * 100).toFixed(2)}¢ > ${(maxEntryPx * 100).toFixed(2)}¢)`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     const minOpp = CONFIG.paperTrading.minOppositePolyPrice ?? 0;
     if (typeof minOpp === 'number' && Number.isFinite(minOpp) && minOpp > 0) {
       const oppPx = side === 'DOWN' ? signals.polyPrices?.UP : signals.polyPrices?.DOWN;
-      if (typeof oppPx === 'number' && Number.isFinite(oppPx) && oppPx < minOpp) return;
+      if (typeof oppPx === 'number' && Number.isFinite(oppPx) && oppPx < minOpp) {
+        blockers.push(`Opposite price too low (${(oppPx * 100).toFixed(2)}¢ < ${(minOpp * 100).toFixed(2)}¢)`);
+        setEntryStatus(blockers);
+        return;
+      }
     }
 
     // Thresholds (phase-based) — match paper.
@@ -432,11 +517,26 @@ export class LiveTrader {
 
     const modelProb = side === 'DOWN' ? signals.modelDown : signals.modelUp;
     const edge = rec.edge ?? 0;
-    if (!(typeof modelProb === 'number' && Number.isFinite(modelProb) && modelProb >= minProbReq)) return;
-    if (!((edge || 0) >= edgeReq)) return;
+    if (!(typeof modelProb === 'number' && Number.isFinite(modelProb) && modelProb >= minProbReq)) {
+      blockers.push(`Prob ${modelProb?.toFixed ? modelProb.toFixed(3) : modelProb} < ${minProbReq}`);
+      setEntryStatus(blockers);
+      return;
+    }
+    if (!((edge || 0) >= edgeReq)) {
+      blockers.push(`Edge ${(edge || 0).toFixed(3)} < ${edgeReq}`);
+      setEntryStatus(blockers);
+      return;
+    }
 
     const tokenID = side === 'DOWN' ? downTokenId : upTokenId;
-    if (!tokenID) return;
+    if (!tokenID) {
+      blockers.push('No tokenID for outcome');
+      setEntryStatus(blockers);
+      return;
+    }
+
+    // Eligible
+    setEntryStatus([]);
 
     // Sizing
     const collateral = await this._collateralUsd();
