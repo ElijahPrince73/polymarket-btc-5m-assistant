@@ -21,6 +21,3315 @@
         ],
         "success": true
       }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T12:21:46.882Z",
+      "marketSlug": "btc-updown-5m-1771417200",
+      "side": "DOWN",
+      "tokenID": "112127927397290713579569347450412423002039454191239309778273413934275503473530",
+      "price": 0.46,
+      "size": 15,
+      "usdNotional": 6.9,
+      "orderID": "0x929c8b586c9fed5a9f81816350cd0fdd2ae9b9a5fda145590f09e12eb8516c12",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x929c8b586c9fed5a9f81816350cd0fdd2ae9b9a5fda145590f09e12eb8516c12",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T12:25:25.352Z",
+      "marketSlug": "btc-updown-5m-1771417500",
+      "side": "DOWN",
+      "tokenID": "16404651861557014069372494504079192698106389435634706053049679810457912883391",
+      "price": 0.31,
+      "size": 22,
+      "usdNotional": 6.82,
+      "orderID": "0x49d980b6f9a9cbf42995f3318aac832e6204cf468e833de77fee6858c76a84f0",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x49d980b6f9a9cbf42995f3318aac832e6204cf468e833de77fee6858c76a84f0",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T12:25:51.334Z",
+      "marketSlug": "btc-updown-5m-1771417500",
+      "side": "DOWN",
+      "tokenID": "16404651861557014069372494504079192698106389435634706053049679810457912883391",
+      "price": 0.36,
+      "size": 19,
+      "usdNotional": 6.84,
+      "orderID": "0xc81877e1caa7dce173df96a963ce2620e82bc2ca1b80ac93a139f7b2e31489d3",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xc81877e1caa7dce173df96a963ce2620e82bc2ca1b80ac93a139f7b2e31489d3",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:26:05.497Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:26:45.859Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:27:26.410Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:28:19.530Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Trailing TP (max $279.16; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:28:59.980Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:29:39.900Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T12:47:23.925Z",
+      "marketSlug": "btc-updown-5m-1771418700",
+      "side": "DOWN",
+      "tokenID": "90434889480787800167930366851021001064387077540007491963407552525212729296124",
+      "price": 0.34,
+      "size": 20,
+      "usdNotional": 6.800000000000001,
+      "orderID": "0xcbb78a9ab801feb754a1967afbf029ed75d3a439e800fbd7e6fb9bcfcb4061c7",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xcbb78a9ab801feb754a1967afbf029ed75d3a439e800fbd7e6fb9bcfcb4061c7",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T12:52:20.858Z",
+      "marketSlug": "btc-updown-5m-1771419000",
+      "side": "DOWN",
+      "tokenID": "23432396572311171285906610386933389629086332240330108056490204270139166011925",
+      "price": 0.3,
+      "size": 23,
+      "usdNotional": 6.8999999999999995,
+      "orderID": "0x976aa470b407c48f2c5ffb95da641e539e20ec8ef1c96d2cd23552f2b18ab379",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x976aa470b407c48f2c5ffb95da641e539e20ec8ef1c96d2cd23552f2b18ab379",
+        "takingAmount": "23",
+        "makingAmount": "6.9",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xecb8b447574e784023f4120344440034a3f60cf1ad20838ad1121da47e0eb37c"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:54:12.361Z",
+      "tokenID": "23432396572311171285906610386933389629086332240330108056490204270139166011925",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=22746500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T12:54:54.667Z",
+      "tokenID": "23432396572311171285906610386933389629086332240330108056490204270139166011925",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=22746500, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T13:11:27.564Z",
+      "marketSlug": "btc-updown-5m-1771420200",
+      "side": "DOWN",
+      "tokenID": "42019946122330571893883083389643747610448208849457888925312587990118915704927",
+      "price": 0.59,
+      "size": 11,
+      "usdNotional": 6.489999999999999,
+      "orderID": "0xe2e951f6a61db88c4dfd751f7c7663476402373ae28ec02acf47f8d143068a54",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xe2e951f6a61db88c4dfd751f7c7663476402373ae28ec02acf47f8d143068a54",
+        "takingAmount": "11",
+        "makingAmount": "6.49",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x7533c3119999c7ca5e9fe88f2d05f897f89a3a2f77a9122ee71627271160258f"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:13:36.062Z",
+      "tokenID": "42019946122330571893883083389643747610448208849457888925312587990118915704927",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=10839100, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:14:19.144Z",
+      "tokenID": "42019946122330571893883083389643747610448208849457888925312587990118915704927",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=10839100, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:15:01.822Z",
+      "tokenID": "42019946122330571893883083389643747610448208849457888925312587990118915704927",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=10839100, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T13:17:38.573Z",
+      "marketSlug": "btc-updown-5m-1771420500",
+      "side": "DOWN",
+      "tokenID": "95645427646600064631783537129637836586878592825181164418746973777509167728547",
+      "price": 0.43,
+      "size": 16,
+      "usdNotional": 6.88,
+      "orderID": "0x3f4a990f4eb56be80587e435888cce407f50ef9c660afb4fa98e7eeaaac6f60c",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x3f4a990f4eb56be80587e435888cce407f50ef9c660afb4fa98e7eeaaac6f60c",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T13:36:14.204Z",
+      "marketSlug": "btc-updown-5m-1771421700",
+      "side": "DOWN",
+      "tokenID": "11529754535456937565102819789049856078088636374594813299423219548858726453304",
+      "price": 0.41,
+      "size": 17,
+      "usdNotional": 6.97,
+      "orderID": "0x8fd00bb2a914f1913c39f31c788bbf0d5582293893223c254df1cbd0e61e1006",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x8fd00bb2a914f1913c39f31c788bbf0d5582293893223c254df1cbd0e61e1006",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:38:25.862Z",
+      "tokenID": "51888884222336917246669543207533991380449477443221388956858055366815617623931",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:39:10.804Z",
+      "tokenID": "51888884222336917246669543207533991380449477443221388956858055366815617623931",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T13:39:55.621Z",
+      "tokenID": "51888884222336917246669543207533991380449477443221388956858055366815617623931",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:06:23.337Z",
+      "marketSlug": "btc-updown-5m-1771427100",
+      "side": "UP",
+      "tokenID": "70545926158411609157766575837190678833234972259912665279810110239341641583166",
+      "price": 0.39,
+      "size": 17,
+      "usdNotional": 6.63,
+      "orderID": "0x003dd0191c5cc7ae489b76e3503fcdabd3a562bb973f15e168cf721fa2fd32bb",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x003dd0191c5cc7ae489b76e3503fcdabd3a562bb973f15e168cf721fa2fd32bb",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:07:23.009Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Trailing TP (max $2.97; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:08:36.539Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:09:07.520Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:09:51.859Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:15:26.487Z",
+      "marketSlug": "btc-updown-5m-1771427700",
+      "side": "DOWN",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "price": 0.48,
+      "size": 14,
+      "usdNotional": 6.72,
+      "orderID": "0xb93d52aedad90e51e4249af72f9a3531c9d6b90454bd77ffc02e369521fdd674",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xb93d52aedad90e51e4249af72f9a3531c9d6b90454bd77ffc02e369521fdd674",
+        "takingAmount": "14",
+        "makingAmount": "6.58",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xaa91294f5777c2ac23a1fbbddbed9a5ce1ea4e79c8c8f783fe7cb9ccb01050a5"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:17:29.781Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:18:00.724Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:18:31.574Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:19:02.162Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:19:32.363Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:20:03.282Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:25:40.699Z",
+      "marketSlug": "btc-updown-5m-1771428300",
+      "side": "UP",
+      "tokenID": "26427483581221641126175475197666324164435701097958484699438620922685190041997",
+      "price": 0.59,
+      "size": 11,
+      "usdNotional": 6.489999999999999,
+      "orderID": "0xf70fd6745ec4cad5d9b239adf5377517c7a5b346ad5d3899398dacb2f7a53a5e",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xf70fd6745ec4cad5d9b239adf5377517c7a5b346ad5d3899398dacb2f7a53a5e",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:27:45.532Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:28:17.505Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:29:19.646Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:29:50.111Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:30:52.535Z",
+      "marketSlug": "btc-updown-5m-1771428600",
+      "side": "DOWN",
+      "tokenID": "14338726281264784093951965053361876602145714804964890217520469598587243421675",
+      "price": 0.52,
+      "size": 13,
+      "usdNotional": 6.76,
+      "orderID": "0xdf49ccb265428366b50ee993ad079d3eb75197c912981f180d3aab8226795a48",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xdf49ccb265428366b50ee993ad079d3eb75197c912981f180d3aab8226795a48",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:33:33.119Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Trailing TP (max $20.19; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:34:04.723Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:34:35.341Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:35:07.297Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:35:38.505Z",
+      "marketSlug": "btc-updown-5m-1771428900",
+      "side": "DOWN",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "price": 0.35,
+      "size": 20,
+      "usdNotional": 7,
+      "orderID": "0x5cef9154adbcc55184962ff9f06e60ee1ca782898b0066c0895a6392bc24df0a",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x5cef9154adbcc55184962ff9f06e60ee1ca782898b0066c0895a6392bc24df0a",
+        "takingAmount": "20",
+        "makingAmount": "6.97",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xb9bf3a0d7a1d8b61e3d6ba1e44565638c26a158ffae30c4b7aba8e4b8aaf5b9a"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:37:45.533Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:38:18.285Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:38:49.487Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:39:21.646Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:39:53.729Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:45:48.627Z",
+      "marketSlug": "btc-updown-5m-1771429500",
+      "side": "UP",
+      "tokenID": "26276229956589881590417544864150085059712345074711961666603421836112965082237",
+      "price": 0.22,
+      "size": 31,
+      "usdNotional": 6.82,
+      "orderID": "0xd558fd6c5736581f8ebc479d30304581327a0fdb205a061655ab43edbe5fef4b",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xd558fd6c5736581f8ebc479d30304581327a0fdb205a061655ab43edbe5fef4b",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:46:53.492Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Trailing TP (max $3.66; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:47:41.876Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Trailing TP (max $10.80; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:48:13.632Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Trailing TP (max $10.99; dd $1.25)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:49:00.659Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:49:32.646Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:50:04.499Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:51:59.478Z",
+      "marketSlug": "btc-updown-5m-1771429800",
+      "side": "UP",
+      "tokenID": "107497527936528388380936920526906271857176283668159052034993882562148664656237",
+      "price": 0.41,
+      "size": 17,
+      "usdNotional": 6.97,
+      "orderID": "0xe90e53c1a575ef52efa1abaf8fdc83263cdc7918fab6b9f2101bbe8d90e8f0cf",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xe90e53c1a575ef52efa1abaf8fdc83263cdc7918fab6b9f2101bbe8d90e8f0cf",
+        "takingAmount": "17",
+        "makingAmount": "6.97",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x8d5ec4b9f9f3cd964b5eba9c3a8181a5e68d01ad796b7180be4428db789b011a"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:54:09.852Z",
+      "tokenID": "107497527936528388380936920526906271857176283668159052034993882562148664656237",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=16751400, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:54:43.669Z",
+      "tokenID": "107497527936528388380936920526906271857176283668159052034993882562148664656237",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=16751400, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T15:55:34.222Z",
+      "marketSlug": "btc-updown-5m-1771430100",
+      "side": "UP",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "price": 0.33,
+      "size": 21,
+      "usdNotional": 6.930000000000001,
+      "orderID": "0x5510854786c140fcc10e4c73bcbf197114a87a06009f630bb0cbedc6bcd4b605",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x5510854786c140fcc10e4c73bcbf197114a87a06009f630bb0cbedc6bcd4b605",
+        "takingAmount": "5.3",
+        "makingAmount": "1.749",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x2a28cfb58683f20619af1e06782d6a3bac8d6a30d81f53e7f55610fdf72f95ec"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:57:48.022Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:58:05.557Z",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=20935300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:58:39.186Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:58:39.852Z",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=20935300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:59:13.594Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:59:14.371Z",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=20935300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:59:47.675Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T15:59:48.317Z",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=20935300, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:11:26.722Z",
+      "marketSlug": "btc-updown-5m-1771431000",
+      "side": "DOWN",
+      "tokenID": "56349404634513209498306698001873223542519837894679228816763087127131880012514",
+      "price": 0.33,
+      "size": 21,
+      "usdNotional": 6.930000000000001,
+      "orderID": "0xd61002c9ade34580c8ed96709c9e0439301563c65a6b9c9e711834ed25334ee1",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xd61002c9ade34580c8ed96709c9e0439301563c65a6b9c9e711834ed25334ee1",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:12:16.548Z",
+      "marketSlug": "btc-updown-5m-1771431000",
+      "side": "DOWN",
+      "tokenID": "56349404634513209498306698001873223542519837894679228816763087127131880012514",
+      "price": 0.63,
+      "size": 11,
+      "usdNotional": 6.93,
+      "orderID": "0x599342fbae7528faa915ad681ff955e20f014fb19cde77506fc3a4cfda855190",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x599342fbae7528faa915ad681ff955e20f014fb19cde77506fc3a4cfda855190",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:16:30.278Z",
+      "marketSlug": "btc-updown-5m-1771431300",
+      "side": "DOWN",
+      "tokenID": "96275468551166491041983227864610540766744925893002302077636700367926681944256",
+      "price": 0.23,
+      "size": 30,
+      "usdNotional": 6.9,
+      "orderID": "0xcd9563d14c13f29900a29f443b5f07e1fc4ca0527ef581247a78a6dac7b8eea8",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xcd9563d14c13f29900a29f443b5f07e1fc4ca0527ef581247a78a6dac7b8eea8",
+        "takingAmount": "10",
+        "makingAmount": "2.3",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x6af6dcbfb3bf3c5a7ac022cfe4816bd86221f1fbe01e81f8eabff8081e636d0a"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:18:45.129Z",
+      "tokenID": "96275468551166491041983227864610540766744925893002302077636700367926681944256",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=29916143, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:19:02.351Z",
+      "tokenID": "48835075337727046676223051908805747671830527076273921303174303618024642164104",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:19:19.456Z",
+      "tokenID": "96275468551166491041983227864610540766744925893002302077636700367926681944256",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=29916143, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:19:36.383Z",
+      "tokenID": "48835075337727046676223051908805747671830527076273921303174303618024642164104",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:19:55.135Z",
+      "tokenID": "96275468551166491041983227864610540766744925893002302077636700367926681944256",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=29916143, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:20:13.157Z",
+      "tokenID": "48835075337727046676223051908805747671830527076273921303174303618024642164104",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:30:48.831Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.5,
+      "size": 14,
+      "usdNotional": 7,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:31:40.112Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.44,
+      "size": 15,
+      "usdNotional": 6.6,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:32:05.943Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.3,
+      "size": 23,
+      "usdNotional": 6.8999999999999995,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:32:18.707Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.3,
+      "size": 23,
+      "usdNotional": 6.8999999999999995,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:32:32.674Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.36,
+      "size": 19,
+      "usdNotional": 6.84,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:32:59.935Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.23,
+      "size": 30,
+      "usdNotional": 6.9,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:33:12.817Z",
+      "marketSlug": "btc-updown-5m-1771432200",
+      "side": "DOWN",
+      "tokenID": "13978346939971468963597926134824301025279618781278438483257381109719616963538",
+      "price": 0.44,
+      "size": 15,
+      "usdNotional": 6.6,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:35:34.073Z",
+      "marketSlug": "btc-updown-5m-1771432500",
+      "side": "DOWN",
+      "tokenID": "91485941948897462881480064723507942806595271596183034662292539470208551154693",
+      "price": 0.34,
+      "size": 20,
+      "usdNotional": 6.800000000000001,
+      "orderID": "0xce6edc5862c8240cfd45663e129e10327118c756b830c84e2aaec8aecee09dd1",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xce6edc5862c8240cfd45663e129e10327118c756b830c84e2aaec8aecee09dd1",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:37:51.458Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:38:25.819Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:39:18.916Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:39:54.844Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:51:00.514Z",
+      "marketSlug": "btc-updown-5m-1771433400",
+      "side": "DOWN",
+      "tokenID": "42416759808538822403462476538791609710871167332855573161255331478389757909527",
+      "price": 0.45,
+      "size": 15,
+      "usdNotional": 6.75,
+      "orderID": "0xa39ca6db573cd9137125624c40c697f400e5a35121662efd90cb5bbfaf12dbb4",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xa39ca6db573cd9137125624c40c697f400e5a35121662efd90cb5bbfaf12dbb4",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:51:18.100Z",
+      "marketSlug": "btc-updown-5m-1771433400",
+      "side": "DOWN",
+      "tokenID": "42416759808538822403462476538791609710871167332855573161255331478389757909527",
+      "price": 0.45,
+      "size": 15,
+      "usdNotional": 6.75,
+      "orderID": "0xf5d9f2252221ff4fa4d023b27c79bb73228398d04ffe40910d472ef0408a4f48",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xf5d9f2252221ff4fa4d023b27c79bb73228398d04ffe40910d472ef0408a4f48",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:51:54.890Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:52:30.666Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:53:06.931Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:53:43.436Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:54:19.082Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:54:55.271Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T16:55:49.680Z",
+      "marketSlug": "btc-updown-5m-1771433700",
+      "side": "DOWN",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "price": 0.39,
+      "size": 17,
+      "usdNotional": 6.63,
+      "orderID": "0x8e81c96d7757abad313eb97ceb959f6f2873259a1eee45168fb7fde90eab1fd6",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x8e81c96d7757abad313eb97ceb959f6f2873259a1eee45168fb7fde90eab1fd6",
+        "takingAmount": "16.999731",
+        "makingAmount": "6.585965",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x62c06dc5f3328e8a76712455da3fee4f91c680ea4bc5b96fe99aeae882ee578a"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:02.936Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:03.581Z",
+      "tokenID": "112190107429730199467409844384640145715891299429501484631944536003640814951743",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:04.215Z",
+      "tokenID": "70876138237372487612380944150047253916300889123977340853259206704840885307052",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:04.847Z",
+      "tokenID": "46772567165934653295426444477706569267003378456105087263094247965555929650336",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:05.516Z",
+      "tokenID": "100246865861137442474358724267674473223161506824430677923914180631169392339860",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:06.174Z",
+      "tokenID": "65922050138550622963143939516748213715639268140457121885086986275051238374673",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:06.806Z",
+      "tokenID": "64657218965207995480395270363543334561583072240049439633544846239470230939929",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:07.434Z",
+      "tokenID": "63124143268417401931455031737365820248287297630414516970830375875524892324458",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:08.043Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:08.684Z",
+      "tokenID": "5043811293792277580348918771004255822864239435551178673202086247743220452082",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:09.326Z",
+      "tokenID": "43915432528499533421982027814736275454828129507472798149579452549278590746366",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:09.959Z",
+      "tokenID": "108518541786365294829200465164728039534931755711104970218057114396563223735051",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:10.617Z",
+      "tokenID": "49765350467062513489796182389903977091281314202321707162229723974037206164278",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:11.217Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:11.841Z",
+      "tokenID": "4258418607836757154209274875943557357478926107643101997607858869264102559156",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:12.491Z",
+      "tokenID": "38835780766912946399588551057652590294435114086124802200851485163144774135205",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:13.119Z",
+      "tokenID": "81158080839773779926103199280223937452878113817649346534298717814557105936208",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:13.722Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:14.378Z",
+      "tokenID": "8414034722426240227098809352675150946756948681856670274493607636319414461008",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:15.020Z",
+      "tokenID": "7487013557862429955270229940825920345468036647451820691432667053183448841235",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:15.624Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:16.262Z",
+      "tokenID": "89763707993624928795968106497604683009118219306310261845202127588048400327613",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:16.874Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:17.504Z",
+      "tokenID": "31050212281053795836576581332674907784928261076257966838618839545612433175689",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:18.170Z",
+      "tokenID": "23432396572311171285906610386933389629086332240330108056490204270139166011925",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:18.783Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:19.386Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:20.012Z",
+      "tokenID": "51888884222336917246669543207533991380449477443221388956858055366815617623931",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:20.617Z",
+      "tokenID": "107497527936528388380936920526906271857176283668159052034993882562148664656237",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:21.215Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:21.832Z",
+      "tokenID": "69477109042681984522333758605134102817338147661762703215552959743961101965802",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:22.444Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:23.082Z",
+      "tokenID": "24104130678636987106828810854873675713244832872441979880882890360717833550015",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:23.716Z",
+      "tokenID": "114794899410645632927728484112484891519424736852266198790138111774037239722946",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=11819800, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:24.352Z",
+      "tokenID": "82760636604612466921465614818197028982945025609371483239869805849327072358600",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:24.982Z",
+      "tokenID": "42019946122330571893883083389643747610448208849457888925312587990118915704927",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=10839100, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:25.622Z",
+      "tokenID": "21819936170926479788254837203419046224570147832021139238096403068924281946968",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=10850600, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:26.225Z",
+      "tokenID": "48835075337727046676223051908805747671830527076273921303174303618024642164104",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:26.855Z",
+      "tokenID": "21729718590701161327232711914233164182502578594821351374957659847954307370328",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=20935300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:27.463Z",
+      "tokenID": "96275468551166491041983227864610540766744925893002302077636700367926681944256",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=29916143, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:28.107Z",
+      "tokenID": "51722699230641974605933174647431191630768249509182122594347458884670425237103",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=2900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:39.104Z",
+      "tokenID": "30105299586392813270946461225651074896120791113308156282630528897403935980350",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:39.725Z",
+      "tokenID": "112190107429730199467409844384640145715891299429501484631944536003640814951743",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:40.371Z",
+      "tokenID": "70876138237372487612380944150047253916300889123977340853259206704840885307052",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:40.991Z",
+      "tokenID": "46772567165934653295426444477706569267003378456105087263094247965555929650336",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:41.594Z",
+      "tokenID": "100246865861137442474358724267674473223161506824430677923914180631169392339860",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:42.209Z",
+      "tokenID": "65922050138550622963143939516748213715639268140457121885086986275051238374673",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:42.820Z",
+      "tokenID": "64657218965207995480395270363543334561583072240049439633544846239470230939929",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:43.438Z",
+      "tokenID": "63124143268417401931455031737365820248287297630414516970830375875524892324458",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:44.062Z",
+      "tokenID": "104350281442764815858527488051261364984042872452700287159714170697090686008788",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:44.670Z",
+      "tokenID": "5043811293792277580348918771004255822864239435551178673202086247743220452082",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:45.278Z",
+      "tokenID": "43915432528499533421982027814736275454828129507472798149579452549278590746366",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:45.900Z",
+      "tokenID": "108518541786365294829200465164728039534931755711104970218057114396563223735051",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:46.506Z",
+      "tokenID": "49765350467062513489796182389903977091281314202321707162229723974037206164278",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:47.128Z",
+      "tokenID": "65185167774526077427905134272037582511934404893168188614801276387669922630387",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:47.742Z",
+      "tokenID": "4258418607836757154209274875943557357478926107643101997607858869264102559156",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:48.352Z",
+      "tokenID": "38835780766912946399588551057652590294435114086124802200851485163144774135205",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:48.977Z",
+      "tokenID": "81158080839773779926103199280223937452878113817649346534298717814557105936208",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:49.615Z",
+      "tokenID": "40246228594797023441450070621178174122825261694555417943244156818533827516653",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:50.242Z",
+      "tokenID": "8414034722426240227098809352675150946756948681856670274493607636319414461008",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:50.854Z",
+      "tokenID": "7487013557862429955270229940825920345468036647451820691432667053183448841235",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:51.469Z",
+      "tokenID": "51871614508271388512915008331607791905217553299753344308450891702902810432794",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:52.084Z",
+      "tokenID": "89763707993624928795968106497604683009118219306310261845202127588048400327613",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:52.698Z",
+      "tokenID": "50503173213314444669787281306106224935069627358785105411558207277842327189180",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:53.309Z",
+      "tokenID": "31050212281053795836576581332674907784928261076257966838618839545612433175689",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:53.933Z",
+      "tokenID": "23432396572311171285906610386933389629086332240330108056490204270139166011925",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:54.551Z",
+      "tokenID": "44969040459012248306106220293262476234106936267304141692052832739635920552304",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:55.175Z",
+      "tokenID": "18695725818601174714697725648262315164876422387906727802447761310058179840404",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=19742300, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:55.793Z",
+      "tokenID": "51888884222336917246669543207533991380449477443221388956858055366815617623931",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:56.410Z",
+      "tokenID": "107497527936528388380936920526906271857176283668159052034993882562148664656237",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:57.072Z",
+      "tokenID": "83571775294565509539958648244422084435254734980907165997777409458495876185842",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:57.704Z",
+      "tokenID": "69477109042681984522333758605134102817338147661762703215552959743961101965802",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:58.325Z",
+      "tokenID": "52676489837851091678817864624261978433610456783981792059221793793110900699620",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=13782900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:57:58.934Z",
+      "tokenID": "24104130678636987106828810854873675713244832872441979880882890360717833550015",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:59:06.065Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T16:59:43.373Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:00:19.342Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:00:35.150Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:01:12.241Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:01:48.184Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:02:23.351Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:02:59.319Z",
+      "tokenID": "5454377717410895969028846422721954196299239716375421602754189000947751282948",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=16760431, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T17:10:10.455Z",
+      "marketSlug": "btc-updown-5m-1771434600",
+      "side": "UP",
+      "tokenID": "80293392988136972782016024591239664434806742064030006817421164506780563954512",
+      "price": 0.42,
+      "size": 16,
+      "usdNotional": 6.72,
+      "orderID": "0x1b0202852ab67508dcd5686f338123b59676255afeb9196f7ccf4b82c3717911",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x1b0202852ab67508dcd5686f338123b59676255afeb9196f7ccf4b82c3717911",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:12:18.174Z",
+      "tokenID": "99632522706474704439557848568522767395242214984015299737436797980086823302874",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T17:35:15.672Z",
+      "marketSlug": "btc-updown-5m-1771436100",
+      "side": "DOWN",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "price": 0.44,
+      "size": 15,
+      "usdNotional": 6.6,
+      "orderID": "0xd8d1840cb8f4c9a3ee4375d9932c59caa2068735018da742c8bbe21e280eb2de",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xd8d1840cb8f4c9a3ee4375d9932c59caa2068735018da742c8bbe21e280eb2de",
+        "takingAmount": "15",
+        "makingAmount": "6.6",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xcff9df1654ae49d57b223898c0435b42f2e43926ba46ab60922ad3c69e514659"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T17:35:23.800Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "balance": 14772400
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:38:39.892Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=14772400, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:39:16.182Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=14772400, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:39:53.626Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=14772400, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T17:40:27.081Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "balance": 14772400
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T17:40:27.690Z",
+      "tokenID": "108855755008318669820402258452509729151434653125615345201295756992700476338985",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=14772400, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T18:05:20.972Z",
+      "marketSlug": "btc-updown-5m-1771437900",
+      "side": "UP",
+      "tokenID": "80026192354718090243216326570252207852655487316153895500539210956704522547542",
+      "price": 0.46,
+      "size": 6,
+      "usdNotional": 2.7600000000000002,
+      "orderID": "0x1afcdfae43e0508e984000e3f1ea4938f2fe98a0b74bb7611047fd31480475d5",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x1afcdfae43e0508e984000e3f1ea4938f2fe98a0b74bb7611047fd31480475d5",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:07:29.592Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:08:01.231Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:08:32.938Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:09:04.530Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:09:35.709Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:10:07.482Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:10:39.065Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:11:14.484Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:11:46.883Z",
+      "tokenID": "428377280048547018248157830634062015787051446369611311885911986411759622141",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T18:35:11.667Z",
+      "marketSlug": "btc-updown-5m-1771439700",
+      "side": "DOWN",
+      "tokenID": "73216785343680620393672169175619746732948544861917109262988542259000496707554",
+      "price": 0.42,
+      "size": 7,
+      "usdNotional": 2.94,
+      "orderID": "0x388966a404434bc4fbaefc213582a4c8fe61ef2cc2d05c3842f2547610e782e3",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x388966a404434bc4fbaefc213582a4c8fe61ef2cc2d05c3842f2547610e782e3",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:37:17.182Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:37:49.175Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:38:20.178Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:38:51.609Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:39:22.584Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:39:55.161Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:40:26.755Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:41:07.258Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:41:38.976Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:42:10.181Z",
+      "tokenID": "13335349189495534564790277538241400499072956429110213222063951339533901148213",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T18:45:19.222Z",
+      "marketSlug": "btc-updown-5m-1771440300",
+      "side": "DOWN",
+      "tokenID": "49073398465627350971284212192880383074071949006062975633800336399842955196610",
+      "price": 0.48,
+      "size": 6,
+      "usdNotional": 2.88,
+      "orderID": "0x31645afd9eea45dfe012b86f40871dab3b6feac439aa59e68d2680e1c47117b4",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x31645afd9eea45dfe012b86f40871dab3b6feac439aa59e68d2680e1c47117b4",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:47:23.150Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:47:55.347Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:48:26.953Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:48:58.402Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:49:29.985Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:50:01.173Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:50:32.963Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:50:51.733Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T18:51:24.086Z",
+      "tokenID": "37529538127904019838524149488301984107758125566740839628038702344539989987927",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T19:20:57.645Z",
+      "marketSlug": "btc-updown-5m-1771442400",
+      "side": "DOWN",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "price": 0.4609950248756219,
+      "size": 6,
+      "usdNotional": 2.7659701492537314,
+      "orderID": "0xbe3505e7e5686fef14ac429a4381b5f3490068ab03721943c67c430fbc30c9c6",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xbe3505e7e5686fef14ac429a4381b5f3490068ab03721943c67c430fbc30c9c6",
+        "takingAmount": "5",
+        "makingAmount": "2.3",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xb9809f13878f291d42681aae2067fa5ab1f1df123e31210673195c04944d9a52"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T19:21:05.666Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "balance": 4922900
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:23:39.742Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:24:11.476Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:24:42.708Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:25:14.476Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:25:45.798Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T19:26:09.862Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "balance": 4922900
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:26:18.753Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:26:50.358Z",
+      "tokenID": "20705302796153159407275637973303511543419280686977802709799047140252939594299",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T19:30:08.994Z",
+      "marketSlug": "btc-updown-5m-1771443000",
+      "side": "DOWN",
+      "tokenID": "74786843006988916546720002731351166710592683401694031787462959436268088961462",
+      "price": 0.37,
+      "size": 8,
+      "usdNotional": 2.96,
+      "orderID": "0x66071190fa4fa31b3afae2573050e6d9a7115be5edeb07619e8ec4e76484cab1",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x66071190fa4fa31b3afae2573050e6d9a7115be5edeb07619e8ec4e76484cab1",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T19:52:47.295Z",
+      "marketSlug": "btc-updown-5m-1771444200",
+      "side": "DOWN",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "price": 0.53,
+      "size": 5,
+      "usdNotional": 2.6500000000000004,
+      "orderID": "0x5e9c8de9fe9bb546fc6bc6294e8a8d2d30f79089ac779e95b332755d0c2b9cd1",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x5e9c8de9fe9bb546fc6bc6294e8a8d2d30f79089ac779e95b332755d0c2b9cd1",
+        "takingAmount": "5",
+        "makingAmount": "2.6",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xabd00d9f213e93292d1e1e58a7d42a53ae04aa4bcc789fe2725ff3f58f60e507"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T19:52:55.362Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "balance": 4922200
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:53:40.635Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:54:12.575Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:54:45.308Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:55:17.327Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:55:48.821Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:56:20.374Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T19:56:53.077Z",
+      "tokenID": "109633723181310228393053828471887068560301971088769517762654852778454591229407",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922200, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:00:27.988Z",
+      "marketSlug": "btc-updown-5m-1771444800",
+      "side": "DOWN",
+      "tokenID": "100072544902924839976344370665746494239882469742611445027232566603938933848895",
+      "price": 0.46,
+      "size": 6,
+      "usdNotional": 2.7600000000000002,
+      "orderID": "0xe80b20e539bbb0e8066e394bb82aa8b72682fa3981a3cfd210f9cc49c5505e04",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xe80b20e539bbb0e8066e394bb82aa8b72682fa3981a3cfd210f9cc49c5505e04",
+        "takingAmount": "6",
+        "makingAmount": "2.7",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xd059fc318f939127417b99d0c5972310b9e4e84d826a6dec8a8d35965a0fc1c2"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T20:00:35.736Z",
+      "tokenID": "100072544902924839976344370665746494239882469742611445027232566603938933848895",
+      "balance": 5908200
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T20:00:49.601Z",
+      "tokenID": "100072544902924839976344370665746494239882469742611445027232566603938933848895",
+      "balance": 5908200
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:22:16.697Z",
+      "marketSlug": "btc-updown-5m-1771446000",
+      "side": "DOWN",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "price": 0.54,
+      "size": 5,
+      "usdNotional": 2.7,
+      "orderID": "0x5c8c44cd36096aff5e2e9866514f75dd225bf647565743039d4118b5737a3c3a",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x5c8c44cd36096aff5e2e9866514f75dd225bf647565743039d4118b5737a3c3a",
+        "takingAmount": "5",
+        "makingAmount": "2.7",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x1a85fa360bed54775504aba1e419d27b2294768674f867c2366cff516d4a9642"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T20:22:24.561Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "balance": 4922900
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:23:39.730Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:24:11.421Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:24:43.384Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:25:16.615Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:25:48.419Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:26:20.192Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:26:51.994Z",
+      "tokenID": "54222948327621897105184213196689196263394996656578250218815938939108342600747",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=4922900, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:27:23.380Z",
+      "marketSlug": "btc-updown-5m-1771446300",
+      "side": "DOWN",
+      "tokenID": "29748507939800496180628088847398231484892514343684419895518704747061388856124",
+      "price": 0.24,
+      "size": 12,
+      "usdNotional": 2.88,
+      "orderID": "0x136246779a72480ab1ea22708c8489b673c978a9db4bb8310b22950600139618",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x136246779a72480ab1ea22708c8489b673c978a9db4bb8310b22950600139618",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:28:01.482Z",
+      "marketSlug": "btc-updown-5m-1771446300",
+      "side": "DOWN",
+      "tokenID": "29748507939800496180628088847398231484892514343684419895518704747061388856124",
+      "price": 0.59,
+      "size": 5,
+      "usdNotional": 2.9499999999999997,
+      "orderID": "0x58f53dbd2eaf4f03388aab1bdce058c8a866fbc3bbe7465e7951fee8c9ccea98",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x58f53dbd2eaf4f03388aab1bdce058c8a866fbc3bbe7465e7951fee8c9ccea98",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:28:40.095Z",
+      "tokenID": "90654320965969626434435074981607545451773131528700109799360935983655427682493",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:29:12.512Z",
+      "tokenID": "90654320965969626434435074981607545451773131528700109799360935983655427682493",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:29:44.970Z",
+      "tokenID": "90654320965969626434435074981607545451773131528700109799360935983655427682493",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:30:17.536Z",
+      "tokenID": "90654320965969626434435074981607545451773131528700109799360935983655427682493",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:30:35.072Z",
+      "tokenID": "90654320965969626434435074981607545451773131528700109799360935983655427682493",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:46:07.922Z",
+      "marketSlug": "btc-updown-5m-1771447500",
+      "side": "DOWN",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "price": 0.35,
+      "size": 8,
+      "usdNotional": 2.8,
+      "orderID": "0xd09670c10e644b7b7c6c32f33dac628d2cb08bc5c9eb6353e20e6c0825bc3fdc",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xd09670c10e644b7b7c6c32f33dac628d2cb08bc5c9eb6353e20e6c0825bc3fdc",
+        "takingAmount": "8",
+        "makingAmount": "2.48",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x8ed54e77d2ab037637f3357795dc62c6c31c8a191f66e27495c4dc6bce967f8c"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T20:46:15.729Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "balance": 7908500
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:48:40.545Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:49:12.676Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:49:46.761Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:50:19.511Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T20:50:51.072Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "balance": 7908500
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:50:52.194Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:51:25.130Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:51:57.327Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:52:29.803Z",
+      "tokenID": "40876471349895258979598540744003901522608812564043956915934064573332365494449",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=7908500, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T20:56:18.991Z",
+      "marketSlug": "btc-updown-5m-1771448100",
+      "side": "DOWN",
+      "tokenID": "65073268243085659967206479399022314344395634992536205541160765888246035839034",
+      "price": 0.53,
+      "size": 5,
+      "usdNotional": 2.6500000000000004,
+      "orderID": "0xfd809ad4ed4f05b82cc1cb78d9f004ef2009cd8e873d4ef431048da36365c2e9",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xfd809ad4ed4f05b82cc1cb78d9f004ef2009cd8e873d4ef431048da36365c2e9",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:58:35.176Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:59:07.306Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T20:59:40.535Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:00:13.583Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:00:45.641Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:01:12.202Z",
+      "tokenID": "96097255388331857134165566030869332740733871550509993075105034736724254988250",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:11:17.203Z",
+      "marketSlug": "btc-updown-5m-1771449000",
+      "side": "DOWN",
+      "tokenID": "40408182600382955853551961433997785172540809764219137231388395073296828565228",
+      "price": 0.21,
+      "size": 14,
+      "usdNotional": 2.94,
+      "orderID": "0xe35378afe09b587d89dc9067330cccd0b555cad581ad6b207d580a75e3deb747",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xe35378afe09b587d89dc9067330cccd0b555cad581ad6b207d580a75e3deb747",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:11:25.988Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:11:58.893Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:12:31.155Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:13:04.172Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:13:36.797Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:14:09.546Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:14:41.741Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:15:14.537Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:15:47.292Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:16:19.564Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:16:52.173Z",
+      "tokenID": "39086660062769555582226318792796394172317579582918169637000168696997840248950",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:25:28.714Z",
+      "marketSlug": "btc-updown-5m-1771449900",
+      "side": "DOWN",
+      "tokenID": "2316852737167951037655825749790519148591579632166004313613027826469911432662",
+      "price": 0.45,
+      "size": 6,
+      "usdNotional": 2.7,
+      "orderID": "0x639e51cffd74dc6cc7d051ca274ec39867d5593288f9c8a59b44f1ed8ac52b90",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x639e51cffd74dc6cc7d051ca274ec39867d5593288f9c8a59b44f1ed8ac52b90",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:25:36.633Z",
+      "marketSlug": "btc-updown-5m-1771449900",
+      "side": "DOWN",
+      "tokenID": "2316852737167951037655825749790519148591579632166004313613027826469911432662",
+      "price": 0.46,
+      "size": 6,
+      "usdNotional": 2.7600000000000002,
+      "orderID": "0x897903f4791370c41907f4d59ce8b44e0d00142883e36a14c9c9245f4b43798c",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x897903f4791370c41907f4d59ce8b44e0d00142883e36a14c9c9245f4b43798c",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:25:44.927Z",
+      "marketSlug": "btc-updown-5m-1771449900",
+      "side": "DOWN",
+      "tokenID": "2316852737167951037655825749790519148591579632166004313613027826469911432662",
+      "price": 0.49,
+      "size": 6,
+      "usdNotional": 2.94,
+      "orderID": "0x366a1f4fdedfe9bd8d605352126b027d1e68f7e2ab0ee863744195968baa0afb",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x366a1f4fdedfe9bd8d605352126b027d1e68f7e2ab0ee863744195968baa0afb",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:26:10.130Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:26:42.909Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:27:15.216Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:27:48.215Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:28:21.387Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:28:53.928Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:29:26.738Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:29:59.580Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:30:33.383Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:30:51.861Z",
+      "tokenID": "51218021315102494348988731670769367958923555151060488394640502583515793239269",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:45:07.273Z",
+      "marketSlug": "btc-updown-5m-1771451100",
+      "side": "UP",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "price": 0.51,
+      "size": 5,
+      "usdNotional": 2.55,
+      "orderID": "0xf138cbe06cc0cb606223f3aea0140621891e71467123732ca9f55ce7122f67f4",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xf138cbe06cc0cb606223f3aea0140621891e71467123732ca9f55ce7122f67f4",
+        "takingAmount": "5",
+        "makingAmount": "2.55",
+        "status": "matched",
+        "transactionsHashes": [
+          "0x8728db8c1a9ee246238947a4a1321daf26a2f803855ec3c0f2c812ac321684d8"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T21:45:15.545Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "balance": 4922000
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:47:10.182Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:47:43.197Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:48:16.555Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:48:50.207Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:49:23.003Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:49:56.748Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T21:50:20.684Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "balance": 4922000
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:50:29.775Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T21:50:48.169Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "balance": 4922000
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:50:49.309Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:51:22.790Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:51:55.536Z",
+      "tokenID": "90267941454396872195526398050605146056426612339326439163906438935902753994928",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=4922000, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T21:55:54.978Z",
+      "marketSlug": "btc-updown-5m-1771451700",
+      "side": "DOWN",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "price": 0.25,
+      "size": 12,
+      "usdNotional": 3,
+      "orderID": "0x810f25d744f3cf6b7cb6a629cd93d6a289c47805aea5e03e86733bd8d807c936",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x810f25d744f3cf6b7cb6a629cd93d6a289c47805aea5e03e86733bd8d807c936",
+        "takingAmount": "12",
+        "makingAmount": "3",
+        "status": "matched",
+        "transactionsHashes": [
+          "0xbc99d5c418d60a083bab3679ea26ef9975765fae4d4c810076f3a0d033ca586f"
+        ],
+        "success": true
+      }
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T21:56:02.882Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "balance": 11894600
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:58:35.004Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:59:08.416Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T21:59:41.384Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:00:15.789Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "COND_ALLOWANCE_UPDATE",
+      "ts": "2026-02-18T22:00:54.773Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "balance": 11894600
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:00:55.934Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:01:30.467Z",
+      "tokenID": "82945403848312612485547436821653650602810269125701479459784045284427827404352",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=11894600, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:02:27.292Z",
+      "marketSlug": "btc-updown-5m-1771452000",
+      "side": "DOWN",
+      "tokenID": "99233424273338486398515550575429869204901013647227252336143587053721347985293",
+      "price": 0.32,
+      "size": 9,
+      "usdNotional": 2.88,
+      "orderID": "0x2444f1a7d3e1a926d1f9348484a173fef9d676d54286ee716b012bfddefaed22",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x2444f1a7d3e1a926d1f9348484a173fef9d676d54286ee716b012bfddefaed22",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:03:36.872Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:04:10.195Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:04:42.915Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:05:16.594Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:05:49.863Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:06:23.395Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:06:56.888Z",
+      "tokenID": "102350874553287390960469532829902459089600617613167799882568867268288578991888",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:15:26.085Z",
+      "marketSlug": "btc-updown-5m-1771452900",
+      "side": "DOWN",
+      "tokenID": "91940579895597733301377020214713127798152449590004521344353953648590709086354",
+      "price": 0.38,
+      "size": 7,
+      "usdNotional": 2.66,
+      "orderID": "0x99f4126345e747e1cf6107d59dd9bed79022e19939fca0f1f97ba0639461520a",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0x99f4126345e747e1cf6107d59dd9bed79022e19939fca0f1f97ba0639461520a",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:17:32.930Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:18:06.490Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:18:39.404Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:19:12.110Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:19:45.979Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:20:18.980Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:20:30.563Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:21:04.378Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:21:37.790Z",
+      "tokenID": "32368956560886940722629968636583602957700886691417980833788068581996831106294",
+      "reason": "Time Stop (120s)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:25:24.801Z",
+      "marketSlug": "btc-updown-5m-1771453500",
+      "side": "UP",
+      "tokenID": "78389521695345148111842905343569135176826465768743024719288963179934664738277",
+      "price": 0.52,
+      "size": 5,
+      "usdNotional": 2.6,
+      "orderID": "0xb15cb3cea1caf20afe4ef069b84106c10b8005439b63b0700b75c587bd011265",
+      "resp": {
+        "errorMsg": "",
+        "orderID": "0xb15cb3cea1caf20afe4ef069b84106c10b8005439b63b0700b75c587bd011265",
+        "takingAmount": "",
+        "makingAmount": "",
+        "status": "live",
+        "success": true
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:28:41.381Z",
+      "tokenID": "65000240113227842628873529371916185385883278246369478109291180070918165616515",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:29:20.998Z",
+      "tokenID": "65000240113227842628873529371916185385883278246369478109291180070918165616515",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:29:55.522Z",
+      "tokenID": "65000240113227842628873529371916185385883278246369478109291180070918165616515",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:30:30.541Z",
+      "tokenID": "65000240113227842628873529371916185385883278246369478109291180070918165616515",
+      "reason": "Take Profit (mark >= 90¢)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:35:08.862Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.46,
+      "size": 6,
+      "usdNotional": 2.7600000000000002,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:35:41.363Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.35,
+      "size": 8,
+      "usdNotional": 2.8,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:35:46.962Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.32,
+      "size": 9,
+      "usdNotional": 2.88,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:35:57.162Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.36,
+      "size": 8,
+      "usdNotional": 2.88,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:36:02.874Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.36,
+      "size": 8,
+      "usdNotional": 2.88,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:38:25.181Z",
+      "marketSlug": "btc-updown-5m-1771454100",
+      "side": "UP",
+      "tokenID": "1021444856157139847588089199958968322542212798413745253627880615204882093984",
+      "price": 0.17,
+      "size": 17,
+      "usdNotional": 2.89,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:40:04.676Z",
+      "marketSlug": "btc-updown-5m-1771454400",
+      "side": "UP",
+      "tokenID": "8852798559486356321466459098883855561422170537304451916217161081873677030898",
+      "price": 0.5109950248756219,
+      "size": 5,
+      "usdNotional": 2.5549751243781094,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "OPEN",
+      "ts": "2026-02-18T22:40:10.189Z",
+      "marketSlug": "btc-updown-5m-1771454400",
+      "side": "UP",
+      "tokenID": "8852798559486356321466459098883855561422170537304451916217161081873677030898",
+      "price": 0.47,
+      "size": 6,
+      "usdNotional": 2.82,
+      "orderID": null,
+      "resp": {
+        "error": "Trading restricted in your region, please refer to available regions - https://docs.polymarket.com/developers/CLOB/geoblock",
+        "status": 403
+      }
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:51:17.502Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:51:50.802Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:52:25.178Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:53:00.481Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:53:31.534Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:54:06.050Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:54:40.049Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T22:55:15.260Z",
+      "tokenID": "4689000101961720933560453467318243735478819520449224328783114317211624162971",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:18:37.643Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:19:12.193Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:19:46.121Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Pre-settlement Exit",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:20:20.988Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:20:45.709Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:21:19.859Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
+    },
+    {
+      "type": "EXIT_SELL_SKIPPED",
+      "ts": "2026-02-18T23:21:54.834Z",
+      "tokenID": "32124242589284711126561659341821627519158778061738588164647647710902651138806",
+      "reason": "Max Loss ($10.00)",
+      "note": "Insufficient conditional balance/allowance (bal=0, allow=0)"
     }
   ],
   "meta": {
