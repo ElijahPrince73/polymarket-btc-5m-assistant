@@ -348,7 +348,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Open trade panel
-      if (statusData.openTrade) {
+      if (mode === 'LIVE') {
+        // In LIVE mode, show open orders (best-effort) instead of paper open trade.
+        try {
+          const oRes = await fetch('/api/live/open-orders');
+          const open = await oRes.json();
+          if (!oRes.ok) throw new Error('open-orders non-200');
+
+          const count = open?.count ?? (Array.isArray(open) ? open.length : 0);
+          const first = Array.isArray(open?.data) ? open.data[0] : (Array.isArray(open) ? open[0] : null);
+
+          openTradeDiv.textContent =
+            `LIVE Open Orders: ${count}\n` +
+            (first ? (`\nFirst:\n` +
+              `  id: ${String(first.id || '').slice(0, 10)}\n` +
+              `  side: ${first.side || 'N/A'}\n` +
+              `  price: ${first.price || 'N/A'}\n` +
+              `  size: ${first.original_size || first.size || 'N/A'}\n`) : '');
+          openTradeDiv.classList.remove('closed');
+        } catch {
+          openTradeDiv.textContent = 'LIVE: unable to load open orders.';
+          openTradeDiv.classList.add('closed');
+        }
+      } else if (statusData.openTrade) {
         const t = statusData.openTrade;
         const cur = (t.side === 'UP') ? (rt?.polyUp != null ? Number(rt.polyUp) : null) : (rt?.polyDown != null ? Number(rt.polyDown) : null);
         let uPnl = 'N/A';
@@ -438,10 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- analytics ----
     try {
-      const aRes = await fetch('/api/analytics');
-      const analytics = await aRes.json();
-      if (!aRes.ok) throw new Error('analytics endpoint returned non-200');
-      lastAnalyticsCache = analytics;
+      if ((lastStatusCache?.mode || 'PAPER') === 'LIVE') {
+        // Live analytics not wired yet (needs filled-position accounting).
+        if (analyticsOverviewDiv) analyticsOverviewDiv.textContent = 'LIVE mode: paper analytics are archived. Live analytics (PnL/winrate) will populate once live fills + exits are implemented.';
+        if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">LIVE mode: analytics pending.</td></tr>';
+      } else {
+        const aRes = await fetch('/api/analytics');
+        const analytics = await aRes.json();
+        if (!aRes.ok) throw new Error('analytics endpoint returned non-200');
+        lastAnalyticsCache = analytics;
 
       const fmt = (n, d = 2) => (typeof n === 'number' && Number.isFinite(n)) ? n.toFixed(d) : 'N/A';
       const pct = (n, d = 1) => (typeof n === 'number' && Number.isFinite(n)) ? (n * 100).toFixed(d) + '%' : 'N/A';
@@ -496,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Charts
       updateBarChart(chartExit, analytics.byExitReason, { maxBars: 10 });
       updateBarChart(chartEntryPrice, analytics.byEntryPriceBucket, { maxBars: 8 });
+      }
 
     } catch (e) {
       const msg = (e && e.message) ? e.message : String(e);
@@ -505,7 +533,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- trades ----
     try {
-      const tradesResponse = await fetch('/api/trades');
+      const modeNow = (lastStatusCache?.mode || 'PAPER');
+      const tradesUrl = modeNow === 'LIVE' ? '/api/live/trades' : '/api/trades';
+      const tradesResponse = await fetch(tradesUrl);
       const trades = await tradesResponse.json();
       if (!tradesResponse.ok) throw new Error('trades endpoint returned non-200');
       lastTradesCache = Array.isArray(trades) ? trades : [];

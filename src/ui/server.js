@@ -9,7 +9,7 @@ import { initializeLedger, getLedger, recalculateSummary } from '../paper_tradin
 import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // Paper trader status
 import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquiditySampler.js';
 
-import { fetchCollateralBalance } from '../live_trading/clob.js';
+import { fetchCollateralBalance, getClobClient } from '../live_trading/clob.js';
 import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
 
 // Use __dirname polyfill for ES modules
@@ -305,6 +305,31 @@ app.get('/api/trades', async (req, res) => {
   } catch (error) {
     console.error("Error fetching trades:", error);
     res.status(500).json({ error: "Failed to fetch trades data." });
+  }
+});
+
+// LIVE: recent trades from CLOB (best-effort)
+app.get('/api/live/trades', async (req, res) => {
+  try {
+    const client = getClobClient();
+    // clob-client returns Trade[]
+    const trades = await client.getTrades();
+    res.json(Array.isArray(trades) ? trades : []);
+  } catch (error) {
+    console.error('Error fetching LIVE trades:', error);
+    res.status(500).json({ error: 'Failed to fetch live trades.' });
+  }
+});
+
+// LIVE: open orders from CLOB
+app.get('/api/live/open-orders', async (req, res) => {
+  try {
+    const client = getClobClient();
+    const open = await client.getOpenOrders();
+    res.json(open);
+  } catch (error) {
+    console.error('Error fetching LIVE open orders:', error);
+    res.status(500).json({ error: 'Failed to fetch live open orders.' });
   }
 });
 
