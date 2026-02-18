@@ -8,9 +8,10 @@ yarn-debug.log*
 yarn-error.log*
 
 # Runtime state
-paper_trading/trades.json
-paper_trading/trades.backup-*.json
-paper_trading/liquidity_samples.jsonl
+paper_trading/
+logs/
+memory/
 
 # Secrets
 .env
+.env.*
