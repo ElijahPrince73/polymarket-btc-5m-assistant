@@ -421,7 +421,7 @@ export class LiveTrader {
   }
 
   async _sellPosition({ tokenID, qty, reason }) {
-    const size = Math.max(5, Math.floor(Number(qty)));
+    let size = Math.max(5, Math.floor(Number(qty)));
 
     // Cooldown to avoid spamming SELL attempts when allowance/balance is missing.
     const cooldownMs = 30_000;
@@ -430,14 +430,41 @@ export class LiveTrader {
     if (now - last < cooldownMs) return null;
     this._lastExitAttemptMsByToken.set(tokenID, now);
 
-    // Ensure conditional token allowance is set (required for SELL).
-    // If allowance is 0, attempt to set it via updateBalanceAllowance.
+    // Ensure conditional token balance/allowance is sufficient for SELL.
+    // NOTE: CLOB uses separate conditional token approvals.
     try {
-      const ba = await this.client.getBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
-      const allowance = Number(ba?.allowance ?? 0);
+      let ba = await this.client.getBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+      let allowance = Number(ba?.allowance ?? 0);
+      let balance = Number(ba?.balance ?? 0);
+
       if (!Number.isFinite(allowance) || allowance <= 0) {
         await this.client.updateBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+        // re-fetch best-effort
+        ba = await this.client.getBalanceAllowance({ asset_type: 'CONDITIONAL', token_id: tokenID });
+        allowance = Number(ba?.allowance ?? 0);
+        balance = Number(ba?.balance ?? 0);
       }
+
+      // Reduce size to what we can actually sell
+      const maxSell = Math.floor(Math.min(
+        Number.isFinite(balance) ? balance : 0,
+        Number.isFinite(allowance) ? allowance : 0,
+        size
+      ));
+
+      if (maxSell < 5) {
+        await appendLiveTrade({
+          type: 'EXIT_SELL_SKIPPED',
+          ts: new Date().toISOString(),
+          tokenID,
+          reason,
+          note: `Insufficient conditional balance/allowance (bal=${balance}, allow=${allowance})`
+        });
+        return null;
+      }
+
+      // overwrite local sell size
+      size = maxSell;
     } catch {
       // best-effort; proceed
     }
