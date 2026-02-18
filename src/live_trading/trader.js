@@ -126,10 +126,18 @@ export class LiveTrader {
 
     const allPositions = await enrichPositionsWithMarks(computePositionsFromTrades(this._cachedTrades));
 
+    const tradablePositions = allPositions.filter((p) => p?.tradable !== false);
+    const nonTradableCount = allPositions.length - tradablePositions.length;
+
     // Exits: either manage all open positions, or only current market positions.
-    const positions = (CONFIG.liveTrading?.manageAllPositions)
-      ? allPositions
-      : allPositions.filter((p) => new Set([upTokenId, downTokenId].filter(Boolean)).has(p.tokenID));
+    // Always restrict to tradable positions (no orderbook = can't exit).
+    const positions = ((CONFIG.liveTrading?.manageAllPositions)
+      ? tradablePositions
+      : tradablePositions.filter((p) => new Set([upTokenId, downTokenId].filter(Boolean)).has(p.tokenID)));
+
+    if (!positions.length && nonTradableCount > 0) {
+      setEntryStatus([`Legacy non-tradable positions: ${nonTradableCount} (awaiting settlement)`]);
+    }
 
     // Update daily realized PnL (avg-cost, best-effort)
     // NOTE: CLOB returns trades across days; compute today's realized using match_time day bucket.
@@ -158,7 +166,7 @@ export class LiveTrader {
     // --- EXIT LOGIC (fill-now exits) ---
     // If we have any position, we manage exits first.
     if (positions.length) {
-      setEntryStatus(['Position open']);
+      setEntryStatus([`Position open (tradable): ${positions.length}`]);
       const exitBefore = CONFIG.paperTrading.exitBeforeEndMinutes ?? 1;
 
       for (const p of positions) {
