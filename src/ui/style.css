@@ -25,15 +25,15 @@ body {
 }
 
 .container {
-    /* Full-width layout */
+    /* Near full-width layout (avoid horizontal overflow on narrow screens) */
     max-width: none;
-    width: 100%;
-    margin: 0;
+    width: 90%;
+    margin: 0 auto;
     background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
     padding: 16px;
-    border-radius: 0;
-    border: 0;
-    box-shadow: none;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.25);
     backdrop-filter: blur(6px);
 }
 
