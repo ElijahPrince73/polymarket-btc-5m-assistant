@@ -165,7 +165,22 @@ export class LiveTrader {
           continue;
         }
 
-        // 5) Trailing TP
+        // 5) Time stop (paper parity): if a position can't go green within N seconds, cut it.
+        const maxHoldSec = CONFIG.paperTrading.loserMaxHoldSeconds ?? 120;
+        const lastTradeTimeSec = Number(p.lastTradeTime || 0);
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (
+          isNum(maxHoldSec) &&
+          lastTradeTimeSec > 0 &&
+          (nowSec - lastTradeTimeSec) >= maxHoldSec &&
+          u !== null &&
+          u <= 0
+        ) {
+          await this._sellPosition({ tokenID, qty, reason: `Time Stop (${Number(maxHoldSec).toFixed(0)}s)` });
+          continue;
+        }
+
+        // 6) Trailing TP
         if (u !== null && (CONFIG.paperTrading.trailingTakeProfitEnabled ?? false)) {
           const start = CONFIG.paperTrading.trailingStartUsd ?? 20;
           const dd = CONFIG.paperTrading.trailingDrawdownUsd ?? 10;
