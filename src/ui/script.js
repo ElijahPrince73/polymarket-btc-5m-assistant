@@ -556,7 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Render trades table
       if (modeNow === 'LIVE') {
-        const rows = lastTradesCache.slice(0, Number(tradesLimitSel?.value || 50));
+        const rows = lastTradesCache
+          .slice() // copy
+          .reverse() // newest first
+          .slice(0, Number(tradesLimitSel?.value || 50));
+
         if (recentTradesBody) {
           recentTradesBody.innerHTML = rows.length
             ? rows.map(t => {
@@ -572,6 +576,9 @@ document.addEventListener('DOMContentLoaded', () => {
               }).join('')
             : '<tr><td colspan="6">No live trades yet.</td></tr>';
         }
+
+        // Don't run paper-only rendering/filters/histograms in LIVE mode.
+        return;
       }
 
       // In LIVE mode, the trade objects differ (CLOB schema). Skip paper-only filters/KPIs.
