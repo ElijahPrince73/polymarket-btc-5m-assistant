@@ -247,7 +247,8 @@ export const CONFIG = {
 
     // Execution preferences
     allowMarketOrders: (process.env.LIVE_ALLOW_MARKET_ORDERS || "false").toLowerCase() === "true",
-    postOnly: (process.env.LIVE_POST_ONLY || "false").toLowerCase() === "true"
+    // Safety default: post-only until full position lifecycle (fills + exits) is implemented.
+    postOnly: (process.env.LIVE_POST_ONLY || "true").toLowerCase() === "true"
   },
 
   // UI server settings
