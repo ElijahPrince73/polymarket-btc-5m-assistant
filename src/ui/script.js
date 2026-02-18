@@ -362,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const openCount = open?.count ?? (Array.isArray(open) ? open.length : 0);
           const firstOpen = Array.isArray(open?.data) ? open.data[0] : (Array.isArray(open) ? open[0] : null);
 
-          const positions = Array.isArray(pos) ? pos : [];
+          const positions = Array.isArray(pos?.tradable) ? pos.tradable : (Array.isArray(pos) ? pos : []);
+          const nonTradableCount = (typeof pos?.nonTradableCount === 'number') ? pos.nonTradableCount : 0;
           const firstPos = positions[0] || null;
 
           openTradeDiv.textContent =
@@ -372,7 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
               `  side: ${firstOpen.side || 'N/A'}\n` +
               `  price: ${firstOpen.price || 'N/A'}\n` +
               `  size: ${firstOpen.original_size || firstOpen.size || 'N/A'}\n`) : '') +
-            `\nLIVE Positions: ${positions.length}\n` +
+            `\nLIVE Positions (tradable): ${positions.length}` +
+            (nonTradableCount ? `  | non-tradable: ${nonTradableCount}` : '') +
+            `\n` +
             (firstPos ? (`\nFirst Position:\n` +
               `  token: ${String(firstPos.tokenID || '').slice(0, 10)}...\n` +
               `  outcome: ${firstPos.outcome || 'N/A'}\n` +

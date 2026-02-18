@@ -351,7 +351,17 @@ app.get('/api/live/positions', async (req, res) => {
     const trades = await client.getTrades();
     const positions = computePositionsFromTrades(trades);
     const enriched = await enrichPositionsWithMarks(positions);
-    res.json(enriched);
+
+    const tradable = enriched.filter(p => p?.tradable !== false);
+    const nonTradable = enriched.filter(p => p?.tradable === false);
+
+    res.json({
+      count: enriched.length,
+      tradableCount: tradable.length,
+      nonTradableCount: nonTradable.length,
+      tradable,
+      nonTradable
+    });
   } catch (error) {
     console.error('Error fetching LIVE positions:', error);
     res.status(500).json({ error: 'Failed to fetch live positions.' });
