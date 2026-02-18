@@ -82,6 +82,11 @@ export class LiveTrader {
     const marketSlug = market?.slug;
     const timeLeftMin = signals?.timeLeftMin;
 
+    // Prefer Polymarket settlement timer (endDate) for exits; candle-window timeLeftMin can drift.
+    const endDate = signals?.polyMarketSnapshot?.market?.endDate || market?.endDate || null;
+    const settlementLeftMin = endDate ? ((new Date(endDate).getTime() - Date.now()) / 60000) : null;
+    const timeLeftForExit = (typeof settlementLeftMin === 'number' && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+
     if (!market || !marketSlug) return;
 
     // Pull trades periodically (used to infer positions + realized PnL)
@@ -143,7 +148,7 @@ export class LiveTrader {
         }
 
         // 1) Pre-settlement exit
-        if (isNum(timeLeftMin) && timeLeftMin <= exitBefore) {
+        if (isNum(timeLeftForExit) && timeLeftForExit <= exitBefore) {
           await this._sellPosition({ tokenID, qty, reason: 'Pre-settlement Exit' });
           continue;
         }
