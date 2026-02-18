@@ -21,7 +21,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.UI_PORT || 3000;
+const port = process.env.PORT || process.env.UI_PORT || 3000;
+const host = process.env.HOST || '0.0.0.0';
 
 // Middleware
 app.use(cors()); // Enable CORS for requests to the UI server
@@ -462,6 +463,11 @@ app.get('/api/analytics', async (req, res) => {
   }
 });
 
+// Health check endpoint for container platforms (Digital Ocean, etc.)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Basic route for the root to serve index.html
 app.get('/', (req, res) => {
   // Serve an index.html from the ui directory
@@ -474,9 +480,9 @@ export function startUIServer() {
   initializeLedger().catch((e) => console.error("UI server (paper) ledger init failed:", e));
   initializeLiveLedger().catch((e) => console.error("UI server (live) ledger init failed:", e));
 
-  console.log(`Starting UI server on port ${port}...`);
-  const server = app.listen(port, () => {
-    console.log(`UI server running on http://localhost:${port}`);
+  console.log(`Starting UI server on ${host}:${port}...`);
+  const server = app.listen(port, host, () => {
+    console.log(`UI server running on http://${host}:${port}`);
     console.log(`To access remotely, use ngrok: ngrok http ${port}`);
   });
 
