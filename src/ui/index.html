@@ -16,14 +16,13 @@
     </table>
 </div>
 <script>
-    // Existing functionality for updating trade metrics
     async function updateTrades() {
         const response = await fetch('/api/trades');
         const trades = await response.json();
         const tradesBody = document.getElementById('recent-trades-body');
 
         tradesBody.innerHTML = trades.length > 0 ? trades.map(trade => `<tr>
-                <td>${trade.time}</td>
+                <td>${new Date(trade.time).toLocaleString()}</td>
                 <td>${trade.outcome}</td>
                 <td>${trade.pnl > 0 ? 'Gain' : 'Loss'}</td>
             </tr>`).join('') : '<tr><td colspan="3">No trades found.</td></tr>';
