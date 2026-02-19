@@ -128,6 +128,7 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
+        // Start Trading Button
         document.getElementById('start-trading').addEventListener('click', async () => {
             const response = await fetch('/api/live/start-trading', { method: 'POST' });
             if (response.ok) {
@@ -137,6 +138,7 @@
             }
         });
 
+        // Stop Trading Button
         document.getElementById('stop-trading').addEventListener('click', async () => {
             const response = await fetch('/api/live/stop-trading', { method: 'POST' });
             if (response.ok) {
@@ -145,6 +147,8 @@
                 console.error('Failed to stop trading.');
             }
         });
+
+        // Update Trades Functionality
         async function updateTrades() {
             const response = await fetch('/api/trades');
             const trades = await response.json();
