@@ -1,0 +1,40 @@
+<!-- Modifications to add Gain/Loss and Start/Stop buttons -->
+<div class="trades">
+    <h2>Trades</h2>
+    <button id="start-trading">Start Trading</button>
+    <button id="stop-trading">Stop Trading</button>
+
+    <table id="recent-trades-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Outcome</th>
+                <th>Gain/Loss</th>
+            </tr>
+        </thead>
+        <tbody id="recent-trades-body">
+            <tr><td colspan="3">Loading recent trades...</td></tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    document.getElementById('start-trading').addEventListener('click', async () => {
+        const response = await fetch('/api/live/start-trading', { method: 'POST' });
+        if (response.ok) {
+            // Update UI to reflect trading has started
+            console.log('Trading started!');
+        } else {
+            console.error('Failed to start trading.');
+        }
+    });
+
+    document.getElementById('stop-trading').addEventListener('click', async () => {
+        const response = await fetch('/api/live/stop-trading', { method: 'POST' });
+        if (response.ok) {
+            // Update UI to reflect trading has stopped
+            console.log('Trading stopped!');
+        } else {
+            console.error('Failed to stop trading.');
+        }
+    });
+</script>
