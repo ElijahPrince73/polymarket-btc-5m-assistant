@@ -125,6 +125,40 @@
         </table>
       </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+      document.getElementById('start-trading').addEventListener('click', async () => {
+          const response = await fetch('/api/live/start-trading', { method: 'POST' });
+          if (response.ok) {
+              console.log('Trading started!');
+          } else {
+              console.error('Failed to start trading.');
+          }
+      });
+
+      document.getElementById('stop-trading').addEventListener('click', async () => {
+          const response = await fetch('/api/live/stop-trading', { method: 'POST' });
+          if (response.ok) {
+              console.log('Trading stopped!');
+          } else {
+              console.error('Failed to stop trading.');
+          }
+      });
+
+      async function updateTrades() {
+          const response = await fetch('/api/trades');
+          const trades = await response.json();
+          const tradesBody = document.getElementById('recent-trades-body');
+
+          tradesBody.innerHTML = trades.length > 0 ? trades.map(trade => `<tr>
+              <td>${new Date(trade.time).toLocaleString()}</td>
+              <td>${trade.outcome}</td>
+              <td>${trade.pnl > 0 ? 'Gain' : 'Loss'}</td>
+          </tr>`).join('') : '<tr><td colspan="3">No trades found.</td></tr>';
+      }
+
+      // Call updateTrades on load to show current trades
+      document.addEventListener('DOMContentLoaded', updateTrades);
+    </script>
   </body>
 </html>
