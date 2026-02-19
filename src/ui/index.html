@@ -1,53 +1,130 @@
-<div class="trades">
-    <h2>Trades</h2>
-    <button id="start-trading">Start Trading</button>
-    <button id="stop-trading">Stop Trading</button>
-    <table id="recent-trades-table">
-        <thead>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polymarket BTC 5m Assistant</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>Polymarket BTC 5m Assistant</h1>
+          <div class="sub">Paper trading dashboard • Live-ready plumbing</div>
+        </div>
+        <div class="pill" id="ui-port-pill">UI</div>
+      </div>
+
+      <div class="section section--dashboard">
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label">Balance</div>
+            <div class="kpi-value" id="kpi-balance">—</div>
+            <div class="kpi-sub" id="kpi-realized">Realized: —</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">PnL (Today)</div>
+            <div class="kpi-value" id="kpi-pnl-today">—</div>
+            <div class="kpi-sub" id="kpi-trades-today">Trades: —</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">PnL (Yesterday)</div>
+            <div class="kpi-value" id="kpi-pnl-yesterday">—</div>
+            <div class="kpi-sub" id="kpi-trades-yesterday">Trades: —</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-value" id="kpi-winrate">—</div>
+            <div class="kpi-sub" id="kpi-profit-factor">PF: —</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <div class="card-title">Equity Curve</div>
+            <canvas id="chart-equity" height="120"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">PnL by Exit Reason</div>
+            <canvas id="chart-exit" height="120"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">Entry Price Bucket</div>
+            <canvas id="chart-entry-price" height="120"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title">PnL Distribution (Last 200)</div>
+            <canvas id="chart-pnl-hist" height="120"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Status</h2>
+        <div id="status-message">Loading...</div>
+      </div>
+
+      <div class="section">
+        <h2>Open Trade</h2>
+        <div id="open-trade">No open trade.</div>
+      </div>
+
+      <div class="section">
+        <h2>Ledger Summary</h2>
+        <div id="ledger-summary">Loading summary...</div>
+      </div>
+
+      <div class="section">
+        <div class="row-between">
+          <h2>Trades</h2>
+          <div class="filters">
+            <label>
+              Show
+              <select id="trades-limit">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+              </select>
+            </label>
+            <label>
+              Reason
+              <select id="trades-reason">
+                <option value="">All</option>
+              </select>
+            </label>
+            <label>
+              Side
+              <select id="trades-side">
+                <option value="">All</option>
+                <option value="UP">UP</option>
+                <option value="DOWN">DOWN</option>
+              </select>
+            </label>
+            <label>
+              <input type="checkbox" id="trades-only-losses" /> losses only
+            </label>
+          </div>
+        </div>
+
+        <table id="recent-trades-table">
+          <thead>
             <tr>
-                <th>Time</th>
-                <th>Outcome</th>
-                <th>Gain/Loss</th>
+              <th>Time</th>
+              <th>Outcome</th>
+              <th>Gain/Loss</th>
             </tr>
-        </thead>
-        <tbody id="recent-trades-body">
-            <tr><td colspan="3">Loading recent trades...</td></tr>
-        </tbody>
-    </table>
-</div>
-<script>
-    async function updateTrades() {
-        const response = await fetch('/api/trades');
-        const trades = await response.json();
-        const tradesBody = document.getElementById('recent-trades-body');
-
-        tradesBody.innerHTML = trades.length > 0 ? trades.map(trade => `<tr>
-                <td>${new Date(trade.time).toLocaleString()}</td>
-                <td>${trade.outcome}</td>
-                <td>${trade.pnl > 0 ? 'Gain' : 'Loss'}</td>
-            </tr>`).join('') : '<tr><td colspan="3">No trades found.</td></tr>';
-    }
-
-    document.getElementById('start-trading').addEventListener('click', async () => {
-        const response = await fetch('/api/live/start-trading', { method: 'POST' });
-        if (response.ok) {
-            console.log('Trading started!');
-            updateTrades(); // Refresh trades on starting
-        } else {
-            console.error('Failed to start trading.');
-        }
-    });
-
-    document.getElementById('stop-trading').addEventListener('click', async () => {
-        const response = await fetch('/api/live/stop-trading', { method: 'POST' });
-        if (response.ok) {
-            console.log('Trading stopped!');
-            updateTrades(); // Refresh trades on stopping
-        } else {
-            console.error('Failed to stop trading.');
-        }
-    });
-
-    // Call updateTrades on load to show current trades
-    document.addEventListener('DOMContentLoaded', updateTrades);
-</script>
+          </thead>
+          <tbody id="recent-trades-body">
+            <tr>
+              <td colspan="3">Loading recent trades...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
