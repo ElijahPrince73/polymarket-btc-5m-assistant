@@ -1,9 +1,8 @@
-// Add endpoints for live trading control
-
 app.post('/api/live/start-trading', (req, res) => {
     // Logic to start trading
     try {
-        startTrading(); // Placeholder for actual function to enable trading
+        tradingActive = true; // Flag to indicate trading is active
+        console.log('Trading started!');
         res.status(200).json({ message: 'Trading started!' });
     } catch (error) {
         console.error('Error starting trading:', error);
@@ -14,7 +13,8 @@ app.post('/api/live/start-trading', (req, res) => {
 app.post('/api/live/stop-trading', (req, res) => {
     // Logic to stop trading
     try {
-        stopTrading(); // Placeholder for actual function to disable trading
+        tradingActive = false; // Flag to indicate trading is inactive
+        console.log('Trading stopped!');
         res.status(200).json({ message: 'Trading stopped!' });
     } catch (error) {
         console.error('Error stopping trading:', error);
