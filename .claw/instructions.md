@@ -16,3 +16,21 @@ Hard rules:
 - Follow existing patterns in the repo. If none exist, propose one and record it in .claw/decisions.md.
 - Do not add new libraries unless necessary. If you want one, explain why and list alternatives.
 - Keep changes tight: avoid unrelated refactors.
+
+## Required Workflow (Planner → Builder → Reviewer)
+
+For any non-trivial change (new endpoint, API integration, refactor, bugfix):
+
+1. Planner: Write a short plan (1–7 steps). Include which files will change.
+2. Builder: Implement the smallest working slice first. Avoid broad refactors.
+3. Reviewer: Verify behavior:
+   - Confirm request/response shapes for endpoints
+   - Confirm error handling paths
+   - Note any follow-ups or risks
+
+Output format:
+
+- Plan:
+- Changes made:
+- How to test:
+- Next step:

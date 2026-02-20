@@ -2,6 +2,12 @@
 
 ## CHANGELOG
 
+### Recent Changes
+- Integrated a trading status management system for both live and paper trading modes.
+- Enhanced signal processing with detailed logging for better debugging and tracking of trading behavior.
+- Removed redundant API calls for controlling trading states. Immediate feedback now provided in the UI.
+- Consolidated trading logic to ensure robust handling of indicators for decision-making in trading actions.
+
 ### 2026-02-10
 - Tuning preset: "More trades but still safe" (lower prob/edge thresholds, slightly lower conviction gate, reduced stakePct) while keeping market-quality + anti-chop filters.
 

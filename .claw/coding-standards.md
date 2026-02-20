@@ -28,3 +28,11 @@ Quality:
 - No unused variables or dead code.
 - Keep functions small and single-purpose.
 - Log meaningful errors, not noisy logs.
+
+## Definition of Done (DoD)
+
+- Endpoint returns consistent JSON (success + error).
+- External API calls are isolated to a module/service (not inside route handlers).
+- Logs include enough detail to debug failures but avoid dumping secrets.
+- If a change affects behavior, update/add a test when feasible.
+- Provide a "How to test" section after changes.
