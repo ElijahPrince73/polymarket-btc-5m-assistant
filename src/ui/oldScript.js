@@ -627,26 +627,3 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchData();
   setInterval(fetchData, 5000);
 });
-
-let tradingEnabled = false;
-
-async function startTrading() {
-    tradingEnabled = true;
-    const trader = await initializeLiveTrader();
-    trader.processSignals(signals);  // Pass current market signals to the trader
-    console.log('Trading has started successfully!');
-    console.log('Trading started!');
-    // Add your logic to start trading here
-}
-
-async function stopTrading() {
-    tradingEnabled = false;
-    // Implement logic to halt trading here
-    console.log('Trading stopped!');
-    // Add your logic to stop trading here
-}
-
-// Event listeners for the buttons
-
-document.getElementById('start-trading').addEventListener('click', startTrading);
-document.getElementById('stop-trading').addEventListener('click', stopTrading);

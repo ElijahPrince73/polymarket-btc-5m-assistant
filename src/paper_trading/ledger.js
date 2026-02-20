@@ -1,17 +1,17 @@
-import fs from "node:fs";
-import path from "node:path";
-import { sleep } from "../utils.js";
+import fs from 'node:fs';
+import path from 'node:path';
+import { sleep } from '../utils.js';
 
-const MEMORY_DIR = "./memory"; // Assuming memory directory is accessible or relevant
+const MEMORY_DIR = './memory'; // Assuming memory directory is accessible or relevant
 
 // Ledger path can be overridden for A/B tests or multiple instances.
 // Example: LEDGER_PATH=./paper_trading/trades.breakout.json
-const TRADES_FILE = process.env.LEDGER_PATH || "./paper_trading/trades.json";
+const TRADES_FILE = process.env.LEDGER_PATH || './paper_trading/trades.json';
 
 // Ensure directories exist
 function ensureDirs() {
-  if (!fs.existsSync("./paper_trading")) {
-    fs.mkdirSync("./paper_trading");
+  if (!fs.existsSync('./paper_trading')) {
+    fs.mkdirSync('./paper_trading');
   }
   // If MEMORY_DIR is intended for this, adjust path accordingly.
   // For simplicity, placing trades.json in paper_trading folder.
@@ -22,7 +22,7 @@ export function loadLedger() {
   ensureDirs();
   try {
     if (fs.existsSync(TRADES_FILE)) {
-      const data = fs.readFileSync(TRADES_FILE, "utf8");
+      const data = fs.readFileSync(TRADES_FILE, 'utf8');
       return JSON.parse(data);
     }
   } catch (error) {
@@ -36,13 +36,13 @@ export function loadLedger() {
       wins: 0,
       losses: 0,
       totalPnL: 0,
-      winRate: 0
+      winRate: 0,
     },
     meta: {
       // Adds/subtracts from realized PnL for balance display without mutating historical trades.
       // Example: set to -summary.totalPnL to "reset bankroll" back to startingBalance.
-      realizedOffset: 0
-    }
+      realizedOffset: 0,
+    },
   };
 }
 
@@ -53,7 +53,7 @@ export async function saveLedger(ledger) {
   ensureDirs();
   try {
     // Use JSON.stringify with indentation for readability
-    fs.writeFileSync(TRADES_FILE, JSON.stringify(ledger, null, 2), "utf8");
+    fs.writeFileSync(TRADES_FILE, JSON.stringify(ledger, null, 2), 'utf8');
   } catch (error) {
     console.error(`Error saving ledger to ${TRADES_FILE}:`, error);
   }
@@ -64,12 +64,12 @@ export async function updateLedger(updateFn) {
   if (currentLedger === null) {
     currentLedger = loadLedger();
   }
-  
+
   try {
     updateFn(currentLedger);
     await saveLedger(currentLedger); // Save changes to file
   } catch (error) {
-    console.error("Error updating ledger:", error);
+    console.error('Error updating ledger:', error);
   }
 }
 
@@ -78,9 +78,9 @@ export function recalculateSummary(trades) {
   let wins = 0;
   let losses = 0;
   let totalPnL = 0;
-  
+
   for (const trade of trades) {
-    if (trade.status === "CLOSED") {
+    if (trade.status === 'CLOSED') {
       totalPnL += trade.pnl;
       if (trade.pnl > 0) {
         wins += 1;
@@ -89,16 +89,16 @@ export function recalculateSummary(trades) {
       }
     }
   }
-  
+
   const totalClosedTrades = wins + losses;
   const winRate = totalClosedTrades > 0 ? (wins / totalClosedTrades) * 100 : 0;
-  
+
   return {
     totalTrades: trades.length,
     wins,
     losses,
     totalPnL,
-    winRate: Number(winRate.toFixed(2)) // Format win rate
+    winRate: Number(winRate.toFixed(2)), // Format win rate
   };
 }
 
@@ -110,28 +110,43 @@ export async function initializeLedger() {
   // Ensure summary is up-to-date on load
   currentLedger.summary = recalculateSummary(currentLedger.trades);
   // Ensure meta exists
-  if (!currentLedger.meta || typeof currentLedger.meta !== "object") {
+  if (!currentLedger.meta || typeof currentLedger.meta !== 'object') {
     currentLedger.meta = { realizedOffset: 0 };
   }
-  if (typeof currentLedger.meta.realizedOffset !== "number" || !Number.isFinite(currentLedger.meta.realizedOffset)) {
+  if (
+    typeof currentLedger.meta.realizedOffset !== 'number' ||
+    !Number.isFinite(currentLedger.meta.realizedOffset)
+  ) {
     currentLedger.meta.realizedOffset = 0;
   }
   await saveLedger(currentLedger); // Save to ensure clean format
-  console.log("Ledger initialized. Trades:", currentLedger.trades.length, "Summary:", currentLedger.summary);
+  console.log(
+    'Ledger initialized. Trades:',
+    currentLedger.trades.length,
+    'Summary:',
+    currentLedger.summary,
+  );
   return currentLedger;
 }
 
 // Add a new trade record
 export async function addTrade(trade) {
   // Ledger-level sanity: never persist an invalid OPEN trade.
-  const isOpen = (trade?.status ?? "OPEN") === "OPEN";
+  const isOpen = (trade?.status ?? 'OPEN') === 'OPEN';
   if (isOpen) {
     const ep = trade?.entryPrice;
     const sh = trade?.shares;
-    const badEp = typeof ep !== "number" || !Number.isFinite(ep) || ep <= 0;
-    const badSh = sh !== null && sh !== undefined && (!Number.isFinite(Number(sh)) || Number(sh) <= 0);
+    const badEp = typeof ep !== 'number' || !Number.isFinite(ep) || ep <= 0;
+    const badSh =
+      sh !== null &&
+      sh !== undefined &&
+      (!Number.isFinite(Number(sh)) || Number(sh) <= 0);
     if (badEp || badSh) {
-      console.warn("Refusing to add invalid OPEN trade to ledger:", { entryPrice: ep, shares: sh, side: trade?.side });
+      console.warn('Refusing to add invalid OPEN trade to ledger:', {
+        entryPrice: ep,
+        shares: sh,
+        side: trade?.side,
+      });
       return;
     }
   }
@@ -140,25 +155,30 @@ export async function addTrade(trade) {
     const newTrade = {
       ...trade,
       // Only generate if missing (don't break caller references)
-      id: trade.id ?? (Date.now().toString() + Math.random().toString(36).substring(2, 7)),
+      id:
+        trade.id ??
+        Date.now().toString() + Math.random().toString(36).substring(2, 7),
       timestamp: trade.timestamp ?? new Date().toISOString(),
-      status: trade.status ?? "OPEN",
-      pnl: typeof trade.pnl === "number" ? trade.pnl : 0
+      status: trade.status ?? 'OPEN',
+      pnl: typeof trade.pnl === 'number' ? trade.pnl : 0,
     };
     ledger.trades.push(newTrade);
     ledger.summary = recalculateSummary(ledger.trades);
   });
-  console.log("Trade added:", trade.side, "at", trade.entryPrice);
+  console.log('Trade added:', trade.side, 'at', trade.entryPrice);
 }
 
 // Update an existing trade (e.g., close it)
 export async function updateTrade(tradeId, updateData) {
   await updateLedger((ledger) => {
-    const tradeIndex = ledger.trades.findIndex(t => t.id === tradeId);
+    const tradeIndex = ledger.trades.findIndex((t) => t.id === tradeId);
     if (tradeIndex !== -1) {
-      ledger.trades[tradeIndex] = { ...ledger.trades[tradeIndex], ...updateData };
+      ledger.trades[tradeIndex] = {
+        ...ledger.trades[tradeIndex],
+        ...updateData,
+      };
       ledger.summary = recalculateSummary(ledger.trades); // Recalculate summary after update
-      console.log("Trade updated:", tradeId, "with data:", updateData);
+      console.log('Trade updated:', tradeId, 'with data:', updateData);
     } else {
       console.warn(`Trade with ID ${tradeId} not found for update.`);
     }
@@ -171,7 +191,7 @@ export function getOpenTrade() {
     currentLedger = loadLedger();
   }
   // Assuming only one trade can be open at a time for simplicity in this strategy
-  return currentLedger.trades.find(t => t.status === "OPEN");
+  return currentLedger.trades.find((t) => t.status === 'OPEN');
 }
 
 // Get all trades and summary
@@ -184,4 +204,3 @@ export function getLedger() {
 
 // NOTE: Do not auto-initialize on module import.
 // Call initializeLedger() explicitly from the app bootstrap (index.js) so we don't double-log / double-write.
-

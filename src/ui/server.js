@@ -21,6 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+let isTradingEnabled = false;
 const port = process.env.PORT || process.env.UI_PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 

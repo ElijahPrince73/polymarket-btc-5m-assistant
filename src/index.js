@@ -443,7 +443,19 @@ async function startApp() {
     };
 
     if (CONFIG.paperTrading.enabled && trader) await trader.processSignals(signalsForTrader, klines1m);
-    if (CONFIG.liveTrading?.enabled && liveTrader) await liveTrader.processSignals(signalsForTrader);
+    if (CONFIG.liveTrading?.enabled && liveTrader) {
+    console.log('Simulating trade signals for live trading...');
+    const simulatedSignals = {
+        rec: { action: 'ENTER', phase: 'EARLY', side: 'UP' },
+        market: { slug: 'test_market' },
+        timeLeftMin: 5,
+        polyPricesCents: { UP: 1, DOWN: 2 },
+        modelUp: 0.75,
+        modelDown: 0.25,
+        indicators: { rsiNow: 55, vwapNow: 100, vwapSlope: 0.1 }
+    };
+    await liveTrader.processSignals(simulatedSignals);
+}
 
     // --- Console UI Rendering ---
     const vwapSlopeLabel = indicatorsData.vwapSlope === null || indicatorsData.vwapSlope === undefined ? "-" : indicatorsData.vwapSlope > 0 ? "UP" : indicatorsData.vwapSlope < 0 ? "DOWN" : "FLAT";

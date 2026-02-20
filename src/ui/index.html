@@ -14,6 +14,8 @@
           <h1>Polymarket BTC 5m Assistant</h1>
           <div class="sub">Paper trading dashboard • Live-ready plumbing</div>
         </div>
+        <button id="start-trading" class="action-button">Start Trading</button>
+        <button id="stop-trading" class="action-button">Stop Trading</button>
         <div class="pill" id="ui-port-pill">UI</div>
       </div>
 
@@ -126,44 +128,6 @@
       </div>
     </div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        // Start Trading Button
-        document.getElementById('start-trading').addEventListener('click', async () => {
-            const response = await fetch('/api/live/start-trading', { method: 'POST' });
-            if (response.ok) {
-                console.log('Trading started!');
-            } else {
-                console.error('Failed to start trading.');
-            }
-        });
-
-        // Stop Trading Button
-        document.getElementById('stop-trading').addEventListener('click', async () => {
-            const response = await fetch('/api/live/stop-trading', { method: 'POST' });
-            if (response.ok) {
-                console.log('Trading stopped!');
-            } else {
-                console.error('Failed to stop trading.');
-            }
-        });
-
-        // Update Trades Functionality
-        async function updateTrades() {
-            const response = await fetch('/api/trades');
-            const trades = await response.json();
-            const tradesBody = document.getElementById('recent-trades-body');
-
-            tradesBody.innerHTML = trades.length > 0 ? trades.map(trade => `<tr>
-                <td>${new Date(trade.time).toLocaleString()}</td>
-                <td>${trade.outcome}</td>
-                <td>${trade.pnl > 0 ? 'Gain' : 'Loss'}</td>
-            </tr>`).join('') : '<tr><td colspan="3">No trades found.</td></tr>';
-        }
-
-        // Call updateTrades on load to show current trades
-        updateTrades();
-      });
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>

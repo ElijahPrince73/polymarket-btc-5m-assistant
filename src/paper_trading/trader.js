@@ -1,9 +1,18 @@
-import { CONFIG } from "../config.js";
-import { loadLedger, addTrade, updateTrade, getOpenTrade as ledgerGetOpenTrade, getLedger, recalculateSummary } from "./ledger.js";
+import { CONFIG } from '../config.js';
+import {
+  loadLedger,
+  addTrade,
+  updateTrade,
+  getOpenTrade as ledgerGetOpenTrade,
+  getLedger,
+  recalculateSummary,
+} from './ledger.js';
 
 // Core trading logic - NO fixed TP/SL, dynamic exits only
 export class Trader {
   constructor() {
+        this.tradingEnabled = true;
+    this.tradingEnabled = true;
     this.openTrade = null;
     this.lastFlipAtMs = 0;
     this.lastLossAtMs = 0;
@@ -16,7 +25,7 @@ export class Trader {
     this.lastEntryStatus = {
       at: null,
       eligible: false,
-      blockers: []
+      blockers: [],
     };
   }
 
@@ -27,34 +36,51 @@ export class Trader {
     // Guard against corrupted/invalid open trades (e.g., entryPrice 0.00)
     if (this.openTrade) {
       const t = this.openTrade;
-      const badPrice = typeof t.entryPrice !== "number" || !Number.isFinite(t.entryPrice) || t.entryPrice <= 0;
-      const badShares = t.shares !== null && t.shares !== undefined && (!Number.isFinite(Number(t.shares)) || Number(t.shares) <= 0);
+      const badPrice =
+        typeof t.entryPrice !== 'number' ||
+        !Number.isFinite(t.entryPrice) ||
+        t.entryPrice <= 0;
+      const badShares =
+        t.shares !== null &&
+        t.shares !== undefined &&
+        (!Number.isFinite(Number(t.shares)) || Number(t.shares) <= 0);
       if (badPrice || badShares) {
-        console.warn("Invalid open trade found in ledger; force-closing:", { id: t.id, entryPrice: t.entryPrice, shares: t.shares });
+        console.warn('Invalid open trade found in ledger; force-closing:', {
+          id: t.id,
+          entryPrice: t.entryPrice,
+          shares: t.shares,
+        });
         const forced = {
           ...t,
-          status: "CLOSED",
+          status: 'CLOSED',
           exitPrice: t.exitPrice ?? null,
           exitTime: new Date().toISOString(),
           pnl: 0,
-          exitReason: "Invalid Entry (sanity check)"
+          exitReason: 'Invalid Entry (sanity check)',
         };
         await updateTrade(t.id, forced);
         this.openTrade = null;
       }
     }
 
-    console.log("Trader initialized. Open trade:", this.openTrade ? this.openTrade.id.substring(0, 8) : "None");
+    console.log(
+      'Trader initialized. Open trade:',
+      this.openTrade ? this.openTrade.id.substring(0, 8) : 'None',
+    );
   }
 
   getBalanceSnapshot() {
     const ledger = getLedger();
     const summary = ledger.summary ?? recalculateSummary(ledger.trades ?? []);
     const starting = CONFIG.paperTrading.startingBalance ?? 1000;
-    const baseRealized = typeof summary.totalPnL === "number" ? summary.totalPnL : 0;
-    const offset = (ledger.meta && typeof ledger.meta.realizedOffset === "number" && Number.isFinite(ledger.meta.realizedOffset))
-      ? ledger.meta.realizedOffset
-      : 0;
+    const baseRealized =
+      typeof summary.totalPnL === 'number' ? summary.totalPnL : 0;
+    const offset =
+      ledger.meta &&
+      typeof ledger.meta.realizedOffset === 'number' &&
+      Number.isFinite(ledger.meta.realizedOffset)
+        ? ledger.meta.realizedOffset
+        : 0;
     const realized = baseRealized + offset;
     const balance = starting + realized;
     return { balance, starting, realized };
@@ -65,12 +91,15 @@ export class Trader {
     if (!Number.isFinite(balance) || balance <= 0) return 0;
 
     const stakePct = CONFIG.paperTrading.stakePct;
-    const useDynamic = typeof stakePct === "number" && Number.isFinite(stakePct) && stakePct > 0;
+    const useDynamic =
+      typeof stakePct === 'number' && Number.isFinite(stakePct) && stakePct > 0;
 
     const minUsd = CONFIG.paperTrading.minTradeUsd ?? 0;
     const maxUsd = CONFIG.paperTrading.maxTradeUsd ?? Number.POSITIVE_INFINITY;
 
-    let size = useDynamic ? (balance * stakePct) : (CONFIG.paperTrading.contractSize ?? 100);
+    let size = useDynamic
+      ? balance * stakePct
+      : (CONFIG.paperTrading.contractSize ?? 100);
     size = Math.max(minUsd, Math.min(maxUsd, size));
     size = Math.min(size, balance);
 
@@ -80,7 +109,11 @@ export class Trader {
   }
 
   async processSignals(signals, klines1m) {
+    console.log('Paper trading: Processing signals...', signals);
+    console.log('Paper trading: Processing signals...', signals);
+    console.log('Received signals:', signals);
     if (!CONFIG.paperTrading.enabled) return;
+    if (!this.tradingEnabled) return;
 
     const candleCount = Array.isArray(klines1m) ? klines1m.length : 0;
     const minCandlesForEntry = CONFIG.paperTrading.minCandlesForEntry ?? 30;
@@ -88,22 +121,22 @@ export class Trader {
 
     // IMPORTANT: We paper-trade the Polymarket contract, not BTC spot.
     // BTC price/klines are only used for generating the signal.
-    const action = signals.rec?.action || "NONE";
+    const action = signals.rec?.action || 'NONE';
     let side = signals.rec?.side;
     let sideInferred = false;
     const timeLeftMin = signals.timeLeftMin;
-    const marketSlug = signals.market?.slug || "unknown";
+    const marketSlug = signals.market?.slug || 'unknown';
 
     // Rec gating: strict requires explicit ENTER; loose allows entry if thresholds hit.
-    const recGating = String(CONFIG.paperTrading.recGating || "loose");
-    const strictRec = recGating === "strict";
+    const recGating = String(CONFIG.paperTrading.recGating || 'loose');
+    const strictRec = recGating === 'strict';
 
     // If we are not in a trade and strict gating is enabled, short-circuit unless Rec=ENTER.
-    if (!this.openTrade && strictRec && action !== "ENTER") {
+    if (!this.openTrade && strictRec && action !== 'ENTER') {
       this.lastEntryStatus = {
         at: new Date().toISOString(),
         eligible: false,
-        blockers: [`Rec=${action} (strict)`]
+        blockers: [`Rec=${action} (strict)`],
       };
       return;
     }
@@ -115,10 +148,11 @@ export class Trader {
     // In loose mode, if the engine doesn't provide a side, infer it from the model probabilities.
     // This keeps paper trading active even when rec.action is conservative.
     if (!side && !strictRec) {
-      const upP = typeof signals.modelUp === "number" ? signals.modelUp : null;
-      const downP = typeof signals.modelDown === "number" ? signals.modelDown : null;
+      const upP = typeof signals.modelUp === 'number' ? signals.modelUp : null;
+      const downP =
+        typeof signals.modelDown === 'number' ? signals.modelDown : null;
       if (upP !== null && downP !== null) {
-        side = upP >= downP ? "UP" : "DOWN";
+        side = upP >= downP ? 'UP' : 'DOWN';
         sideInferred = true;
         entryBlockers.push(`Inferred side=${side}`);
       }
@@ -137,42 +171,62 @@ export class Trader {
     const obDownAsk = poly?.orderbook?.down?.bestAsk;
     const obDownBid = poly?.orderbook?.down?.bestBid;
 
-    const fallbackUpC = (typeof obUpAsk === "number" && Number.isFinite(obUpAsk) && obUpAsk > 0)
-      ? (obUpAsk * 100)
-      : ((typeof obUpBid === "number" && Number.isFinite(obUpBid) && obUpBid > 0) ? (obUpBid * 100) : null);
+    const fallbackUpC =
+      typeof obUpAsk === 'number' && Number.isFinite(obUpAsk) && obUpAsk > 0
+        ? obUpAsk * 100
+        : typeof obUpBid === 'number' && Number.isFinite(obUpBid) && obUpBid > 0
+          ? obUpBid * 100
+          : null;
 
-    const fallbackDownC = (typeof obDownAsk === "number" && Number.isFinite(obDownAsk) && obDownAsk > 0)
-      ? (obDownAsk * 100)
-      : ((typeof obDownBid === "number" && Number.isFinite(obDownBid) && obDownBid > 0) ? (obDownBid * 100) : null);
+    const fallbackDownC =
+      typeof obDownAsk === 'number' &&
+      Number.isFinite(obDownAsk) &&
+      obDownAsk > 0
+        ? obDownAsk * 100
+        : typeof obDownBid === 'number' &&
+            Number.isFinite(obDownBid) &&
+            obDownBid > 0
+          ? obDownBid * 100
+          : null;
 
-    const upC = (typeof rawUpC === "number" && Number.isFinite(rawUpC) && rawUpC > 0) ? rawUpC : fallbackUpC;
-    const downC = (typeof rawDownC === "number" && Number.isFinite(rawDownC) && rawDownC > 0) ? rawDownC : fallbackDownC;
+    const upC =
+      typeof rawUpC === 'number' && Number.isFinite(rawUpC) && rawUpC > 0
+        ? rawUpC
+        : fallbackUpC;
+    const downC =
+      typeof rawDownC === 'number' && Number.isFinite(rawDownC) && rawDownC > 0
+        ? rawDownC
+        : fallbackDownC;
 
-    const upCok = (typeof upC === "number" && Number.isFinite(upC) && upC > 0);
-    const downCok = (typeof downC === "number" && Number.isFinite(downC) && downC > 0);
+    const upCok = typeof upC === 'number' && Number.isFinite(upC) && upC > 0;
+    const downCok =
+      typeof downC === 'number' && Number.isFinite(downC) && downC > 0;
     const polyPricesSane = upCok && downCok;
 
     const effectivePolyPrices = {
-      UP: upCok ? (upC / 100) : null,
-      DOWN: downCok ? (downC / 100) : null
+      UP: upCok ? upC / 100 : null,
+      DOWN: downCok ? downC / 100 : null,
     };
 
-    const currentPolyPrice = side ? (effectivePolyPrices?.[side] ?? null) : null; // dollars (0..1)
+    const currentPolyPrice = side
+      ? (effectivePolyPrices?.[side] ?? null)
+      : null; // dollars (0..1)
 
     const effectivePriceForSide = (s) => {
       if (!s) return null;
       const p = effectivePolyPrices?.[s] ?? null;
-      return (typeof p === "number" && Number.isFinite(p) && p > 0) ? p : null;
+      return typeof p === 'number' && Number.isFinite(p) && p > 0 ? p : null;
     };
 
-    if (!side) entryBlockers.push("Missing side");
-    if (side && (currentPolyPrice === null || currentPolyPrice === undefined)) entryBlockers.push("Missing Polymarket price");
+    if (!side) entryBlockers.push('Missing side');
+    if (side && (currentPolyPrice === null || currentPolyPrice === undefined))
+      entryBlockers.push('Missing Polymarket price');
 
     if (!side || currentPolyPrice === null) {
       this.lastEntryStatus = {
         at: new Date().toISOString(),
         eligible: false,
-        blockers: entryBlockers.length ? entryBlockers : [`Rec=${action}`]
+        blockers: entryBlockers.length ? entryBlockers : [`Rec=${action}`],
       };
       return;
     }
@@ -187,47 +241,67 @@ export class Trader {
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     }).formatToParts(new Date());
-    const getNow = (t) => partsNow.find(p => p.type === t)?.value;
+    const getNow = (t) => partsNow.find((p) => p.type === t)?.value;
     const wdNow = getNow('weekday');
     const hourNow = Number(getNow('hour'));
-    const isWeekendNow = (wdNow === 'Sat' || wdNow === 'Sun');
+    const isWeekendNow = wdNow === 'Sat' || wdNow === 'Sun';
 
-    const weekendTightening = (CONFIG.paperTrading.weekendTighteningEnabled ?? false) && isWeekendNow;
+    const weekendTightening =
+      (CONFIG.paperTrading.weekendTighteningEnabled ?? false) && isWeekendNow;
 
     const effectiveMaxSpread = weekendTightening
       ? (CONFIG.paperTrading.weekendMaxSpread ?? CONFIG.paperTrading.maxSpread)
       : CONFIG.paperTrading.maxSpread;
 
-    const hasBadSpread = (spreadUp !== null && spreadUp > effectiveMaxSpread) ||
-                         (spreadDown !== null && spreadDown > effectiveMaxSpread);
+    const hasBadSpread =
+      (spreadUp !== null && spreadUp > effectiveMaxSpread) ||
+      (spreadDown !== null && spreadDown > effectiveMaxSpread);
 
     const liquidityNum = signals.market?.liquidityNum ?? null;
     const effectiveMinLiquidity = weekendTightening
-      ? (CONFIG.paperTrading.weekendMinLiquidity ?? CONFIG.paperTrading.minLiquidity)
+      ? (CONFIG.paperTrading.weekendMinLiquidity ??
+        CONFIG.paperTrading.minLiquidity)
       : (CONFIG.paperTrading.minLiquidity ?? 0);
     const minLiquidity = effectiveMinLiquidity;
 
     // Market data sanity: require liquidity to be a real, positive number.
-    const liquidityOk = (typeof liquidityNum === "number" && Number.isFinite(liquidityNum) && liquidityNum > 0);
-    const hasLowLiquidity = liquidityOk ? (liquidityNum < minLiquidity) : true;
+    const liquidityOk =
+      typeof liquidityNum === 'number' &&
+      Number.isFinite(liquidityNum) &&
+      liquidityNum > 0;
+    const hasLowLiquidity = liquidityOk ? liquidityNum < minLiquidity : true;
 
     // Market volume filter is optional (disabled by default)
     const marketVolumeNum = signals.market?.volumeNum ?? null;
     const minMarketVolumeNum = CONFIG.paperTrading.minMarketVolumeNum ?? 0;
-    const hasLowMarketVolume = (typeof marketVolumeNum === "number" && Number.isFinite(marketVolumeNum) && minMarketVolumeNum > 0)
-      ? (marketVolumeNum < minMarketVolumeNum)
-      : false;
+    const hasLowMarketVolume =
+      typeof marketVolumeNum === 'number' &&
+      Number.isFinite(marketVolumeNum) &&
+      minMarketVolumeNum > 0
+        ? marketVolumeNum < minMarketVolumeNum
+        : false;
 
-    const isLowLiquidity = hasBadSpread || hasLowLiquidity || hasLowMarketVolume;
+    const isLowLiquidity =
+      hasBadSpread || hasLowLiquidity || hasLowMarketVolume;
 
     // Prefer Polymarket settlement timer (endDate) over candle-derived timeLeft.
-    const endDate = signals.market?.endDate ?? signals.polyMarketSnapshot?.market?.endDate ?? null;
-    const settlementLeftMin = endDate ? ((new Date(endDate).getTime() - Date.now()) / 60000) : null;
-    const timeLeftForEntry = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+    const endDate =
+      signals.market?.endDate ??
+      signals.polyMarketSnapshot?.market?.endDate ??
+      null;
+    const settlementLeftMin = endDate
+      ? (new Date(endDate).getTime() - Date.now()) / 60000
+      : null;
+    const timeLeftForEntry =
+      typeof settlementLeftMin === 'number' &&
+      Number.isFinite(settlementLeftMin)
+        ? settlementLeftMin
+        : timeLeftMin;
 
-    const isTooLateToEnter = timeLeftForEntry < CONFIG.paperTrading.noEntryFinalMinutes;
+    const isTooLateToEnter =
+      timeLeftForEntry < CONFIG.paperTrading.noEntryFinalMinutes;
 
     // Weekday-only schedule filter (Pacific time). Exits are handled separately.
     const weekdaysOnly = CONFIG.paperTrading.weekdaysOnly ?? false;
@@ -238,10 +312,18 @@ export class Trader {
       const hour = hourNow;
 
       const allowSundayAfterHour = CONFIG.paperTrading.allowSundayAfterHour;
-      const isSundayAllowed = (wd === 'Sun' && Number.isFinite(allowSundayAfterHour) && allowSundayAfterHour >= 0 && hour >= allowSundayAfterHour);
+      const isSundayAllowed =
+        wd === 'Sun' &&
+        Number.isFinite(allowSundayAfterHour) &&
+        allowSundayAfterHour >= 0 &&
+        hour >= allowSundayAfterHour;
 
-      const isWeekend = (wd === 'Sat' || wd === 'Sun');
-      const isFridayAfter = (wd === 'Fri' && Number.isFinite(noEntryAfterFridayHour) && noEntryAfterFridayHour >= 0 && hour >= noEntryAfterFridayHour);
+      const isWeekend = wd === 'Sat' || wd === 'Sun';
+      const isFridayAfter =
+        wd === 'Fri' &&
+        Number.isFinite(noEntryAfterFridayHour) &&
+        noEntryAfterFridayHour >= 0 &&
+        hour >= noEntryAfterFridayHour;
 
       // Outside schedule if it's weekend (unless Sunday exception applies) or after Friday cutoff
       isOutsideSchedule = (isWeekend && !isSundayAllowed) || isFridayAfter;
@@ -253,8 +335,15 @@ export class Trader {
     const minVolumeRecent = CONFIG.paperTrading.minVolumeRecent ?? 0;
     const minVolumeRatio = CONFIG.paperTrading.minVolumeRatio ?? 0;
 
-    const isLowVolumeAbsolute = (minVolumeRecent > 0) && (volumeRecent !== null) && (volumeRecent < minVolumeRecent);
-    const isLowVolumeRelative = (minVolumeRatio > 0) && (volumeRecent !== null) && (volumeAvg !== null) && (volumeRecent < (volumeAvg * minVolumeRatio));
+    const isLowVolumeAbsolute =
+      minVolumeRecent > 0 &&
+      volumeRecent !== null &&
+      volumeRecent < minVolumeRecent;
+    const isLowVolumeRelative =
+      minVolumeRatio > 0 &&
+      volumeRecent !== null &&
+      volumeAvg !== null &&
+      volumeRecent < volumeAvg * minVolumeRatio;
     const isLowVolume = isLowVolumeAbsolute || isLowVolumeRelative;
 
     // --- ENTRY ---
@@ -265,48 +354,85 @@ export class Trader {
     const lossCooldownSec = CONFIG.paperTrading.lossCooldownSeconds ?? 0;
     const winCooldownSec = CONFIG.paperTrading.winCooldownSeconds ?? 0;
 
-    const inLossCooldown = (typeof lossCooldownSec === "number" && Number.isFinite(lossCooldownSec) && lossCooldownSec > 0 && this.lastLossAtMs)
-      ? ((Date.now() - this.lastLossAtMs) < (lossCooldownSec * 1000))
-      : false;
+    const inLossCooldown =
+      typeof lossCooldownSec === 'number' &&
+      Number.isFinite(lossCooldownSec) &&
+      lossCooldownSec > 0 &&
+      this.lastLossAtMs
+        ? Date.now() - this.lastLossAtMs < lossCooldownSec * 1000
+        : false;
 
-    const inWinCooldown = (typeof winCooldownSec === "number" && Number.isFinite(winCooldownSec) && winCooldownSec > 0 && this.lastWinAtMs)
-      ? ((Date.now() - this.lastWinAtMs) < (winCooldownSec * 1000))
-      : false;
+    const inWinCooldown =
+      typeof winCooldownSec === 'number' &&
+      Number.isFinite(winCooldownSec) &&
+      winCooldownSec > 0 &&
+      this.lastWinAtMs
+        ? Date.now() - this.lastWinAtMs < winCooldownSec * 1000
+        : false;
 
     // If we just hit a Max Loss stop in this market slug, skip entries until the slug changes.
-    const skipAfterMaxLoss = CONFIG.paperTrading.skipMarketAfterMaxLoss ?? false;
-    const inSkipMarket = Boolean(skipAfterMaxLoss && this.skipMarketUntilNextSlug && marketSlug && this.skipMarketUntilNextSlug === marketSlug);
+    const skipAfterMaxLoss =
+      CONFIG.paperTrading.skipMarketAfterMaxLoss ?? false;
+    const inSkipMarket = Boolean(
+      skipAfterMaxLoss &&
+      this.skipMarketUntilNextSlug &&
+      marketSlug &&
+      this.skipMarketUntilNextSlug === marketSlug,
+    );
 
     // Require core indicators to be populated (prevents 50/50 / undefined warm states)
     const ind = signals.indicators ?? {};
-    const hasRsi = typeof ind.rsiNow === "number" && Number.isFinite(ind.rsiNow);
-    const hasVwap = typeof ind.vwapNow === "number" && Number.isFinite(ind.vwapNow);
-    const hasVwapSlope = typeof ind.vwapSlope === "number" && Number.isFinite(ind.vwapSlope);
-    const hasMacd = typeof ind.macd?.hist === "number" && Number.isFinite(ind.macd.hist);
-    const hasHeiken = typeof ind.heikenColor === "string" && ind.heikenColor.length > 0 && typeof ind.heikenCount === "number" && Number.isFinite(ind.heikenCount);
-    const indicatorsPopulated = hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
+    const hasRsi =
+      typeof ind.rsiNow === 'number' && Number.isFinite(ind.rsiNow);
+    const hasVwap =
+      typeof ind.vwapNow === 'number' && Number.isFinite(ind.vwapNow);
+    const hasVwapSlope =
+      typeof ind.vwapSlope === 'number' && Number.isFinite(ind.vwapSlope);
+    const hasMacd =
+      typeof ind.macd?.hist === 'number' && Number.isFinite(ind.macd.hist);
+    const hasHeiken =
+      typeof ind.heikenColor === 'string' &&
+      ind.heikenColor.length > 0 &&
+      typeof ind.heikenCount === 'number' &&
+      Number.isFinite(ind.heikenCount);
+    const indicatorsPopulated =
+      hasRsi && hasVwap && hasVwapSlope && hasMacd && hasHeiken;
 
     // Build debug blockers for UI
     const blockers = [...entryBlockers];
-    if (!canEnter) blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
-    if (!indicatorsPopulated) blockers.push("Indicators not ready");
-    if (!polyPricesSane) blockers.push("Market data sanity: invalid Polymarket prices (gamma 0/NaN and no valid orderbook quotes)");
-    if (this.openTrade) blockers.push("Trade already open");
+    if (!canEnter)
+      blockers.push(`Warmup: candles ${candleCount}/${minCandlesForEntry}`);
+    if (!indicatorsPopulated) blockers.push('Indicators not ready');
+    if (!polyPricesSane)
+      blockers.push(
+        'Market data sanity: invalid Polymarket prices (gamma 0/NaN and no valid orderbook quotes)',
+      );
+    if (this.openTrade) blockers.push('Trade already open');
     if (inLossCooldown) blockers.push(`Loss cooldown (${lossCooldownSec}s)`);
     if (inWinCooldown) blockers.push(`Win cooldown (${winCooldownSec}s)`);
-    if (inSkipMarket) blockers.push("Skip market after Max Loss (wait for next 5m) ");
-    if (strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (strict)`);
-    if (!strictRec && signals.rec?.action !== "ENTER") blockers.push(`Rec=${signals.rec?.action || "NONE"} (loose)`);
-    if (isTooLateToEnter) blockers.push(`Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m to settlement)`);
-    if (hasBadSpread) blockers.push("High spread");
-    if (!liquidityOk) blockers.push("Market data sanity: liquidity missing/0");
-    if (hasLowLiquidity && liquidityOk) blockers.push(`Low liquidity (<${minLiquidity})`);
-    if (hasLowMarketVolume) blockers.push(`Low market volume (<${minMarketVolumeNum})`);
-    if (isOutsideSchedule) blockers.push("Outside schedule (weekdays only / Friday cutoff)");
+    if (inSkipMarket)
+      blockers.push('Skip market after Max Loss (wait for next 5m) ');
+    if (strictRec && signals.rec?.action !== 'ENTER')
+      blockers.push(`Rec=${signals.rec?.action || 'NONE'} (strict)`);
+    if (!strictRec && signals.rec?.action !== 'ENTER')
+      blockers.push(`Rec=${signals.rec?.action || 'NONE'} (loose)`);
+    if (isTooLateToEnter)
+      blockers.push(
+        `Too late (<${CONFIG.paperTrading.noEntryFinalMinutes}m to settlement)`,
+      );
+    if (hasBadSpread) blockers.push('High spread');
+    if (!liquidityOk) blockers.push('Market data sanity: liquidity missing/0');
+    if (hasLowLiquidity && liquidityOk)
+      blockers.push(`Low liquidity (<${minLiquidity})`);
+    if (hasLowMarketVolume)
+      blockers.push(`Low market volume (<${minMarketVolumeNum})`);
+    if (isOutsideSchedule)
+      blockers.push('Outside schedule (weekdays only / Friday cutoff)');
 
     // Confidence filter: avoid 50/50 model conditions
-    const upP0 = typeof signals.modelUp === "number" ? signals.modelUp : null;
-    const downP0 = typeof signals.modelDown === "number" ? signals.modelDown : null;
+    const upP0 = typeof signals.modelUp === 'number' ? signals.modelUp : null;
+    const downP0 =
+      typeof signals.modelDown === 'number' ? signals.modelDown : null;
     const baseMinModelMaxProb = CONFIG.paperTrading.minModelMaxProb ?? 0;
     const baseMinRangePct20 = CONFIG.paperTrading.minRangePct20 ?? 0;
 
@@ -321,24 +447,41 @@ export class Trader {
     if (effectiveMinModelMaxProb > 0 && upP0 !== null && downP0 !== null) {
       const m = Math.max(upP0, downP0);
       if (m < effectiveMinModelMaxProb) {
-        blockers.push(`Low conviction (maxProb ${(m * 100).toFixed(1)}% < ${(effectiveMinModelMaxProb * 100).toFixed(1)}%)`);
+        blockers.push(
+          `Low conviction (maxProb ${(m * 100).toFixed(1)}% < ${(effectiveMinModelMaxProb * 100).toFixed(1)}%)`,
+        );
       }
     }
 
     // Chop/volatility filter (BTC reference)
     const rangePct20 = signals.indicators?.rangePct20 ?? null;
-    if (typeof rangePct20 === "number" && Number.isFinite(rangePct20) && effectiveMinRangePct20 > 0 && rangePct20 < effectiveMinRangePct20) {
-      blockers.push(`Choppy (range20 ${(rangePct20 * 100).toFixed(2)}% < ${(effectiveMinRangePct20 * 100).toFixed(2)}%)`);
+    if (
+      typeof rangePct20 === 'number' &&
+      Number.isFinite(rangePct20) &&
+      effectiveMinRangePct20 > 0 &&
+      rangePct20 < effectiveMinRangePct20
+    ) {
+      blockers.push(
+        `Choppy (range20 ${(rangePct20 * 100).toFixed(2)}% < ${(effectiveMinRangePct20 * 100).toFixed(2)}%)`,
+      );
     }
 
     // Spot impulse filter (Coinbase spot)
     const minImpulse = CONFIG.paperTrading.minBtcImpulsePct1m ?? 0;
     const spotDelta1mPct = signals.spot?.delta1mPct ?? null;
-    if (typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) {
-      if (!(typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct))) {
-        blockers.push("Spot impulse unavailable");
+    if (
+      typeof minImpulse === 'number' &&
+      Number.isFinite(minImpulse) &&
+      minImpulse > 0
+    ) {
+      if (
+        !(typeof spotDelta1mPct === 'number' && Number.isFinite(spotDelta1mPct))
+      ) {
+        blockers.push('Spot impulse unavailable');
       } else if (Math.abs(spotDelta1mPct) < minImpulse) {
-        blockers.push(`Low impulse (spot1m ${(spotDelta1mPct * 100).toFixed(3)}% < ${(minImpulse * 100).toFixed(3)}%)`);
+        blockers.push(
+          `Low impulse (spot1m ${(spotDelta1mPct * 100).toFixed(3)}% < ${(minImpulse * 100).toFixed(3)}%)`,
+        );
       }
     }
 
@@ -346,73 +489,143 @@ export class Trader {
     const rsiNow = signals.indicators?.rsiNow ?? null;
     const noTradeRsiMin = CONFIG.paperTrading.noTradeRsiMin;
     const noTradeRsiMax = CONFIG.paperTrading.noTradeRsiMax;
-    const isBadRsiBand = (typeof rsiNow === "number" && Number.isFinite(rsiNow) && Number.isFinite(noTradeRsiMin) && Number.isFinite(noTradeRsiMax))
-      ? (rsiNow >= noTradeRsiMin && rsiNow < noTradeRsiMax)
-      : false;
-    if (isBadRsiBand) blockers.push(`RSI in no-trade band (${rsiNow.toFixed(1)} in [${noTradeRsiMin},${noTradeRsiMax}))`);
+    const isBadRsiBand =
+      typeof rsiNow === 'number' &&
+      Number.isFinite(rsiNow) &&
+      Number.isFinite(noTradeRsiMin) &&
+      Number.isFinite(noTradeRsiMax)
+        ? rsiNow >= noTradeRsiMin && rsiNow < noTradeRsiMax
+        : false;
+    if (isBadRsiBand)
+      blockers.push(
+        `RSI in no-trade band (${rsiNow.toFixed(1)} in [${noTradeRsiMin},${noTradeRsiMax}))`,
+      );
 
-    if (isLowVolume) blockers.push("Low volume");
+    if (isLowVolume) blockers.push('Low volume');
 
     // Price sanity blockers
     const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.002;
     const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.98;
-    if (!(typeof currentPolyPrice === "number") || !Number.isFinite(currentPolyPrice) || currentPolyPrice < minPoly || currentPolyPrice > maxPoly) {
-      blockers.push(`Poly price out of bounds (${(currentPolyPrice ?? NaN) * 100}¢)`);
+    if (
+      !(typeof currentPolyPrice === 'number') ||
+      !Number.isFinite(currentPolyPrice) ||
+      currentPolyPrice < minPoly ||
+      currentPolyPrice > maxPoly
+    ) {
+      blockers.push(
+        `Poly price out of bounds (${(currentPolyPrice ?? NaN) * 100}¢)`,
+      );
     }
 
     // Profitability filter: avoid expensive entries (>=0.5¢ was a major losing bucket)
     const maxEntryPx = CONFIG.paperTrading.maxEntryPolyPrice ?? null;
-    if (typeof maxEntryPx === "number" && Number.isFinite(maxEntryPx) && typeof currentPolyPrice === "number" && Number.isFinite(currentPolyPrice)) {
-      if (currentPolyPrice > maxEntryPx) blockers.push(`Entry price too high (${(currentPolyPrice * 100).toFixed(2)}¢ > ${(maxEntryPx * 100).toFixed(2)}¢)`);
+    if (
+      typeof maxEntryPx === 'number' &&
+      Number.isFinite(maxEntryPx) &&
+      typeof currentPolyPrice === 'number' &&
+      Number.isFinite(currentPolyPrice)
+    ) {
+      if (currentPolyPrice > maxEntryPx)
+        blockers.push(
+          `Entry price too high (${(currentPolyPrice * 100).toFixed(2)}¢ > ${(maxEntryPx * 100).toFixed(2)}¢)`,
+        );
     }
 
     // Opposite-side sanity: avoid markets that are effectively already decided.
     const minOpp = CONFIG.paperTrading.minOppositePolyPrice ?? 0;
     if (minOpp > 0) {
-      const oppSide = side === "UP" ? "DOWN" : "UP";
+      const oppSide = side === 'UP' ? 'DOWN' : 'UP';
       const oppPx = signals.polyPrices?.[oppSide] ?? null;
-      if (typeof oppPx === "number" && Number.isFinite(oppPx) && oppPx < minOpp) {
-        blockers.push(`Opposite price too low (${oppSide} ${(oppPx * 100).toFixed(2)}¢ < ${(minOpp * 100).toFixed(2)}¢)`);
+      if (
+        typeof oppPx === 'number' &&
+        Number.isFinite(oppPx) &&
+        oppPx < minOpp
+      ) {
+        blockers.push(
+          `Opposite price too low (${oppSide} ${(oppPx * 100).toFixed(2)}¢ < ${(minOpp * 100).toFixed(2)}¢)`,
+        );
       }
     }
 
     // Threshold blockers
     if (signals.rec?.side) {
-      const modelProb = side === "UP" ? signals.modelUp : signals.modelDown;
+      const modelProb = side === 'UP' ? signals.modelUp : signals.modelDown;
       const edge = signals.rec?.edge ?? 0;
       const phase = signals.rec?.phase;
       let minProbReq, edgeReq;
-      if (phase === "EARLY") { minProbReq = CONFIG.paperTrading.minProbEarly; edgeReq = CONFIG.paperTrading.edgeEarly; }
-      else if (phase === "MID") { minProbReq = CONFIG.paperTrading.minProbMid; edgeReq = CONFIG.paperTrading.edgeMid; }
-      else { minProbReq = CONFIG.paperTrading.minProbLate; edgeReq = CONFIG.paperTrading.edgeLate; }
+      if (phase === 'EARLY') {
+        minProbReq = CONFIG.paperTrading.minProbEarly;
+        edgeReq = CONFIG.paperTrading.edgeEarly;
+      } else if (phase === 'MID') {
+        minProbReq = CONFIG.paperTrading.minProbMid;
+        edgeReq = CONFIG.paperTrading.edgeMid;
+      } else {
+        minProbReq = CONFIG.paperTrading.minProbLate;
+        edgeReq = CONFIG.paperTrading.edgeLate;
+      }
 
-      if (typeof modelProb === "number" && Number.isFinite(modelProb) && modelProb < minProbReq) blockers.push(`Prob ${modelProb.toFixed(3)} < ${minProbReq}`);
-      if ((edge || 0) < edgeReq) blockers.push(`Edge ${(edge || 0).toFixed(3)} < ${edgeReq}`);
+      if (
+        typeof modelProb === 'number' &&
+        Number.isFinite(modelProb) &&
+        modelProb < minProbReq
+      )
+        blockers.push(`Prob ${modelProb.toFixed(3)} < ${minProbReq}`);
+      if ((edge || 0) < edgeReq)
+        blockers.push(`Edge ${(edge || 0).toFixed(3)} < ${edgeReq}`);
     }
 
     this.lastEntryStatus = {
       at: new Date().toISOString(),
       eligible: blockers.length === 0,
-      blockers
+      blockers,
     };
 
-    const recAction = signals.rec?.action || "NONE";
-    const wantsEnter = (recAction === "ENTER") || !strictRec;
+    const recAction = signals.rec?.action || 'NONE';
+    const wantsEnter = recAction === 'ENTER' || !strictRec;
 
     // No-trade if volume is below threshold(s)
-    const entryPriceOk = !(typeof maxEntryPx === "number" && Number.isFinite(maxEntryPx) && typeof currentPolyPrice === "number" && Number.isFinite(currentPolyPrice) && currentPolyPrice > maxEntryPx);
+    const entryPriceOk = !(
+      typeof maxEntryPx === 'number' &&
+      Number.isFinite(maxEntryPx) &&
+      typeof currentPolyPrice === 'number' &&
+      Number.isFinite(currentPolyPrice) &&
+      currentPolyPrice > maxEntryPx
+    );
 
-    const impulseOk = !(typeof minImpulse === "number" && Number.isFinite(minImpulse) && minImpulse > 0) || (typeof spotDelta1mPct === "number" && Number.isFinite(spotDelta1mPct) && Math.abs(spotDelta1mPct) >= minImpulse);
+    const impulseOk =
+      !(
+        typeof minImpulse === 'number' &&
+        Number.isFinite(minImpulse) &&
+        minImpulse > 0
+      ) ||
+      (typeof spotDelta1mPct === 'number' &&
+        Number.isFinite(spotDelta1mPct) &&
+        Math.abs(spotDelta1mPct) >= minImpulse);
 
-    if (canEnter && indicatorsPopulated && polyPricesSane && entryPriceOk && impulseOk && !inLossCooldown && !inWinCooldown && !inSkipMarket && !this.openTrade && wantsEnter && !isTooLateToEnter && !isLowLiquidity && !isLowVolume && !isBadRsiBand) {
+    if (
+      canEnter &&
+      indicatorsPopulated &&
+      polyPricesSane &&
+      entryPriceOk &&
+      impulseOk &&
+      !inLossCooldown &&
+      !inWinCooldown &&
+      !inSkipMarket &&
+      !this.openTrade &&
+      wantsEnter &&
+      !isTooLateToEnter &&
+      !isLowLiquidity &&
+      !isLowVolume &&
+      !isBadRsiBand
+    ) {
       const { phase, edge } = signals.rec;
-      
+
       // Phase-based thresholds
       let minProb, edgeThreshold;
-      if (phase === "EARLY") {
+      if (phase === 'EARLY') {
         minProb = CONFIG.paperTrading.minProbEarly;
         edgeThreshold = CONFIG.paperTrading.edgeEarly;
-      } else if (phase === "MID") {
+      } else if (phase === 'MID') {
         minProb = CONFIG.paperTrading.minProbMid;
         edgeThreshold = CONFIG.paperTrading.edgeMid;
       } else {
@@ -422,24 +635,25 @@ export class Trader {
 
       // Weekend tightening: require stronger thresholds
       if (weekendTightening) {
-        minProb += (CONFIG.paperTrading.weekendProbBoost ?? 0);
-        edgeThreshold += (CONFIG.paperTrading.weekendEdgeBoost ?? 0);
+        minProb += CONFIG.paperTrading.weekendProbBoost ?? 0;
+        edgeThreshold += CONFIG.paperTrading.weekendEdgeBoost ?? 0;
       }
 
       // Tighten MID entries slightly (analytics: MID was worse than EARLY)
-      if (phase === "MID") {
-        minProb += (CONFIG.paperTrading.midProbBoost ?? 0);
-        edgeThreshold += (CONFIG.paperTrading.midEdgeBoost ?? 0);
+      if (phase === 'MID') {
+        minProb += CONFIG.paperTrading.midProbBoost ?? 0;
+        edgeThreshold += CONFIG.paperTrading.midEdgeBoost ?? 0;
       }
 
       // Tighten inferred-side entries in loose mode
       if (!strictRec && sideInferred) {
-        minProb += (CONFIG.paperTrading.inferredProbBoost ?? 0);
-        edgeThreshold += (CONFIG.paperTrading.inferredEdgeBoost ?? 0);
+        minProb += CONFIG.paperTrading.inferredProbBoost ?? 0;
+        edgeThreshold += CONFIG.paperTrading.inferredEdgeBoost ?? 0;
       }
 
-      const modelProb = side === "UP" ? signals.modelUp : signals.modelDown;
-      const meetsThresholds = modelProb >= minProb && (edge || 0) >= edgeThreshold;
+      const modelProb = side === 'UP' ? signals.modelUp : signals.modelDown;
+      const meetsThresholds =
+        modelProb >= minProb && (edge || 0) >= edgeThreshold;
 
       if (meetsThresholds) {
         // Model: spend $contractSize at entry price; shares = notional / price
@@ -448,25 +662,34 @@ export class Trader {
         // Sanity guard: never enter at 0 / near-0 prices.
         const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
         const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
-        if (!(typeof entryPrice === "number") || !Number.isFinite(entryPrice) || entryPrice < minPoly || entryPrice > maxPoly) {
+        if (
+          !(typeof entryPrice === 'number') ||
+          !Number.isFinite(entryPrice) ||
+          entryPrice < minPoly ||
+          entryPrice > maxPoly
+        ) {
           // Skip entry if price is out of bounds
-          console.warn(`Skipping entry due to invalid Poly price: side=${side} entryPrice=${entryPrice} min=${minPoly} max=${maxPoly}`);
+          console.warn(
+            `Skipping entry due to invalid Poly price: side=${side} entryPrice=${entryPrice} min=${minPoly} max=${maxPoly}`,
+          );
           return;
         }
 
         const contractSizeUsd = this.computeContractSizeUsd();
         if (!contractSizeUsd || contractSizeUsd <= 0) {
-          console.warn("Skipping entry: no available balance for trade size.");
+          console.warn('Skipping entry: no available balance for trade size.');
           return;
         }
 
-        const shares = (entryPrice > 0) ? (contractSizeUsd / entryPrice) : null;
+        const shares = entryPrice > 0 ? contractSizeUsd / entryPrice : null;
         if (shares === null || !Number.isFinite(shares) || shares <= 0) return;
 
-        const modelProbAtEntry = side === "UP" ? signals.modelUp : signals.modelDown;
+        const modelProbAtEntry =
+          side === 'UP' ? signals.modelUp : signals.modelDown;
         const liquidityAtEntry = signals.market?.liquidityNum ?? null;
         const volumeNumAtEntry = signals.market?.volumeNum ?? null;
-        const spreadAtEntry = side === "UP" ? (spreadUp ?? null) : (spreadDown ?? null);
+        const spreadAtEntry =
+          side === 'UP' ? (spreadUp ?? null) : (spreadDown ?? null);
 
         // Additional entry context for analytics
         const vwapDistAtEntry = signals.indicators?.vwapDist ?? null;
@@ -476,15 +699,16 @@ export class Trader {
         const rangePct20AtEntry = signals.indicators?.rangePct20 ?? null;
 
         this.openTrade = {
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
+          id:
+            Date.now().toString() + Math.random().toString(36).substring(2, 8),
           timestamp: new Date().toISOString(),
           marketSlug,
           side,
-          instrument: "POLY",
+          instrument: 'POLY',
           entryPrice, // dollars (0..1)
           shares,
           contractSize: contractSizeUsd,
-          status: "OPEN",
+          status: 'OPEN',
           entryTime: new Date().toISOString(),
           exitPrice: null,
           exitTime: null,
@@ -494,26 +718,63 @@ export class Trader {
 
           // analytics fields (best-effort)
           timeLeftMinAtEntry: timeLeftMin ?? null,
-          modelProbAtEntry: (typeof modelProbAtEntry === "number" && Number.isFinite(modelProbAtEntry)) ? modelProbAtEntry : null,
-          edgeAtEntry: (typeof edge === "number" && Number.isFinite(edge)) ? edge : null,
-          liquidityAtEntry: (typeof liquidityAtEntry === "number" && Number.isFinite(liquidityAtEntry)) ? liquidityAtEntry : null,
-          volumeNumAtEntry: (typeof volumeNumAtEntry === "number" && Number.isFinite(volumeNumAtEntry)) ? volumeNumAtEntry : null,
-          spreadAtEntry: (typeof spreadAtEntry === "number" && Number.isFinite(spreadAtEntry)) ? spreadAtEntry : null,
+          modelProbAtEntry:
+            typeof modelProbAtEntry === 'number' &&
+            Number.isFinite(modelProbAtEntry)
+              ? modelProbAtEntry
+              : null,
+          edgeAtEntry:
+            typeof edge === 'number' && Number.isFinite(edge) ? edge : null,
+          liquidityAtEntry:
+            typeof liquidityAtEntry === 'number' &&
+            Number.isFinite(liquidityAtEntry)
+              ? liquidityAtEntry
+              : null,
+          volumeNumAtEntry:
+            typeof volumeNumAtEntry === 'number' &&
+            Number.isFinite(volumeNumAtEntry)
+              ? volumeNumAtEntry
+              : null,
+          spreadAtEntry:
+            typeof spreadAtEntry === 'number' && Number.isFinite(spreadAtEntry)
+              ? spreadAtEntry
+              : null,
           recActionAtEntry: signals.rec?.action ?? null,
 
-          vwapDistAtEntry: (typeof vwapDistAtEntry === "number" && Number.isFinite(vwapDistAtEntry)) ? vwapDistAtEntry : null,
-          vwapSlopeAtEntry: (typeof vwapSlopeAtEntry === "number" && Number.isFinite(vwapSlopeAtEntry)) ? vwapSlopeAtEntry : null,
-          rsiAtEntry: (typeof rsiAtEntry === "number" && Number.isFinite(rsiAtEntry)) ? rsiAtEntry : null,
-          macdHistAtEntry: (typeof macdHistAtEntry === "number" && Number.isFinite(macdHistAtEntry)) ? macdHistAtEntry : null,
-          rangePct20AtEntry: (typeof rangePct20AtEntry === "number" && Number.isFinite(rangePct20AtEntry)) ? rangePct20AtEntry : null,
+          vwapDistAtEntry:
+            typeof vwapDistAtEntry === 'number' &&
+            Number.isFinite(vwapDistAtEntry)
+              ? vwapDistAtEntry
+              : null,
+          vwapSlopeAtEntry:
+            typeof vwapSlopeAtEntry === 'number' &&
+            Number.isFinite(vwapSlopeAtEntry)
+              ? vwapSlopeAtEntry
+              : null,
+          rsiAtEntry:
+            typeof rsiAtEntry === 'number' && Number.isFinite(rsiAtEntry)
+              ? rsiAtEntry
+              : null,
+          macdHistAtEntry:
+            typeof macdHistAtEntry === 'number' &&
+            Number.isFinite(macdHistAtEntry)
+              ? macdHistAtEntry
+              : null,
+          rangePct20AtEntry:
+            typeof rangePct20AtEntry === 'number' &&
+            Number.isFinite(rangePct20AtEntry)
+              ? rangePct20AtEntry
+              : null,
 
           // will be updated while trade is open
           maxUnrealizedPnl: 0,
-          minUnrealizedPnl: 0
+          minUnrealizedPnl: 0,
         };
         await addTrade(this.openTrade);
         const { balance } = this.getBalanceSnapshot();
-        console.log(`📈 TRADE OPENED (POLY): ${side} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`);
+        console.log(
+          `📈 TRADE OPENED (POLY): ${side} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`,
+        );
       }
     }
 
@@ -521,7 +782,7 @@ export class Trader {
     else if (this.openTrade) {
       const trade = this.openTrade;
       let shouldExit = false;
-      let exitReason = "";
+      let exitReason = '';
       let shouldFlip = false;
 
       // If the Polymarket market rolled to a new slug, close the old trade so it can't get "stuck".
@@ -529,10 +790,14 @@ export class Trader {
       if (trade.marketSlug && marketSlug && trade.marketSlug !== marketSlug) {
         const exitPrice = effectivePriceForSide(trade.side);
         if (exitPrice !== null) {
-          await this.closeTrade(trade, exitPrice, "Market Rollover");
+          await this.closeTrade(trade, exitPrice, 'Market Rollover');
         } else {
           // If we can't fetch a live quote during rollover, force-close at entry to avoid being stuck open.
-          await this.closeTrade(trade, trade.entryPrice, "Market Rollover (no quote)");
+          await this.closeTrade(
+            trade,
+            trade.entryPrice,
+            'Market Rollover (no quote)',
+          );
         }
         return;
       }
@@ -542,15 +807,26 @@ export class Trader {
       let stopLossHit = false;
       let pnlNow = null;
       if (curPx !== null) {
-        const sharesNow = (typeof trade.shares === "number" && Number.isFinite(trade.shares))
-          ? trade.shares
-          : (trade.entryPrice > 0 ? trade.contractSize / trade.entryPrice : 0);
+        const sharesNow =
+          typeof trade.shares === 'number' && Number.isFinite(trade.shares)
+            ? trade.shares
+            : trade.entryPrice > 0
+              ? trade.contractSize / trade.entryPrice
+              : 0;
         const valueNow = sharesNow * curPx;
         pnlNow = valueNow - trade.contractSize;
 
         // Update MFE/MAE while open
-        const maxU = (typeof trade.maxUnrealizedPnl === "number" && Number.isFinite(trade.maxUnrealizedPnl)) ? trade.maxUnrealizedPnl : 0;
-        const minU = (typeof trade.minUnrealizedPnl === "number" && Number.isFinite(trade.minUnrealizedPnl)) ? trade.minUnrealizedPnl : 0;
+        const maxU =
+          typeof trade.maxUnrealizedPnl === 'number' &&
+          Number.isFinite(trade.maxUnrealizedPnl)
+            ? trade.maxUnrealizedPnl
+            : 0;
+        const minU =
+          typeof trade.minUnrealizedPnl === 'number' &&
+          Number.isFinite(trade.minUnrealizedPnl)
+            ? trade.minUnrealizedPnl
+            : 0;
         trade.maxUnrealizedPnl = Math.max(maxU, pnlNow);
         trade.minUnrealizedPnl = Math.min(minU, pnlNow);
 
@@ -560,37 +836,53 @@ export class Trader {
       }
 
       // Exit when the other side becomes more likely to complete.
-      const upP = typeof signals.modelUp === "number" ? signals.modelUp : null;
-      const downP = typeof signals.modelDown === "number" ? signals.modelDown : null;
+      const upP = typeof signals.modelUp === 'number' ? signals.modelUp : null;
+      const downP =
+        typeof signals.modelDown === 'number' ? signals.modelDown : null;
       const minProb = CONFIG.paperTrading.exitFlipMinProb ?? 0.55;
       const margin = CONFIG.paperTrading.exitFlipMargin ?? 0.03;
 
       const minHoldSec = CONFIG.paperTrading.exitFlipMinHoldSeconds ?? 0;
-      const tradeAgeSec = trade.entryTime ? ((Date.now() - new Date(trade.entryTime).getTime()) / 1000) : null;
+      const tradeAgeSec = trade.entryTime
+        ? (Date.now() - new Date(trade.entryTime).getTime()) / 1000
+        : null;
 
       let opposingMoreLikely = false;
-      const holdOk = (tradeAgeSec === null) ? true : (tradeAgeSec >= minHoldSec);
+      const holdOk = tradeAgeSec === null ? true : tradeAgeSec >= minHoldSec;
 
-      if (holdOk && trade.side === "UP" && upP !== null && downP !== null) {
-        opposingMoreLikely = (downP >= minProb) && (downP >= upP + margin);
+      if (holdOk && trade.side === 'UP' && upP !== null && downP !== null) {
+        opposingMoreLikely = downP >= minProb && downP >= upP + margin;
       }
-      if (holdOk && trade.side === "DOWN" && upP !== null && downP !== null) {
-        opposingMoreLikely = (upP >= minProb) && (upP >= downP + margin);
+      if (holdOk && trade.side === 'DOWN' && upP !== null && downP !== null) {
+        opposingMoreLikely = upP >= minProb && upP >= downP + margin;
       }
 
       // NOTE: Probability Flip exits disabled (analytics showed they were a major drag on PnL).
       // We still compute opposingMoreLikely because it's used by the conditional stop loss.
       // If you want to re-enable flip exits later, restore the block that sets shouldExit here.
 
-
       // Trailing take-profit (recommended): once a trade has meaningful profit,
       // allow it to run but exit on a pullback from maxUnrealizedPnl.
-      if (!shouldExit && (CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) && pnlNow !== null) {
+      if (
+        !shouldExit &&
+        (CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) &&
+        pnlNow !== null
+      ) {
         const start = CONFIG.paperTrading.trailingStartUsd ?? 0;
         const dd = CONFIG.paperTrading.trailingDrawdownUsd ?? 0;
-        const maxU = (typeof trade.maxUnrealizedPnl === "number" && Number.isFinite(trade.maxUnrealizedPnl)) ? trade.maxUnrealizedPnl : null;
+        const maxU =
+          typeof trade.maxUnrealizedPnl === 'number' &&
+          Number.isFinite(trade.maxUnrealizedPnl)
+            ? trade.maxUnrealizedPnl
+            : null;
 
-        if (Number.isFinite(start) && start > 0 && Number.isFinite(dd) && dd > 0 && maxU !== null) {
+        if (
+          Number.isFinite(start) &&
+          start > 0 &&
+          Number.isFinite(dd) &&
+          dd > 0 &&
+          maxU !== null
+        ) {
           if (maxU >= start) {
             const trail = maxU - dd;
             if (pnlNow <= trail) {
@@ -603,11 +895,16 @@ export class Trader {
 
       // Immediate take-profit: close as soon as we are profitable (mark-to-market).
       // If trailing TP is enabled, we generally rely on trailing exits instead of immediate.
-      if (!shouldExit && !(CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) && (CONFIG.paperTrading.takeProfitImmediate ?? false) && pnlNow !== null) {
+      if (
+        !shouldExit &&
+        !(CONFIG.paperTrading.trailingTakeProfitEnabled ?? false) &&
+        (CONFIG.paperTrading.takeProfitImmediate ?? false) &&
+        pnlNow !== null
+      ) {
         const tp = CONFIG.paperTrading.takeProfitPnlUsd ?? 0;
         if (Number.isFinite(tp) && tp >= 0 && pnlNow >= tp) {
           shouldExit = true;
-          exitReason = "Take Profit";
+          exitReason = 'Take Profit';
         }
       }
 
@@ -617,38 +914,56 @@ export class Trader {
       const graceEnabled = CONFIG.paperTrading.maxLossGraceEnabled ?? false;
       const graceSeconds = CONFIG.paperTrading.maxLossGraceSeconds ?? 0;
       const recoverUsd = CONFIG.paperTrading.maxLossRecoverUsd ?? null;
-      const requireModelSupport = CONFIG.paperTrading.maxLossGraceRequireModelSupport ?? false;
+      const requireModelSupport =
+        CONFIG.paperTrading.maxLossGraceRequireModelSupport ?? false;
 
-      if (!shouldExit && pnlNow !== null && typeof maxLossUsd === "number" && Number.isFinite(maxLossUsd) && maxLossUsd > 0) {
+      if (
+        !shouldExit &&
+        pnlNow !== null &&
+        typeof maxLossUsd === 'number' &&
+        Number.isFinite(maxLossUsd) &&
+        maxLossUsd > 0
+      ) {
         const maxLossAbs = Math.abs(maxLossUsd);
         const breached = pnlNow <= -maxLossAbs;
 
         // Compute a simple "model still supports trade" check
-        const sideProb = trade.side === "UP" ? upP : downP;
-        const oppProb = trade.side === "UP" ? downP : upP;
-        const modelSupports = (sideProb !== null && oppProb !== null)
-          ? (sideProb >= 0.55 && sideProb >= oppProb)
-          : false;
+        const sideProb = trade.side === 'UP' ? upP : downP;
+        const oppProb = trade.side === 'UP' ? downP : upP;
+        const modelSupports =
+          sideProb !== null && oppProb !== null
+            ? sideProb >= 0.55 && sideProb >= oppProb
+            : false;
 
-        const exitBeforeEndMin = CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
-        const timeLeftForExit = (typeof settlementLeftMin === "number" && Number.isFinite(settlementLeftMin)) ? settlementLeftMin : timeLeftMin;
+        const exitBeforeEndMin =
+          CONFIG.paperTrading.exitBeforeEndMinutes ?? 0.5;
+        const timeLeftForExit =
+          typeof settlementLeftMin === 'number' &&
+          Number.isFinite(settlementLeftMin)
+            ? settlementLeftMin
+            : timeLeftMin;
 
         const okForGrace = Boolean(
           graceEnabled &&
-          Number.isFinite(graceSeconds) && graceSeconds > 0 &&
+          Number.isFinite(graceSeconds) &&
+          graceSeconds > 0 &&
           // Don't play games near settlement
-          (typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit)
-            ? (timeLeftForExit >= exitBeforeEndMin + 0.25)
+          (typeof timeLeftForExit === 'number' &&
+          Number.isFinite(timeLeftForExit)
+            ? timeLeftForExit >= exitBeforeEndMin + 0.25
             : true) &&
           // Don't grace in obvious bad market quality
           !isLowLiquidity &&
-          (!requireModelSupport || modelSupports)
+          (!requireModelSupport || modelSupports),
         );
 
         // If we're in grace and we recovered enough, cancel the pending stop.
-        const recoverThresh = (typeof recoverUsd === "number" && Number.isFinite(recoverUsd) && recoverUsd > 0)
-          ? -Math.abs(recoverUsd)
-          : -maxLossAbs + 1; // fallback: recover at least $1
+        const recoverThresh =
+          typeof recoverUsd === 'number' &&
+          Number.isFinite(recoverUsd) &&
+          recoverUsd > 0
+            ? -Math.abs(recoverUsd)
+            : -maxLossAbs + 1; // fallback: recover at least $1
 
         if (trade.maxLossBreachAtMs && pnlNow > recoverThresh) {
           trade.maxLossBreachAtMs = null;
@@ -661,7 +976,10 @@ export class Trader {
             if (!trade.maxLossGraceUsed && !trade.maxLossBreachAtMs) {
               trade.maxLossBreachAtMs = Date.now();
               trade.maxLossGraceUsed = true;
-              await updateTrade(trade.id, { maxLossBreachAtMs: trade.maxLossBreachAtMs, maxLossGraceUsed: true });
+              await updateTrade(trade.id, {
+                maxLossBreachAtMs: trade.maxLossBreachAtMs,
+                maxLossGraceUsed: true,
+              });
             }
 
             if (trade.maxLossBreachAtMs) {
@@ -685,25 +1003,41 @@ export class Trader {
 
       // Time stop: if we can't get green quickly, cut losers before they snowball.
       const loserMaxHold = CONFIG.paperTrading.loserMaxHoldSeconds ?? 0;
-      if (!shouldExit && pnlNow !== null && tradeAgeSec !== null && Number.isFinite(loserMaxHold) && loserMaxHold > 0) {
+      if (
+        !shouldExit &&
+        pnlNow !== null &&
+        tradeAgeSec !== null &&
+        Number.isFinite(loserMaxHold) &&
+        loserMaxHold > 0
+      ) {
         if (tradeAgeSec >= loserMaxHold && pnlNow < 0) {
           shouldExit = true;
-          exitReason = "Time Stop";
+          exitReason = 'Time Stop';
         }
       }
 
       // Conditional stop loss: only stop out when we are materially losing AND the model has flipped against us.
       // Disabled by default for 5m.
-      if (!shouldExit && (CONFIG.paperTrading.stopLossEnabled ?? false) && stopLossHit && opposingMoreLikely) {
+      if (
+        !shouldExit &&
+        (CONFIG.paperTrading.stopLossEnabled ?? false) &&
+        stopLossHit &&
+        opposingMoreLikely
+      ) {
         shouldExit = true;
-        exitReason = "Stop Loss";
+        exitReason = 'Stop Loss';
       }
 
       // Exit before settlement to reduce rollover risk
       // (exitBeforeEndMin/timeLeftForExit are already computed above for max-loss grace)
-      if (!shouldExit && typeof timeLeftForExit === "number" && Number.isFinite(timeLeftForExit) && timeLeftForExit < exitBeforeEndMin) {
+      if (
+        !shouldExit &&
+        typeof timeLeftForExit === 'number' &&
+        Number.isFinite(timeLeftForExit) &&
+        timeLeftForExit < exitBeforeEndMin
+      ) {
         shouldExit = true;
-        exitReason = "Pre-settlement Exit";
+        exitReason = 'Pre-settlement Exit';
       }
 
       if (shouldExit) {
@@ -713,41 +1047,55 @@ export class Trader {
 
           // Optional flip: immediately open the other side
           if (shouldFlip) {
-            const newSide = trade.side === "UP" ? "DOWN" : "UP";
+            const newSide = trade.side === 'UP' ? 'DOWN' : 'UP';
             const entryPrice = effectivePriceForSide(newSide);
 
             const minPoly = CONFIG.paperTrading.minPolyPrice ?? 0.001;
             const maxPoly = CONFIG.paperTrading.maxPolyPrice ?? 0.999;
-            if (typeof entryPrice === "number" && Number.isFinite(entryPrice) && entryPrice >= minPoly && entryPrice <= maxPoly && !isLowLiquidity && !isLowVolume) {
+            if (
+              typeof entryPrice === 'number' &&
+              Number.isFinite(entryPrice) &&
+              entryPrice >= minPoly &&
+              entryPrice <= maxPoly &&
+              !isLowLiquidity &&
+              !isLowVolume
+            ) {
               const contractSizeUsd = this.computeContractSizeUsd();
               if (!contractSizeUsd || contractSizeUsd <= 0) {
-                console.warn("Skipping flip entry: no available balance for trade size.");
+                console.warn(
+                  'Skipping flip entry: no available balance for trade size.',
+                );
               } else {
-                const shares = entryPrice > 0 ? (contractSizeUsd / entryPrice) : null;
+                const shares =
+                  entryPrice > 0 ? contractSizeUsd / entryPrice : null;
                 if (shares !== null && Number.isFinite(shares) && shares > 0) {
                   const flipped = {
-                    id: Date.now().toString() + Math.random().toString(36).substring(2, 8),
+                    id:
+                      Date.now().toString() +
+                      Math.random().toString(36).substring(2, 8),
                     timestamp: new Date().toISOString(),
                     marketSlug,
                     side: newSide,
-                    instrument: "POLY",
+                    instrument: 'POLY',
                     entryPrice,
                     shares,
                     contractSize: contractSizeUsd,
-                    status: "OPEN",
+                    status: 'OPEN',
                     entryTime: new Date().toISOString(),
                     exitPrice: null,
                     exitTime: null,
                     pnl: 0,
-                    entryPhase: signals.rec?.phase ?? "MID",
-                    entryReason: "Flip"
+                    entryPhase: signals.rec?.phase ?? 'MID',
+                    entryReason: 'Flip',
                   };
 
                   await addTrade(flipped);
                   this.openTrade = flipped;
                   this.lastFlipAtMs = Date.now();
                   const { balance } = this.getBalanceSnapshot();
-                  console.log(`🔁 FLIP OPENED (POLY): ${newSide} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`);
+                  console.log(
+                    `🔁 FLIP OPENED (POLY): ${newSide} @ ${(entryPrice * 100).toFixed(2)}¢ | $${contractSizeUsd} (balance ~$${balance.toFixed(2)})`,
+                  );
                 }
               }
             }
@@ -759,9 +1107,12 @@ export class Trader {
 
   async closeTrade(trade, exitPrice, reason) {
     // POLY behavior: $notional -> shares
-    const shares = (typeof trade.shares === "number" && Number.isFinite(trade.shares))
-      ? trade.shares
-      : (trade.entryPrice > 0 ? trade.contractSize / trade.entryPrice : 0);
+    const shares =
+      typeof trade.shares === 'number' && Number.isFinite(trade.shares)
+        ? trade.shares
+        : trade.entryPrice > 0
+          ? trade.contractSize / trade.entryPrice
+          : 0;
 
     const value = shares * exitPrice;
     let pnl = value - trade.contractSize;
@@ -771,15 +1122,24 @@ export class Trader {
     // rollover, pre-settlement), we never want a single trade to realize a loss
     // larger than maxLossUsdPerTrade in the paper ledger.
     const maxLossUsd = CONFIG.paperTrading.maxLossUsdPerTrade ?? null;
-    if (typeof maxLossUsd === "number" && Number.isFinite(maxLossUsd) && maxLossUsd > 0 && Number.isFinite(pnl)) {
+    if (
+      typeof maxLossUsd === 'number' &&
+      Number.isFinite(maxLossUsd) &&
+      maxLossUsd > 0 &&
+      Number.isFinite(pnl)
+    ) {
       const cap = -Math.abs(maxLossUsd);
       if (pnl < cap) {
         pnl = cap;
         // Adjust exitPrice to the implied stop-fill price that realizes exactly the capped loss.
         // This keeps pnl/price internally consistent for analytics.
         const cappedValue = trade.contractSize + pnl;
-        const impliedExitPrice = shares > 0 ? (cappedValue / shares) : exitPrice;
-        if (typeof impliedExitPrice === "number" && Number.isFinite(impliedExitPrice) && impliedExitPrice > 0) {
+        const impliedExitPrice = shares > 0 ? cappedValue / shares : exitPrice;
+        if (
+          typeof impliedExitPrice === 'number' &&
+          Number.isFinite(impliedExitPrice) &&
+          impliedExitPrice > 0
+        ) {
           exitPrice = impliedExitPrice;
         }
         // If we exceeded max loss, label it as such regardless of the triggering exit.
@@ -795,21 +1155,23 @@ export class Trader {
 
     // If we stopped out, optionally skip re-entry for the remainder of this market slug.
     // This avoids getting chopped multiple times in the same 5m window.
-    if (String(reason || "").startsWith("Max Loss") && trade?.marketSlug) {
+    if (String(reason || '').startsWith('Max Loss') && trade?.marketSlug) {
       this.skipMarketUntilNextSlug = trade.marketSlug;
     }
 
     trade.exitPrice = exitPrice;
     trade.exitTime = new Date().toISOString();
     trade.pnl = Number(pnl.toFixed(2));
-    trade.status = "CLOSED";
+    trade.status = 'CLOSED';
     trade.exitReason = reason;
 
     await updateTrade(trade.id, trade);
-    
-    const icon = pnl >= 0 ? "✅" : "❌";
-    console.log(`${icon} TRADE CLOSED (POLY): ${trade.side} | Entry: ${(trade.entryPrice * 100).toFixed(2)}¢ → Exit: ${(exitPrice * 100).toFixed(2)}¢ | PnL: $${pnl.toFixed(2)} | ${reason}`);
-    
+
+    const icon = pnl >= 0 ? '✅' : '❌';
+    console.log(
+      `${icon} TRADE CLOSED (POLY): ${trade.side} | Entry: ${(trade.entryPrice * 100).toFixed(2)}¢ → Exit: ${(exitPrice * 100).toFixed(2)}¢ | PnL: $${pnl.toFixed(2)} | ${reason}`,
+    );
+
     this.openTrade = null;
   }
 }
