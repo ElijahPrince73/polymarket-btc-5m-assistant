@@ -1,76 +1,24 @@
 # Polymarket BTC 5m Assistant
 
-## CHANGELOG
-
-### Recent Changes
-- Integrated a trading status management system for both live and paper trading modes.
-- Enhanced signal processing with detailed logging for better debugging and tracking of trading behavior.
-- Removed redundant API calls for controlling trading states. Immediate feedback now provided in the UI.
-- Consolidated trading logic to ensure robust handling of indicators for decision-making in trading actions.
-
-### 2026-02-10
-- Tuning preset: "More trades but still safe" (lower prob/edge thresholds, slightly lower conviction gate, reduced stakePct) while keeping market-quality + anti-chop filters.
-
-### 2026-02-04
-- Tests: added basic node:test coverage (VWAP fallback + Trader loose-gating entry) and enabled `npm test`.
-- UI: added /api/analytics + an Analytics section (win rate, avg win/loss, profit factor, expectancy + grouped PnL).
-- UI: improved Analytics layout (overview + 4 small tables).
-- Tuning: raised MIN_POLY_PRICE default to 0.5¢ and made Stop Loss conditional on probability flip (reduces chop-outs).
-- Tuning: tightened Probability Flip exits (higher min prob/margin + min hold time) and made MID/inferred entries slightly stricter.
-- Tuning: disabled auto-flipping on Probability Flip by default (FLIP_ON_PROB_FLIP=false) to reduce churn.
-- Tuning: disabled Probability Flip exits (still used for conditional stop-loss logic).
-- Analytics: added more breakdowns (entry prob bucket, entry time-left bucket, side, rec action at entry, entry liquidity bucket, entry spread bucket) and started storing richer entry metadata on new trades.
-- Tuning: raised default MIN_LIQUIDITY to 10,000 to avoid thin markets.
-- Tuning: added Polymarket market volume filter (MIN_MARKET_VOLUME_NUM) + analytics bucket for it.
-
-### 2026-02-04
-- Ledger: reset paper trading ledger to defaults (recent trades cleared). A backup JSON is saved in paper_trading/.
-
-### 2026-02-03
-- UI: Status section switched to a 2-column key/value layout for readability.
-- Paper trading: added stop loss (STOP_LOSS_PCT) and optional flip-on-probability-flip (FLIP_ON_PROB_FLIP).
-- Paper trading: added bankroll-based position sizing (STARTING_BALANCE + STAKE_PCT, with MIN_TRADE_USD/MAX_TRADE_USD).
-- Paper trading: close open trades on Polymarket market rollover (prevents stuck open trades when slug changes).
-- Strategy tuning: avoid extreme Poly prices (MIN_POLY_PRICE/MAX_POLY_PRICE), tighten entry thresholds, and reduce flip churn (EXIT_FLIP_* + cooldown).
-- Safety: require indicators to be populated before allowing entries (prevents trading during 50/50 / undefined indicator warm states).
-- Startup: backfill 1m candles from REST (Kraken) so indicators are ready immediately (Option B).
-- Indicators: VWAP now falls back to an unweighted typical-price average when volume is unavailable (prevents perpetual "Indicators not ready" on Chainlink candles).
-- Tuning: loosened entry thresholds slightly to increase trade frequency (while keeping quality filters).
-- Tuning: lowered MIN_POLY_PRICE default to 0.2¢ to allow trades when markets are priced under 1¢.
-- UI: added "Why no entry?" debug line showing the current entry blockers.
-- Fix: entry debug now updates even when signals are missing (so UI never shows blank blockers).
-- Fix: entry debug reports Rec=HOLD/NONE when strategy isn't signaling an entry.
-- UI: status/trade fetch errors now display the actual error message (easier debugging).
-- Fix: UI no longer crashes due to entryDbg variable initialization order.
-- Trading: loosened rec gating (REC_GATING=loose default) so entries can occur when thresholds hit even if Rec!=ENTER.
-- Trading: in loose mode, infer side from model probabilities when rec.side is missing.
-- Fix: trader indicator readiness check now uses macd.hist (was incorrectly checking macdHist).
-- Paper trading: bankroll-based position sizing (STARTING_BALANCE, STAKE_PCT, MIN_TRADE_USD, MAX_TRADE_USD).
-- Switched BTC reference feed to Chainlink (WS + REST fallback) and removed reliance on Kraken WebSocket.
-- Paper trading executes on Polymarket UP/DOWN contract prices (not BTC spot).
-- Added safety guards: refuse invalid open trades (entryPrice<=0 / bad shares) and sanity-close corrupted open trades.
-- Added dynamic exit on probability flip (configurable `EXIT_FLIP_MIN_PROB`, `EXIT_FLIP_MARGIN`).
-- Added entry gating: require `MIN_CANDLES_FOR_ENTRY` candles before entering trades.
-- UI improvements: Polymarket market link, recent trades table (newest first), and timestamps.
-- Stability: main loop try/catch, safer MACD handling, REST throttling/caching.
-
-
 A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 5-minute** markets.
 
 ## Features
 
 ### Market + data feeds
+
 - **Auto-select latest 5m Polymarket market** (or pin a slug via `POLYMARKET_SLUG`).
 - Pulls **Polymarket prices** (UP/DOWN) + orderbook spread + market metadata.
 - BTC reference price primarily from **Chainlink BTC/USD** (via Polymarket live feed + on-chain fallback on Polygon RPC/WSS).
 - Optional Kraken REST used for seeding/backfilling candles (rate-limited + cached).
 
 ### Indicators + signal engine
+
 - Builds **1m candles** from ticks (warm-starts with REST backfill so indicators populate quickly).
 - Computes and displays: **Heiken Ashi**, **RSI**, **MACD**, **VWAP** (+ slope/dist), plus helper regime/score outputs.
 - Produces a simple **direction probability** (LONG/SHORT) used for paper-trading decisions.
 
 ### Paper trading (Polymarket contracts)
+
 - Trades the **Polymarket UP/DOWN contracts** (not BTC spot). Entry/exit/PnL are based on Polymarket contract prices.
 - **Local JSON ledger** persisted to `paper_trading/trades.json`.
 - **Bankroll-based position sizing**:
@@ -78,7 +26,7 @@ A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 5-mi
 - **Dynamic exits**:
   - Always closes **near the end of the 5m market window** (“End of Candle”) to avoid rollover weirdness.
   - Closes on **market slug rollover** (safety backstop).
-  - **Conditional stop loss** (`STOP_LOSS_PCT`) that triggers only when loss threshold is hit *and* the model is against the position (reduces chop-outs).
+  - **Conditional stop loss** (`STOP_LOSS_PCT`) that triggers only when loss threshold is hit _and_ the model is against the position (reduces chop-outs).
 - **Safety guards**:
   - Requires indicators to be populated before entering.
   - Avoids "dust"/invalid Polymarket prices (`MIN_POLY_PRICE`, `MAX_POLY_PRICE`).
@@ -87,6 +35,7 @@ A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 5-mi
   - Schedule gating: **weekday-only entries** with a **Friday cutoff** (exits always allowed).
 
 ### UI + debugging
+
 - Runs a lightweight UI at **http://localhost:3000**:
   - **/api/status**: runtime snapshot + open trade + balance + “Why no entry?” blockers.
   - **/api/trades**: recent trades (newest first in the UI).
@@ -94,16 +43,19 @@ A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 5-mi
 - “**Why no entry?**” explains exactly which gates are blocking entries.
 
 ### Analytics (performance + market conditions)
+
 - Analytics breakdowns include:
   - by **exit reason**, **entry phase**, **entry price bucket**, **prob bucket**, **time-left bucket**, **liquidity bucket**, **spread bucket**, **side**, **rec action**.
 - Captures **entry metadata** on new trades (prob/edge/liquidity/spread/time-left) for better post-trade analysis.
 - Samples Polymarket **liquidity over time** to `paper_trading/liquidity_samples.jsonl` and reports 1h/6h/24h stats.
 
 ### Ops / reliability
+
 - Designed to run under a process manager (e.g. **PM2**) to avoid session SIGTERM/SIGKILL issues.
 - Built-in REST throttling/caching and defensive error handling to avoid crashes.
 
 It combines:
+
 - Polymarket market selection + UP/DOWN prices + liquidity
 - Polymarket live WS **Chainlink BTC/USD CURRENT PRICE** (same feed shown on the Polymarket UI)
 - Fallback to on-chain Chainlink (Polygon) via HTTP/WSS RPC
@@ -115,7 +67,6 @@ It combines:
 
 - Node.js **18+** (https://nodejs.org/en)
 - npm (comes with Node)
-
 
 ## Run from terminal (step-by-step)
 
@@ -175,6 +126,7 @@ REM set POLYMARKET_SLUG=btc-updown-5m-1771019100
 ```
 
 Notes:
+
 - These environment variables apply only to the current terminal window.
 - If you want permanent env vars, set them via Windows System Environment Variables or use a `.env` loader of your choice.
 
@@ -200,11 +152,13 @@ You can set them in your shell, or create a `.env` file and load it using your p
   - Default: `0xc907E116054Ad103354f2D350FD2514433D57F6f`
 
 HTTP RPC:
+
 - `POLYGON_RPC_URL` (default: `https://polygon-rpc.com`)
 - `POLYGON_RPC_URLS` (optional, comma-separated)
   - Example: `https://polygon-rpc.com,https://rpc.ankr.com/polygon`
 
 WSS RPC (optional but recommended for more real-time fallback):
+
 - `POLYGON_WSS_URL` (optional)
 - `POLYGON_WSS_URLS` (optional, comma-separated)
 
@@ -238,16 +192,16 @@ set ALL_PROXY=socks5://127.0.0.1:1080
 
 #### Proxy with username + password (simple guide)
 
-1) Take your proxy host and port (example: `1.2.3.4:8080`).
+1. Take your proxy host and port (example: `1.2.3.4:8080`).
 
-2) Add your login and password in the URL:
+2. Add your login and password in the URL:
 
 - HTTP/HTTPS proxy:
   - `http://USERNAME:PASSWORD@HOST:PORT`
 - SOCKS5 proxy:
   - `socks5://USERNAME:PASSWORD@HOST:PORT`
 
-3) Set it in the terminal and run the bot.
+3. Set it in the terminal and run the bot.
 
 PowerShell:
 
