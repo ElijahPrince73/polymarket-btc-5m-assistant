@@ -113,6 +113,16 @@ export const CONFIG = {
     // If pnlNow <= -maxLossUsdPerTrade, force exit (unless max-loss grace is enabled).
     maxLossUsdPerTrade: Number(process.env.MAX_LOSS_USD_PER_TRADE) || 15,
 
+    // Dynamic stop loss: scale maxLoss proportionally to position size.
+    // When enabled, maxLoss = contractSize * dynamicStopLossPct, clamped to [minMaxLossUsd, maxMaxLossUsd].
+    // When disabled, the fixed maxLossUsdPerTrade above is used (backward compat).
+    // Example: $80 trade * 0.20 = $16 max loss; $250 trade * 0.20 = $40 (ceiling).
+    dynamicStopLossEnabled:
+      (process.env.DYNAMIC_STOP_LOSS_ENABLED || 'true').toLowerCase() === 'true',
+    dynamicStopLossPct: Number(process.env.DYNAMIC_STOP_LOSS_PCT) || 0.20,
+    minMaxLossUsd: Number(process.env.MIN_MAX_LOSS_USD) || 8,
+    maxMaxLossUsd: Number(process.env.MAX_MAX_LOSS_USD) || 40,
+
     // Max-loss grace (optional): when pnl breaches -maxLossUsdPerTrade, allow a short grace window
     // to recover (helps avoid wick/chop stop-outs) *only when conditions are supportive*.
     maxLossGraceEnabled:

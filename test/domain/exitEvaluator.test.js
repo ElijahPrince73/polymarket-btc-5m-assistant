@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateExits, capPnl } from '../../src/domain/exitEvaluator.js';
+import { evaluateExits, capPnl, computeMaxLossUsd } from '../../src/domain/exitEvaluator.js';
 
 // ─── Helpers ───────────────────────────────────────────────────────
 
@@ -350,5 +350,129 @@ test('capPnl caps excessive loss', () => {
 test('capPnl returns raw when config has no max', () => {
   const { pnl, exitPrice } = capPnl(-30, 100, 200, 0.35, {});
   assert.equal(pnl, -30);
+  assert.equal(exitPrice, 0.35);
+});
+
+// ── computeMaxLossUsd ─────────────────────────────────────────────
+
+test('computeMaxLossUsd: dynamic = contractSize * pct', () => {
+  const result = computeMaxLossUsd(80, {
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  assert.equal(result, 16); // 80 * 0.20 = 16
+});
+
+test('computeMaxLossUsd: clamps to floor', () => {
+  const result = computeMaxLossUsd(25, {
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  assert.equal(result, 8); // 25 * 0.20 = 5, clamped to floor 8
+});
+
+test('computeMaxLossUsd: clamps to ceiling', () => {
+  const result = computeMaxLossUsd(250, {
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  assert.equal(result, 40); // 250 * 0.20 = 50, clamped to ceiling 40
+});
+
+test('computeMaxLossUsd: disabled falls back to fixed', () => {
+  const result = computeMaxLossUsd(80, {
+    dynamicStopLossEnabled: false,
+    maxLossUsdPerTrade: 15,
+  });
+  assert.equal(result, 15);
+});
+
+test('computeMaxLossUsd: absent key defaults to disabled (backward compat)', () => {
+  const result = computeMaxLossUsd(80, {
+    maxLossUsdPerTrade: 15,
+  });
+  assert.equal(result, 15);
+});
+
+test('computeMaxLossUsd: null contractSize falls back to fixed', () => {
+  const result = computeMaxLossUsd(null, {
+    dynamicStopLossEnabled: true,
+    maxLossUsdPerTrade: 15,
+  });
+  assert.equal(result, 15);
+});
+
+test('computeMaxLossUsd: zero contractSize falls back to fixed', () => {
+  const result = computeMaxLossUsd(0, {
+    dynamicStopLossEnabled: true,
+    maxLossUsdPerTrade: 15,
+  });
+  assert.equal(result, 15);
+});
+
+test('computeMaxLossUsd: returns null when no config at all', () => {
+  const result = computeMaxLossUsd(80, {});
+  assert.equal(result, null);
+});
+
+// ── Dynamic stop loss integration with evaluateExits ──────────────
+
+test('dynamic max loss exits at correct threshold', () => {
+  // contractSize=110, pct=0.20 => maxLoss=22; pnl=-25 => breached
+  const p = pos({ unrealizedPnl: -25, mark: 0.42, contractSize: 110 });
+  const config = cfg({
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+    maxLossGraceEnabled: false,
+  });
+  const { decision } = evaluateExits(p, sig(), config, grace(), NOW);
+  assert.ok(decision);
+  assert.ok(decision.reason.includes('Max Loss'));
+  assert.ok(decision.reason.includes('$22.00'));
+});
+
+test('dynamic max loss holds when not breached', () => {
+  // contractSize=110, pct=0.20 => maxLoss=22; pnl=-15 => NOT breached
+  const p = pos({ unrealizedPnl: -15, mark: 0.47, contractSize: 110 });
+  const config = cfg({
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  const { decision } = evaluateExits(p, sig(), config, grace(), NOW);
+  assert.equal(decision, null);
+});
+
+// ── capPnl with dynamic config ────────────────────────────────────
+
+test('capPnl uses dynamic max loss', () => {
+  // contractSize=80, pct=0.20 => maxLoss=16
+  const { pnl } = capPnl(-25, 80, 200, 0.35, {
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  assert.equal(pnl, -16);
+});
+
+test('capPnl with dynamic: does not cap within limit', () => {
+  // contractSize=80, pct=0.20 => maxLoss=16; rawPnl=-10 => within limit
+  const { pnl, exitPrice } = capPnl(-10, 80, 200, 0.35, {
+    dynamicStopLossEnabled: true,
+    dynamicStopLossPct: 0.20,
+    minMaxLossUsd: 8,
+    maxMaxLossUsd: 40,
+  });
+  assert.equal(pnl, -10);
   assert.equal(exitPrice, 0.35);
 });

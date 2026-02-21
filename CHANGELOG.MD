@@ -2,6 +2,45 @@
 
 ## CHANGELOG
 
+### 2026-02-20
+
+#### Dynamic Stop Loss
+- **New: Dynamic stop loss** that scales proportionally with trade size instead of a fixed dollar cap.
+  - Formula: `maxLoss = contractSize * dynamicStopLossPct` (default 20%), clamped to `[$8, $40]`.
+  - Example: $80 trade → $16 max loss (was fixed at $10-$15 regardless of size).
+  - Config: `DYNAMIC_STOP_LOSS_ENABLED` (default: true), `DYNAMIC_STOP_LOSS_PCT`, `MIN_MAX_LOSS_USD`, `MAX_MAX_LOSS_USD`.
+  - Instant rollback: set `DYNAMIC_STOP_LOSS_ENABLED=false` to revert to fixed `MAX_LOSS_USD_PER_TRADE`.
+- Applies to exit evaluator, PnL cap, and PaperExecutor exit reason formatting.
+- Added 13 unit tests for `computeMaxLossUsd()` and dynamic stop loss integration.
+
+#### Analytics UI Fix
+- Fixed missing analytics data: added all 17 analytics mini-tables and the overview div to `index.html`.
+- Tables now populate: By Exit Reason, Entry Price, Phase, Side, RSI, Hold Time, MAE, MFE, Liquidity, Spread, Edge, VWAP Distance, Market Volume, Model Probability, Time Left, Rec Action, Side Source.
+
+#### Clean Architecture Refactor (completed)
+- Restructured entire codebase into Clean Architecture layers: domain, application, infrastructure, presentation.
+- **Domain layer**: `entryGate.js` (24 blockers), `exitEvaluator.js` (8 exit conditions), `sizing.js` (dynamic position sizing).
+- **Application layer**: `TradingEngine.js` (unified engine), `TradingState.js` (MFE/MAE tracking, circuit breaker), `ModeManager.js` (paper/live toggle), `ExecutorInterface.js`.
+- **Infrastructure**: `PaperExecutor` and `LiveExecutor` implementing `OrderExecutor` interface with CLOB-simulated fills.
+- **Services**: `statusService.js`, `analyticsService.js` (17 group summaries).
+- **UI**: Trading controls (start/stop, mode switch), KPI tiles, chart grid, trade table with filters.
+
+#### Polymarket API Upgrade (Phases 1-10)
+- **Phase 1 — Fee Observability**: `FeeService` with TTL cache and fee impact computation.
+- **Phase 2 — Proactive Approvals**: `ApprovalService` managing COLLATERAL and CONDITIONAL token allowances with cooldowns.
+- **Phase 3 — Safety Rails**: Circuit breaker (consecutive loss tracking + cooldown), token-bucket rate limiter, admin kill-switch endpoint (`POST /api/trading/kill`), order validation, environment gating.
+- **Phase 4 — Order Management**: `OrderManager` with tracking, cancel, reconcile, and prune. REST endpoints: `GET /api/orders`, `DELETE /api/orders/:id`.
+- **Phase 5 — Fills & Portfolio**: `FillTracker` polling CLOB trades with dedup. `GET /api/portfolio` endpoint.
+- **Phase 6 — Market Discovery**: Shared `pickTokenId()` in `tokenMapping.js`, `MarketCatalog` with background sync. `GET /api/markets` endpoint.
+- **Phase 7 — CLOB WebSocket**: `clobWs.js` streaming orderbook with exponential backoff reconnect.
+- **Phase 8 — Unified Service**: `polymarketService.js` composing all services with lifecycle management.
+- **Phase 9 — Observability**: JSON structured `Logger`, alert service with deduplication, `GET /api/metrics` endpoint.
+- **Phase 10 — Testing**: 74+ unit tests across 9 test files covering all new services.
+
+#### Bug Fixes
+- Fixed exit reason always showing "Max Loss" for all trades (including winners) in PaperExecutor.
+- Fixed slow UI updates (reduced polling from 5s to 1.5s, backend loop from 2s to 1s).
+
 ### Recent Changes
 
 - Integrated a trading status management system for both live and paper trading modes.

@@ -11,7 +11,7 @@
  */
 
 import { OrderExecutor } from '../../application/ExecutorInterface.js';
-import { capPnl } from '../../domain/exitEvaluator.js';
+import { capPnl, computeMaxLossUsd } from '../../domain/exitEvaluator.js';
 import {
   loadLedger,
   addTrade,
@@ -215,7 +215,8 @@ export class PaperExecutor extends OrderExecutor {
 
     // Only override the reason if the loss was actually capped
     let finalReason = reason;
-    const maxLossAbs = Math.abs(this.config.maxLossUsdPerTrade ?? 0);
+    const effectiveMaxLoss = computeMaxLossUsd(trade.contractSize, this.config);
+    const maxLossAbs = Math.abs(effectiveMaxLoss ?? 0);
     if (rawPnl < -maxLossAbs && pnl !== rawPnl) {
       finalReason = `Max Loss ($${maxLossAbs.toFixed(2)})`;
     }

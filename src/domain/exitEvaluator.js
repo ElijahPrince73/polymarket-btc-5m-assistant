@@ -18,6 +18,41 @@ function isNum(x) {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
+// ─── dynamic stop loss ────────────────────────────────────────────
+
+/**
+ * Compute the effective max loss USD for a given position.
+ *
+ * When dynamic stop loss is enabled, scales with contract size:
+ *   maxLoss = contractSize * dynamicStopLossPct
+ * Clamped to [minMaxLossUsd, maxMaxLossUsd].
+ *
+ * When disabled, falls back to the fixed maxLossUsdPerTrade.
+ *
+ * @param {number} contractSize     - Position notional ($)
+ * @param {Object} config
+ * @param {boolean} [config.dynamicStopLossEnabled]  - Toggle (default: false)
+ * @param {number}  [config.dynamicStopLossPct]      - Fraction of contractSize (default: 0.20)
+ * @param {number}  [config.minMaxLossUsd]            - Floor (default: 8)
+ * @param {number}  [config.maxMaxLossUsd]            - Ceiling (default: 40)
+ * @param {number}  [config.maxLossUsdPerTrade]       - Fixed fallback
+ * @returns {number|null}  Max loss in USD, or null if not configured
+ */
+export function computeMaxLossUsd(contractSize, config) {
+  const dynamicEnabled = config.dynamicStopLossEnabled ?? false;
+
+  if (dynamicEnabled && isNum(contractSize) && contractSize > 0) {
+    const pct = config.dynamicStopLossPct ?? 0.20;
+    const raw = contractSize * pct;
+    const floor = config.minMaxLossUsd ?? 8;
+    const ceiling = config.maxMaxLossUsd ?? 40;
+    return Math.max(floor, Math.min(ceiling, raw));
+  }
+
+  // Fallback: fixed dollar amount (backward compatible)
+  return config.maxLossUsdPerTrade ?? null;
+}
+
 // ─── types ─────────────────────────────────────────────────────────
 
 /**
@@ -156,7 +191,7 @@ export function evaluateExits(position, signals, config, graceState, nowMs) {
   }
 
   // ── 3. Max loss with grace window ────────────────────────────────
-  const maxLossUsd = config.maxLossUsdPerTrade ?? null;
+  const maxLossUsd = computeMaxLossUsd(position.contractSize, config);
   const graceEnabled = config.maxLossGraceEnabled ?? false;
   const graceSeconds = config.maxLossGraceSeconds ?? 0;
   const recoverUsd = config.maxLossRecoverUsd ?? null;
@@ -321,7 +356,7 @@ export function evaluateExits(position, signals, config, graceState, nowMs) {
  * @returns {{ pnl: number, exitPrice: number }}
  */
 export function capPnl(rawPnl, contractSize, shares, exitPrice, config) {
-  const maxLossUsd = config.maxLossUsdPerTrade ?? null;
+  const maxLossUsd = computeMaxLossUsd(contractSize, config);
 
   if (isNum(maxLossUsd) && maxLossUsd > 0 && isNum(rawPnl)) {
     const cap = -Math.abs(maxLossUsd);
