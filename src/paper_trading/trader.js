@@ -11,7 +11,6 @@ import {
 // Core trading logic - NO fixed TP/SL, dynamic exits only
 export class Trader {
   constructor() {
-        this.tradingEnabled = true;
     this.tradingEnabled = true;
     this.openTrade = null;
     this.lastFlipAtMs = 0;
@@ -109,9 +108,7 @@ export class Trader {
   }
 
   async processSignals(signals, klines1m) {
-    console.log('Paper trading: Processing signals...', signals);
-    console.log('Paper trading: Processing signals...', signals);
-    console.log('Received signals:', signals);
+    console.log(`Paper trader: rec=${signals.rec?.action || 'NONE'}, side=${signals.rec?.side || '-'}, timeLeft=${signals.timeLeftMin?.toFixed(1) || '-'}m`);
     if (!CONFIG.paperTrading.enabled) return;
     if (!this.tradingEnabled) return;
 

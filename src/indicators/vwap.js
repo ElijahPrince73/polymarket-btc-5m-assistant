@@ -32,3 +32,15 @@ export function computeVwapSeries(candles) {
   }
   return series;
 }
+
+export function countVwapCrosses(closes, vwapSeries, lookback) {
+  if (closes.length < lookback || vwapSeries.length < lookback) return null;
+  let crosses = 0;
+  for (let i = closes.length - lookback + 1; i < closes.length; i += 1) {
+    const prev = closes[i - 1] - vwapSeries[i - 1];
+    const cur = closes[i] - vwapSeries[i];
+    if (prev === 0) continue;
+    if ((prev > 0 && cur < 0) || (prev < 0 && cur > 0)) crosses += 1;
+  }
+  return crosses;
+}

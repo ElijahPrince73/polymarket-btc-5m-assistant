@@ -4,314 +4,47 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 
-import { CONFIG } from '../config.js';
-import { initializeLedger, getLedger, recalculateSummary } from '../paper_trading/ledger.js'; // Paper ledger
-import { getOpenTrade, getTraderInstance } from '../paper_trading/trader.js'; // Paper trader status
+import { initializeLedger, getLedger } from '../paper_trading/ledger.js';
+import { initializeLiveLedger } from '../live_trading/ledger.js';
 import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquiditySampler.js';
 
-import { fetchCollateralBalance, getClobClient } from '../live_trading/clob.js';
-import { initializeLiveLedger, getLiveLedger } from '../live_trading/ledger.js';
-import { computePositionsFromTrades, enrichPositionsWithMarks } from '../live_trading/positions.js';
-import { getLiveTrader } from '../live_trading/trader.js';
-import { computeRealizedPnlAvgCost } from '../live_trading/pnl.js';
+import { computeAnalytics } from '../services/analyticsService.js';
+import { assembleStatus } from '../services/statusService.js';
+import { fetchLiveTrades, fetchLiveOpenOrders, fetchLivePositions, fetchLiveAnalytics } from '../services/liveService.js';
+import { TradingState } from '../application/TradingState.js';
+import { CONFIG } from '../config.js';
 
-// Use __dirname polyfill for ES modules
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-let isTradingEnabled = false;
 const port = process.env.PORT || process.env.UI_PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 
+function ok(data) { return { success: true, data }; }
+function fail(msg) { return { success: false, error: msg }; }
+
 // Middleware
-app.use(cors()); // Enable CORS for requests to the UI server
-app.use(express.json()); // For parsing JSON bodies
+app.use(cors());
+app.use(express.json());
 
-// Serve static UI files (HTML, CSS, JS)
-const uiPath = path.join(__dirname, '..', 'ui'); // Assuming ui folder is at src/ui
+// Serve static UI files
+const uiPath = path.join(__dirname, '..', 'ui');
 if (!fs.existsSync(uiPath)) {
-  fs.mkdirSync(uiPath); // Create UI directory if it doesn't exist
+  fs.mkdirSync(uiPath);
 }
-app.use(express.static(uiPath)); // Serve files from ./src/ui/
+app.use(express.static(uiPath));
 
-function bucketEntryPrice(trade) {
-  const px = trade?.entryPrice;
-  if (typeof px !== 'number' || !Number.isFinite(px)) return 'unknown';
-  const cents = px * 100;
-  if (cents < 0.5) return '<0.5¢';
-  if (cents < 1) return '0.5–1¢';
-  if (cents < 2) return '1–2¢';
-  if (cents < 5) return '2–5¢';
-  if (cents < 10) return '5–10¢';
-  return '10¢+';
-}
+// --- API Routes ---
 
-function groupSummary(trades, keyFn) {
-  const map = new Map();
-  for (const t of trades) {
-    const key = String(keyFn(t) ?? 'unknown');
-    const cur = map.get(key) || { key, count: 0, pnl: 0 };
-    cur.count += 1;
-    cur.pnl += (typeof t.pnl === 'number' && Number.isFinite(t.pnl)) ? t.pnl : 0;
-    map.set(key, cur);
-  }
-  return Array.from(map.values()).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
-}
-
-function bucketTimeLeftMin(trade) {
-  const t = trade?.timeLeftMinAtEntry;
-  if (typeof t !== 'number' || !Number.isFinite(t)) return 'unknown';
-  if (t < 2) return '<2m';
-  if (t < 5) return '2–5m';
-  if (t < 10) return '5–10m';
-  return '10m+';
-}
-
-function bucketProb(trade) {
-  const p = trade?.modelProbAtEntry;
-  if (typeof p !== 'number' || !Number.isFinite(p)) return 'unknown';
-  if (p < 0.55) return '<0.55';
-  if (p < 0.60) return '0.55–0.60';
-  if (p < 0.65) return '0.60–0.65';
-  if (p < 0.70) return '0.65–0.70';
-  return '0.70+';
-}
-
-function bucketLiquidity(trade) {
-  const l = trade?.liquidityAtEntry;
-  if (typeof l !== 'number' || !Number.isFinite(l)) return 'unknown';
-  if (l < 1000) return '<1k';
-  if (l < 5000) return '1k–5k';
-  if (l < 10000) return '5k–10k';
-  if (l < 25000) return '10k–25k';
-  if (l < 50000) return '25k–50k';
-  if (l < 100000) return '50k–100k';
-  return '100k+';
-}
-
-function bucketSpread(trade) {
-  const s = trade?.spreadAtEntry;
-  if (typeof s !== 'number' || !Number.isFinite(s)) return 'unknown';
-  // spread is in $ (0..1). Express in cents.
-  const c = s * 100;
-  if (c < 0.5) return '<0.5¢';
-  if (c < 1) return '0.5–1¢';
-  if (c < 2) return '1–2¢';
-  if (c < 5) return '2–5¢';
-  return '5¢+';
-}
-
-function bucketMarketVolume(trade) {
-  const v = trade?.volumeNumAtEntry;
-  if (typeof v !== 'number' || !Number.isFinite(v)) return 'unknown';
-  if (v < 25000) return '<25k';
-  if (v < 50000) return '25k–50k';
-  if (v < 100000) return '50k–100k';
-  if (v < 200000) return '100k–200k';
-  return '200k+';
-}
-
-function bucketEdge(trade) {
-  const e = trade?.edgeAtEntry;
-  if (typeof e !== 'number' || !Number.isFinite(e)) return 'unknown';
-  if (e < 0.04) return '<0.04';
-  if (e < 0.08) return '0.04–0.08';
-  if (e < 0.12) return '0.08–0.12';
-  if (e < 0.16) return '0.12–0.16';
-  return '0.16+';
-}
-
-function bucketVwapDist(trade) {
-  const d = trade?.vwapDistAtEntry;
-  if (typeof d !== 'number' || !Number.isFinite(d)) return 'unknown';
-  const pct = d * 100;
-  if (pct < -0.20) return '<-0.20%';
-  if (pct < -0.05) return '-0.20–-0.05%';
-  if (pct <= 0.05) return '-0.05–0.05%';
-  if (pct <= 0.20) return '0.05–0.20%';
-  return '>0.20%';
-}
-
-function bucketRsi(trade) {
-  const r = trade?.rsiAtEntry;
-  if (typeof r !== 'number' || !Number.isFinite(r)) return 'unknown';
-  if (r < 30) return '<30';
-  if (r < 45) return '30–45';
-  if (r < 55) return '45–55';
-  if (r < 70) return '55–70';
-  return '70+';
-}
-
-function bucketHoldTime(trade) {
-  if (!trade?.entryTime || !trade?.exitTime) return 'unknown';
-  const ms = new Date(trade.exitTime).getTime() - new Date(trade.entryTime).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return 'unknown';
-  const min = ms / 60000;
-  if (min < 2) return '<2m';
-  if (min < 5) return '2–5m';
-  if (min < 10) return '5–10m';
-  return '10m+';
-}
-
-function bucketMAE(trade) {
-  const x = trade?.minUnrealizedPnl;
-  if (typeof x !== 'number' || !Number.isFinite(x)) return 'unknown';
-  if (x > -10) return '> -$10';
-  if (x > -25) return '-$10–-$25';
-  if (x > -50) return '-$25–-$50';
-  if (x > -100) return '-$50–-$100';
-  return '<= -$100';
-}
-
-function bucketMFE(trade) {
-  const x = trade?.maxUnrealizedPnl;
-  if (typeof x !== 'number' || !Number.isFinite(x)) return 'unknown';
-  if (x < 10) return '<$10';
-  if (x < 25) return '$10–$25';
-  if (x < 50) return '$25–$50';
-  if (x < 100) return '$50–$100';
-  return '$100+';
-}
-
-function computeAnalytics(allTrades) {
-  const trades = Array.isArray(allTrades) ? allTrades : [];
-  const closed = trades.filter((t) => t && t.status === 'CLOSED');
-
-  const wins = closed.filter((t) => (typeof t.pnl === 'number' && t.pnl > 0));
-  const losses = closed.filter((t) => (typeof t.pnl === 'number' && t.pnl < 0));
-
-  const sum = (arr) => arr.reduce((acc, t) => acc + (typeof t.pnl === 'number' ? t.pnl : 0), 0);
-  const totalPnL = sum(closed);
-  const winPnL = sum(wins);
-  const lossPnL = sum(losses); // negative
-
-  const avgWin = wins.length ? (winPnL / wins.length) : null;
-  const avgLoss = losses.length ? (lossPnL / losses.length) : null;
-  const winRate = closed.length ? (wins.length / closed.length) : null;
-  const profitFactor = (lossPnL !== 0) ? (winPnL / Math.abs(lossPnL)) : null;
-  const expectancy = closed.length ? (totalPnL / closed.length) : null;
-
-  return {
-    overview: {
-      closedTrades: closed.length,
-      wins: wins.length,
-      losses: losses.length,
-      totalPnL,
-      winRate,
-      avgWin,
-      avgLoss,
-      profitFactor,
-      expectancy
-    },
-    byExitReason: groupSummary(closed, (t) => t.exitReason || 'unknown'),
-    byEntryPhase: groupSummary(closed, (t) => t.entryPhase || 'unknown'),
-    byEntryPriceBucket: groupSummary(closed, (t) => bucketEntryPrice(t)),
-    byEntryTimeLeftBucket: groupSummary(closed, (t) => bucketTimeLeftMin(t)),
-    byEntryProbBucket: groupSummary(closed, (t) => bucketProb(t)),
-    byEntryLiquidityBucket: groupSummary(closed, (t) => bucketLiquidity(t)),
-    byEntryMarketVolumeBucket: groupSummary(closed, (t) => bucketMarketVolume(t)),
-    byEntrySpreadBucket: groupSummary(closed, (t) => bucketSpread(t)),
-    byEntryEdgeBucket: groupSummary(closed, (t) => bucketEdge(t)),
-    byEntryVwapDistBucket: groupSummary(closed, (t) => bucketVwapDist(t)),
-    byEntryRsiBucket: groupSummary(closed, (t) => bucketRsi(t)),
-    byHoldTimeBucket: groupSummary(closed, (t) => bucketHoldTime(t)),
-    byMAEBucket: groupSummary(closed, (t) => bucketMAE(t)),
-    byMFEBucket: groupSummary(closed, (t) => bucketMFE(t)),
-    bySide: groupSummary(closed, (t) => t.side || 'unknown'),
-    byRecActionAtEntry: groupSummary(closed, (t) => t.recActionAtEntry || 'unknown'),
-    bySideInferred: groupSummary(closed, (t) => {
-      if (t.sideInferred === true) return 'inferred';
-      if (t.sideInferred === false) return 'explicit';
-      return 'unknown';
-    })
-  };
-}
-
-// API endpoints for UI to fetch data
 app.get('/api/status', async (req, res) => {
   try {
-    // Ensure ledger is initialized at least once so summary exists.
-    await initializeLedger();
-
-    const ledgerData = getLedger();
-    const openTrade = getOpenTrade();
-    const trader = getTraderInstance?.() ?? null;
-    const liveTrader = getLiveTrader?.() ?? null;
-    const entryDebug = (CONFIG.liveTrading?.enabled ? (liveTrader?.lastEntryStatus ?? null) : (trader?.lastEntryStatus ?? null));
-
-    const summary = ledgerData.summary ?? recalculateSummary(ledgerData.trades ?? []);
-
-    const starting = CONFIG.paperTrading.startingBalance ?? 1000;
-    const baseRealized = typeof summary.totalPnL === 'number' ? summary.totalPnL : 0;
-    const offset = (ledgerData.meta && typeof ledgerData.meta.realizedOffset === 'number' && Number.isFinite(ledgerData.meta.realizedOffset))
-      ? ledgerData.meta.realizedOffset
-      : 0;
-    const realized = baseRealized + offset;
-    const balance = starting + realized;
-
-    // Live collateral (best-effort)
-    let liveCollateral = null;
-    if (CONFIG.liveTrading?.enabled) {
-      try {
-        liveCollateral = await fetchCollateralBalance();
-      } catch (e) {
-        liveCollateral = { error: e?.message || String(e) };
-      }
-    }
-
-    const liveLedger = CONFIG.liveTrading?.enabled ? (getLiveLedger()?.trades ?? []) : [];
-
-    res.json({
-      status: {
-        ok: true,
-        updatedAt: new Date().toISOString()
-      },
-      mode: CONFIG.liveTrading?.enabled ? 'LIVE' : 'PAPER',
-
-      // PAPER
-      openTrade,
-      entryDebug,
-      ledgerSummary: summary,
-      balance: { starting, realized, balance },
-      paperTrading: {
-        enabled: CONFIG.paperTrading.enabled,
-        stakePct: CONFIG.paperTrading.stakePct,
-        minTradeUsd: CONFIG.paperTrading.minTradeUsd,
-        maxTradeUsd: CONFIG.paperTrading.maxTradeUsd,
-        stopLossPct: CONFIG.paperTrading.stopLossPct,
-        flipOnProbabilityFlip: CONFIG.paperTrading.flipOnProbabilityFlip
-      },
-
-      // LIVE
-      liveTrading: {
-        enabled: Boolean(CONFIG.liveTrading?.enabled),
-        funder: process.env.FUNDER_ADDRESS || null,
-        signatureType: process.env.SIGNATURE_TYPE || null,
-        limits: CONFIG.liveTrading || null,
-        collateral: liveCollateral,
-        tradesCount: Array.isArray(liveLedger) ? liveLedger.length : 0,
-        daily: {
-          realizedPnlUsd: CONFIG.liveTrading?.enabled ? (getLiveTrader?.()?.todayRealizedPnl ?? null) : null,
-          maxDailyLossUsd: CONFIG.liveTrading?.maxDailyLossUsd ?? null,
-          remainingLossBudgetUsd: (typeof (getLiveTrader?.()?.todayRealizedPnl) === 'number' && Number.isFinite(getLiveTrader?.()?.todayRealizedPnl))
-            ? (Number(CONFIG.liveTrading?.maxDailyLossUsd ?? 0) + Number(getLiveTrader?.()?.todayRealizedPnl))
-            : null
-        },
-        dataAgeSec: {
-          trades: (typeof (getLiveTrader?.()?._lastTradesFetchSuccessMs) === 'number' && getLiveTrader()._lastTradesFetchSuccessMs > 0)
-            ? Math.max(0, (Date.now() - getLiveTrader()._lastTradesFetchSuccessMs) / 1000)
-            : null
-        }
-      },
-
-      // Very simple runtime snapshot (set by index.js)
-      runtime: globalThis.__uiStatus ?? null
-    });
+    const data = await assembleStatus();
+    res.json(ok(data));
   } catch (error) {
-    console.error("Error fetching status:", error);
-    res.status(500).json({ status: { ok: false }, error: "Failed to fetch status data." });
+    console.error('Error fetching status:', error.message);
+    res.status(500).json(fail('Failed to fetch status data.'));
   }
 });
 
@@ -319,127 +52,10 @@ app.get('/api/trades', async (req, res) => {
   try {
     await initializeLedger();
     const ledgerData = getLedger();
-    res.json(Array.isArray(ledgerData.trades) ? ledgerData.trades : []);
+    res.json(ok(Array.isArray(ledgerData.trades) ? ledgerData.trades : []));
   } catch (error) {
-    console.error("Error fetching trades:", error);
-    res.status(500).json({ error: "Failed to fetch trades data." });
-  }
-});
-
-// LIVE: recent trades from CLOB (best-effort)
-app.get('/api/live/trades', async (req, res) => {
-  try {
-    const client = getClobClient();
-    // clob-client returns Trade[]
-    const trades = await client.getTrades();
-    res.json(Array.isArray(trades) ? trades : []);
-  } catch (error) {
-    console.error('Error fetching LIVE trades:', error);
-    res.status(500).json({ error: 'Failed to fetch live trades.' });
-  }
-});
-
-function withTimeout(promise, ms, label = 'operation') {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms))
-  ]);
-}
-
-// LIVE: open orders from CLOB (best-effort; don't take down UI on CLOB timeouts)
-app.get('/api/live/open-orders', async (req, res) => {
-  try {
-    const client = getClobClient();
-    const open = await withTimeout(client.getOpenOrders(), 6000, 'getOpenOrders');
-    res.json(open);
-  } catch (error) {
-    console.error('Error fetching LIVE open orders:', error);
-    // Return empty array instead of 500 so UI stays responsive during CLOB outages.
-    res.setHeader('x-openorders-warning', 'clob_unavailable');
-    res.json([]);
-  }
-});
-
-// LIVE: positions inferred from trade history (best-effort)
-app.get('/api/live/positions', async (req, res) => {
-  try {
-    const client = getClobClient();
-    const trades = await client.getTrades();
-    const positions = computePositionsFromTrades(trades);
-    const enriched = await enrichPositionsWithMarks(positions);
-
-    const tradable = enriched.filter(p => p?.tradable !== false);
-    const nonTradable = enriched.filter(p => p?.tradable === false);
-
-    res.json({
-      count: enriched.length,
-      tradableCount: tradable.length,
-      nonTradableCount: nonTradable.length,
-      tradable,
-      nonTradable
-    });
-  } catch (error) {
-    console.error('Error fetching LIVE positions:', error);
-    res.status(500).json({ error: 'Failed to fetch live positions.' });
-  }
-});
-
-function dayKeyFromEpochSec(epochSec, tz = 'America/Los_Angeles') {
-  const d = new Date(Number(epochSec) * 1000);
-  return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-}
-
-// LIVE: realized PnL + inventory from CLOB trades (best-effort)
-app.get('/api/live/analytics', async (req, res) => {
-  try {
-    const client = getClobClient();
-    const trades = await client.getTrades();
-
-    const pnl = computeRealizedPnlAvgCost(trades);
-
-    const tz = process.env.UI_TZ || 'America/Los_Angeles';
-    const todayKey = dayKeyFromEpochSec(Math.floor(Date.now() / 1000), tz);
-    const yesterdayKey = (() => {
-      const d = new Date();
-      d.setDate(d.getDate() - 1);
-      return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-    })();
-
-    // Realized PnL by day (approx: recompute pnl cumulatively and sample per-day end)
-    // For now: compute "today realized" by only including trades from today. (Not perfect avg-cost across boundaries, but good enough for daily kill-switch display.)
-    const tradesToday = (Array.isArray(trades) ? trades : []).filter(t => {
-      const mt = Number(t?.match_time || 0);
-      const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
-      return k === todayKey;
-    });
-    const tradesYesterday = (Array.isArray(trades) ? trades : []).filter(t => {
-      const mt = Number(t?.match_time || 0);
-      const k = mt ? dayKeyFromEpochSec(mt, tz) : null;
-      return k === yesterdayKey;
-    });
-
-    const pnlToday = computeRealizedPnlAvgCost(tradesToday);
-    const pnlYesterday = computeRealizedPnlAvgCost(tradesYesterday);
-
-    const baseline = Number(CONFIG.liveTrading?.dailyLossBaselineUsd ?? 0) || 0;
-    const realizedTodayEffective = (pnlToday.realizedTotal || 0) - baseline;
-
-    res.json({
-      tz,
-      todayKey,
-      yesterdayKey,
-      tradesCount: Array.isArray(trades) ? trades.length : 0,
-      realizedTotal: pnl.realizedTotal,
-      realizedTodayRaw: pnlToday.realizedTotal,
-      dailyLossBaselineUsd: baseline,
-      realizedToday: realizedTodayEffective,
-      realizedYesterday: pnlYesterday.realizedTotal,
-      inventoryByToken: pnl.inventoryByToken,
-      realizedByToken: pnl.realizedByToken
-    });
-  } catch (error) {
-    console.error('Error fetching LIVE analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch live analytics.' });
+    console.error('Error fetching trades:', error.message);
+    res.status(500).json(fail('Failed to fetch trades data.'));
   }
 });
 
@@ -449,7 +65,6 @@ app.get('/api/analytics', async (req, res) => {
     const ledgerData = getLedger();
     const analytics = computeAnalytics(ledgerData.trades);
 
-    // Liquidity stats from Polymarket sampling (independent of trade entries)
     const rows = readLiquiditySamples({ limit: 20000 });
     const liquidity = {
       last1h: computeLiquidityStats(rows, { windowHours: 1 }),
@@ -457,38 +72,294 @@ app.get('/api/analytics', async (req, res) => {
       last24h: computeLiquidityStats(rows, { windowHours: 24 })
     };
 
-    res.json({ ...analytics, liquidity });
+    res.json(ok({ ...analytics, liquidity }));
   } catch (error) {
-    console.error("Error fetching analytics:", error);
-    res.status(500).json({ error: "Failed to fetch analytics data." });
+    console.error('Error fetching analytics:', error.message);
+    res.status(500).json(fail('Failed to fetch analytics data.'));
   }
 });
 
-// Health check endpoint for container platforms (Digital Ocean, etc.)
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/live/trades', async (req, res) => {
+  try {
+    const trades = await fetchLiveTrades();
+    res.json(ok(trades));
+  } catch (error) {
+    console.error('Error fetching LIVE trades:', error.message);
+    res.status(500).json(fail('Failed to fetch live trades.'));
+  }
 });
 
-// Basic route for the root to serve index.html
+app.get('/api/live/open-orders', async (req, res) => {
+  try {
+    const orders = await fetchLiveOpenOrders();
+    res.json(ok(orders));
+  } catch (error) {
+    console.error('Error fetching LIVE open orders:', error.message);
+    res.setHeader('x-openorders-warning', 'clob_unavailable');
+    res.json(ok([]));
+  }
+});
+
+app.get('/api/live/positions', async (req, res) => {
+  try {
+    const positions = await fetchLivePositions();
+    res.json(ok(positions));
+  } catch (error) {
+    console.error('Error fetching LIVE positions:', error.message);
+    res.status(500).json(fail('Failed to fetch live positions.'));
+  }
+});
+
+app.get('/api/live/analytics', async (req, res) => {
+  try {
+    const analytics = await fetchLiveAnalytics();
+    res.json(ok(analytics));
+  } catch (error) {
+    console.error('Error fetching LIVE analytics:', error.message);
+    res.status(500).json(fail('Failed to fetch live analytics.'));
+  }
+});
+
+app.get('/api/markets', (req, res) => {
+  try {
+    const catalog = globalThis.__marketCatalog;
+    if (!catalog) {
+      return res.json(ok({ market: null, tokenIds: [], note: 'MarketCatalog not initialized' }));
+    }
+    res.json(ok(catalog.getSnapshot()));
+  } catch (error) {
+    console.error('Error fetching markets:', error.message);
+    res.status(500).json(fail('Failed to fetch markets.'));
+  }
+});
+
+app.get('/api/live/approvals', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const approvalService = engine?.executor?.approvalService;
+    if (!approvalService) {
+      return res.json(ok({ collateral: null, conditional: {}, note: 'ApprovalService not available (paper mode or not initialized)' }));
+    }
+    res.json(ok(approvalService.getStatus()));
+  } catch (error) {
+    console.error('Error fetching approvals:', error.message);
+    res.status(500).json(fail('Failed to fetch approval status.'));
+  }
+});
+
+app.get('/api/portfolio', async (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const executor = engine?.executor;
+
+    // Collateral
+    let collateral = null;
+    if (executor?.getBalance) {
+      try {
+        const snap = await executor.getBalance();
+        collateral = snap;
+      } catch {
+        collateral = { error: 'Failed to fetch balance' };
+      }
+    }
+
+    // Open orders
+    const openOrders = executor?.orderManager?.getSnapshot?.() ?? { total: 0, orders: [] };
+
+    // Fees
+    const fees = executor?.feeService?.getSnapshot?.() ?? null;
+
+    // Approvals
+    const approvals = executor?.approvalService?.getStatus?.() ?? null;
+
+    // Daily PnL from state
+    const dailyPnl = engine?.state?.todayRealizedPnl ?? null;
+
+    // Reserved amount (sum of open order notional)
+    let reservedAmount = 0;
+    const pendingOrders = executor?.orderManager?.getPendingOrders?.({ status: 'pending' }) ?? [];
+    const openOrdersList = executor?.orderManager?.getPendingOrders?.({ status: 'open' }) ?? [];
+    for (const o of [...pendingOrders, ...openOrdersList]) {
+      reservedAmount += (o.price || 0) * (o.size || 0);
+    }
+
+    res.json(ok({
+      collateral,
+      openOrders,
+      fees,
+      approvals,
+      reservedAmount: Math.round(reservedAmount * 100) / 100,
+      realizedPnl: {
+        today: typeof dailyPnl === 'number' ? dailyPnl : null,
+      },
+      mode: executor?.getMode?.() ?? 'unknown',
+      tradingEnabled: engine?.tradingEnabled ?? false,
+    }));
+  } catch (error) {
+    console.error('Error fetching portfolio:', error.message);
+    res.status(500).json(fail('Failed to fetch portfolio.'));
+  }
+});
+
+app.get('/api/orders', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const orderManager = engine?.executor?.orderManager;
+    if (!orderManager) {
+      return res.json(ok({ total: 0, orders: [], note: 'OrderManager not available' }));
+    }
+    const statusFilter = req.query.status || null;
+    if (statusFilter) {
+      const orders = orderManager.getPendingOrders({ status: statusFilter });
+      res.json(ok({ total: orders.length, orders }));
+    } else {
+      res.json(ok(orderManager.getSnapshot()));
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error.message);
+    res.status(500).json(fail('Failed to fetch orders.'));
+  }
+});
+
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const orderManager = engine?.executor?.orderManager;
+    if (!orderManager) {
+      return res.status(503).json(fail('OrderManager not available'));
+    }
+    const result = await orderManager.cancelOrder(req.params.id);
+    if (result.cancelled) {
+      res.json(ok({ cancelled: true, orderId: req.params.id }));
+    } else {
+      res.status(400).json(fail(result.error || 'Cancel failed'));
+    }
+  } catch (error) {
+    console.error('Error cancelling order:', error.message);
+    res.status(500).json(fail('Failed to cancel order.'));
+  }
+});
+
+app.get('/api/metrics', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const executor = engine?.executor;
+    const polyService = globalThis.__polymarketService;
+    const rateLimiter = globalThis.__clobRateLimiter;
+
+    res.json(ok({
+      uptime: process.uptime(),
+      memoryMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024 * 100) / 100,
+      tradingEnabled: engine?.tradingEnabled ?? false,
+      mode: executor?.getMode?.() ?? 'unknown',
+      state: {
+        consecutiveLosses: engine?.state?.consecutiveLosses ?? 0,
+        circuitBreakerTripped: engine?.state?.circuitBreakerTrippedAtMs !== null && engine?.state?.circuitBreakerTrippedAtMs !== undefined,
+        todayRealizedPnl: engine?.state?.todayRealizedPnl ?? 0,
+        hasOpenPosition: engine?.state?.hasOpenPosition ?? false,
+      },
+      services: polyService?.getStatus?.() ?? null,
+      rateLimiter: rateLimiter?.getStats?.() ?? null,
+    }));
+  } catch (error) {
+    console.error('Error fetching metrics:', error.message);
+    res.status(500).json(fail('Failed to fetch metrics.'));
+  }
+});
+
+// --- Trading Controls ---
+
+app.post('/api/trading/start', (req, res) => {
+  const engine = globalThis.__tradingEngine;
+  if (!engine) return res.status(503).json(fail('Engine not initialized'));
+  engine.tradingEnabled = true;
+  res.json(ok({ tradingEnabled: true }));
+});
+
+app.post('/api/trading/stop', (req, res) => {
+  const engine = globalThis.__tradingEngine;
+  if (!engine) return res.status(503).json(fail('Engine not initialized'));
+  engine.tradingEnabled = false;
+  res.json(ok({ tradingEnabled: false }));
+});
+
+app.post('/api/trading/kill', async (req, res) => {
+  const engine = globalThis.__tradingEngine;
+  if (!engine) return res.status(503).json(fail('Engine not initialized'));
+
+  // 1. Stop trading immediately
+  engine.tradingEnabled = false;
+
+  // 2. Try to cancel all open orders (live mode only)
+  let cancelResult = null;
+  const executor = engine.executor;
+  if (executor?.getMode?.() === 'live' && executor?.client?.cancelAll) {
+    try {
+      cancelResult = await executor.client.cancelAll();
+    } catch (e) {
+      cancelResult = { error: e?.message || String(e) };
+    }
+  }
+
+  console.warn('KILL SWITCH activated via /api/trading/kill');
+  res.json(ok({
+    tradingEnabled: false,
+    killSwitch: true,
+    cancelResult,
+    timestamp: new Date().toISOString(),
+  }));
+});
+
+app.get('/api/trading/status', (req, res) => {
+  const engine = globalThis.__tradingEngine;
+  const mm = globalThis.__modeManager;
+  res.json(ok({
+    tradingEnabled: engine?.tradingEnabled ?? false,
+    mode: mm?.getMode() ?? 'paper',
+    liveAvailable: mm?.isLiveAvailable() ?? false,
+  }));
+});
+
+app.post('/api/mode', (req, res) => {
+  const mm = globalThis.__modeManager;
+  const engine = globalThis.__tradingEngine;
+  if (!mm || !engine) return res.status(503).json(fail('Not initialized'));
+
+  const { mode } = req.body; // 'paper' or 'live'
+  try {
+    mm.switchMode(mode);
+    // Update engine's executor and config
+    engine.executor = mm.getActiveExecutor();
+    engine.config = mode === 'live'
+      ? { ...CONFIG.paperTrading, ...CONFIG.liveTrading }
+      : { ...CONFIG.paperTrading };
+    engine.tradingEnabled = false; // Safety: stop trading on mode switch
+    engine.state = new TradingState(); // Fresh state on mode switch
+    res.json(ok({ mode: mm.getMode(), tradingEnabled: false }));
+  } catch (e) {
+    res.status(400).json(fail(e.message));
+  }
+});
+
+app.get('/health', (req, res) => {
+  res.json(ok({ status: 'ok', timestamp: new Date().toISOString() }));
+});
+
 app.get('/', (req, res) => {
-  // Serve an index.html from the ui directory
-  // Ensure index.html exists in src/ui/
   res.sendFile(path.join(uiPath, 'index.html'));
 });
 
 export function startUIServer() {
-  // Warm ledgers so the UI doesn't throw on first load.
-  initializeLedger().catch((e) => console.error("UI server (paper) ledger init failed:", e));
-  initializeLiveLedger().catch((e) => console.error("UI server (live) ledger init failed:", e));
+  initializeLedger().catch((e) => console.error('UI server (paper) ledger init failed:', e.message));
+  initializeLiveLedger().catch((e) => console.error('UI server (live) ledger init failed:', e.message));
 
   console.log(`Starting UI server on ${host}:${port}...`);
   const server = app.listen(port, host, () => {
     console.log(`UI server running on http://${host}:${port}`);
-    console.log(`To access remotely, use ngrok: ngrok http ${port}`);
   });
 
   server.on('error', (err) => {
-    console.error('UI server failed to bind/listen:', err);
+    console.error('UI server failed to bind/listen:', err.message);
   });
 
   return server;

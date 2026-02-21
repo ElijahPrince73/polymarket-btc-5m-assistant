@@ -32,7 +32,6 @@ function pickTokenId(market, label) {
 export class LiveTrader {
   constructor() {
     this.tradingEnabled = true;
-    this.tradingEnabled = true;
     this.client = getClobClient();
 
     // open *order* we placed (may fill quickly, so open order can be null even when positions exist)
@@ -100,80 +99,8 @@ export class LiveTrader {
     return base / 1e6;
   }
 
-  // Refactoring for coding standards compliance
-console.log('Starting trader execution...');
-
-// Adding mock signal invocation for testing
-const mockSignals = {
-    rec: { action: 'ENTER', phase: 'EARLY', side: 'UP' },
-    market: { slug: 'test_market' },
-    timeLeftMin: 5,
-    polyPricesCents: { UP: 1, DOWN: 2 },
-    modelUp: 0.75,
-    modelDown: 0.25,
-    indicators: { rsiNow: 55, vwapNow: 100, vwapSlope: 0.1 }
-};
-
-console.log('Mocking signals for testing: ', mockSignals);
-await processSignals(mockSignals);
-// Adding a starting point for execution
-// Starting processing signals
-async processSignals(signals) {
-    console.log('Received signals for live trading:', signals); // Log received signals
-    console.log('Initializing signal processing for live trading...');
-    console.log('Starting to process signals for live trading:', signals);
-
-    const hasRequiredIndicators = (indicators) => {
-        return (
-            isNum(indicators.rsiNow) &&
-            isNum(indicators.vwapNow) &&
-            isNum(indicators.macd.hist) // Check for necessary indicators
-        );
-    };
-
-    if (!hasRequiredIndicators(signals.indicators)) {
-        console.log('Indicators not ready for trading.');
-        return;
-    }
-    console.log('Trader execution starting...');
-    console.log('Starting trader execution...');
-
-    // Mock Trade Signals for Testing
-    const mockSignals = {
-        rec: { action: 'ENTER', phase: 'EARLY', side: 'UP' },
-        market: { slug: 'test_market' },
-        timeLeftMin: 5,
-        polyPricesCents: { UP: 1, DOWN: 2 },
-        modelUp: 0.75,
-        modelDown: 0.25,
-        indicators: { rsiNow: 55, vwapNow: 100, vwapSlope: 0.1 }
-    };
-    console.log('Mock signals initialized for testing:', mockSignals);
-    await this.processSignals(mockSignals);
-    console.log('Initiating signal processing for live trading...');
-    console.log('Processing signals for live trading...');
-    console.log('Starting the process of live trading signals...');
-    console.log('Received signals:', signals);
-    console.log('Processing live trading signals:', signals);
-
-    const hasRequiredIndicators = (indicators) => {
-        return (
-            isNum(indicators.rsiNow) &&
-            isNum(indicators.vwapNow) &&
-            isNum(indicators.macd.hist)
-            // Add more indicators checks as necessary
-        );
-    };
-
-    if (!hasRequiredIndicators(signals.indicators)) {
-        console.log('Indicators not ready for trading.');
-        return;
-    }
-    console.log('Received signals for live trading:', signals);
-    console.log('Starting live trading with signals:', signals);
-    console.log('Starting to process signals...');
-    console.log('Received signals for processing:', signals);
-    console.log('Processing signals for live trading...');
+  async processSignals(signals) {
+    console.log(`Live trader: rec=${signals?.rec?.action || 'NONE'}, side=${signals?.rec?.side || '-'}, timeLeft=${signals?.timeLeftMin?.toFixed(1) || '-'}m`);
 
     this._resetIfNeeded();
 

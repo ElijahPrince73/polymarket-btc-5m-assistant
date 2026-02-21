@@ -67,6 +67,79 @@ h1 {
     border-radius: 999px;
 }
 
+/* ── Trading Controls ── */
+.trading-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mode-select {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    color: var(--accent);
+    border: 1px solid rgba(110,168,255,0.3);
+    cursor: pointer;
+    outline: none;
+}
+.mode-select:hover { border-color: rgba(110,168,255,0.6); }
+.mode-select option { background: var(--panel); color: var(--text); }
+
+.trading-status {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status--active {
+    color: var(--good);
+    background: rgba(46,229,157,0.12);
+    border: 1px solid rgba(46,229,157,0.3);
+}
+.status--stopped {
+    color: var(--bad);
+    background: rgba(255,92,122,0.12);
+    border: 1px solid rgba(255,92,122,0.3);
+}
+
+.action-button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+}
+.action-button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.action-button--start {
+    background: rgba(46,229,157,0.15);
+    color: var(--good);
+    border-color: rgba(46,229,157,0.3);
+}
+.action-button--start:hover:not(:disabled) {
+    background: rgba(46,229,157,0.28);
+}
+.action-button--stop {
+    background: rgba(255,92,122,0.15);
+    color: var(--bad);
+    border-color: rgba(255,92,122,0.3);
+}
+.action-button--stop:hover:not(:disabled) {
+    background: rgba(255,92,122,0.28);
+}
+
 h2 {
     color: var(--text);
     margin: 0;

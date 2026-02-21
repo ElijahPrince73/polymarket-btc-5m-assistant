@@ -12,11 +12,17 @@
       <div class="header">
         <div>
           <h1>Polymarket BTC 5m Assistant</h1>
-          <div class="sub">Paper trading dashboard • Live-ready plumbing</div>
+          <div class="sub">Unified trading engine • Paper &amp; Live</div>
         </div>
-        <button id="start-trading" class="action-button">Start Trading</button>
-        <button id="stop-trading" class="action-button">Stop Trading</button>
-        <div class="pill" id="ui-port-pill">UI</div>
+        <div class="trading-controls">
+          <select id="mode-select" class="mode-select">
+            <option value="paper">Paper</option>
+            <option value="live">Live</option>
+          </select>
+          <span id="trading-status" class="trading-status status--stopped">STOPPED</span>
+          <button id="start-trading" class="action-button action-button--start">Start Trading</button>
+          <button id="stop-trading" class="action-button action-button--stop" disabled>Stop Trading</button>
+        </div>
       </div>
 
       <div class="section section--dashboard">
@@ -59,6 +65,132 @@
           <div class="card">
             <div class="card-title">PnL Distribution (Last 200)</div>
             <canvas id="chart-pnl-hist" height="120"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Analytics</h2>
+        <div id="analytics-overview">No analytics data yet.</div>
+        <div class="analytics-grid">
+          <div class="card">
+            <div class="card-title">By Exit Reason</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-exit"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Entry Phase</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-phase"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Entry Price</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-price"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Side Source</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-inferred"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Time Left at Entry</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-timeleft"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Model Probability</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-prob"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Liquidity</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-liq"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Market Volume</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-mktvol"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Spread</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-spread"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Edge</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-edge"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By VWAP Distance</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-vwapdist"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By RSI</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-rsi"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Hold Time</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-hold"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By MAE (Max Adverse)</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-mae"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By MFE (Max Favorable)</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-mfe"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Side (UP/DOWN)</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-side"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">By Rec Action</div>
+            <table class="mini-table">
+              <thead><tr><th>Bucket</th><th>Count</th><th class="num">PnL</th></tr></thead>
+              <tbody id="analytics-by-rec"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -114,14 +246,19 @@
         <table id="recent-trades-table">
           <thead>
             <tr>
-              <th>Time</th>
-              <th>Outcome</th>
-              <th>Gain/Loss</th>
+              <th>Entry Time</th>
+              <th>Exit Time</th>
+              <th>Side</th>
+              <th>Entry Price</th>
+              <th>Exit Price</th>
+              <th>PnL</th>
+              <th>Status</th>
+              <th>Exit Reason</th>
             </tr>
           </thead>
           <tbody id="recent-trades-body">
             <tr>
-              <td colspan="3">Loading recent trades...</td>
+              <td colspan="8">Loading recent trades...</td>
             </tr>
           </tbody>
         </table>

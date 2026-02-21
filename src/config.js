@@ -27,7 +27,7 @@ export const CONFIG = {
   clobBaseUrl: 'https://clob.polymarket.com',
 
   // Polling and candle settings
-  pollIntervalMs: 2_000, // faster for 5m markets (higher frequency)
+  pollIntervalMs: 1_000, // 1s loop for faster UI responsiveness on 5m markets
   candleWindowMinutes: 5,
 
   // Indicator settings (faster defaults for 5m markets)
@@ -130,6 +130,11 @@ export const CONFIG = {
     lossCooldownSeconds: Number(process.env.LOSS_COOLDOWN_SECONDS) || 30,
     // Cooldown after a winning trade (seconds): reduces bursty trade patterns (safer for live).
     winCooldownSeconds: Number(process.env.WIN_COOLDOWN_SECONDS) || 30,
+
+    // Circuit breaker: after N consecutive losses, pause entries for a cooldown period.
+    // Set to 0 to disable.
+    circuitBreakerConsecutiveLosses: Number(process.env.CIRCUIT_BREAKER_LOSSES) || 5,
+    circuitBreakerCooldownMs: Number(process.env.CIRCUIT_BREAKER_COOLDOWN_MS) || 5 * 60_000, // 5 minutes
 
     // If true: after a Max Loss stopout, do not enter again until the market rolls to the next slug.
     skipMarketAfterMaxLoss:
@@ -271,6 +276,10 @@ export const CONFIG = {
     enabled:
       (process.env.LIVE_TRADING_ENABLED || 'false').toLowerCase() === 'true',
 
+    // Environment gate: if set, LIVE_ENV_GATE must match this value to allow live trading.
+    // This prevents accidental live trading in development.
+    envGate: process.env.LIVE_ENV_GATE || null, // Set to "production" to gate
+
     // Conservative defaults; scale up later as bankroll grows.
     maxPerTradeUsd: Number(process.env.LIVE_MAX_PER_TRADE_USD) || 7,
     maxOpenExposureUsd: Number(process.env.LIVE_MAX_OPEN_EXPOSURE_USD) || 10,
@@ -289,6 +298,10 @@ export const CONFIG = {
       String(process.env.LIVE_DAILY_LOSS_BASELINE_USD).trim() !== ''
         ? Number(process.env.LIVE_DAILY_LOSS_BASELINE_USD)
         : 0,
+
+    // Fee observability
+    feeCacheTtlMs: Number(process.env.LIVE_FEE_CACHE_TTL_MS) || 30_000,
+    feeRateAlertThresholdBps: Number(process.env.LIVE_FEE_ALERT_THRESHOLD_BPS) || 300, // warn if > 3%
 
     // Execution preferences
     allowMarketOrders:

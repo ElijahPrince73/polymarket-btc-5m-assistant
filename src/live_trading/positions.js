@@ -1,9 +1,27 @@
 import { fetchClobPrice } from '../data/polymarket.js';
 import { getClobClient } from './clob.js';
+import { CONFIG } from '../config.js';
 
 function toNum(x) {
   const n = Number(x);
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Fetch orderbook directly via fetch() instead of the CLOB client library.
+ * The library logs "[CLOB Client] request error" to stdout on 404s before
+ * throwing, which we cannot suppress. Using raw fetch avoids that entirely.
+ */
+async function fetchOrderBookQuiet(tokenID) {
+  const url = new URL('/book', CONFIG.clobBaseUrl);
+  url.searchParams.set('token_id', String(tokenID));
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = new Error(`CLOB book: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
 }
 
 /**
@@ -78,16 +96,26 @@ async function mapLimit(items, limit, fn) {
   return out;
 }
 
+// Token IDs that returned 404 (expired/no orderbook). Avoids repeated CLOB
+// queries that trigger noisy library-level error logs we can't suppress.
+const _expiredTokenIds = new Set();
+
 async function fetchMarkBestEffort(client, tokenID) {
   if (!tokenID) return { mark: null, tradable: false };
 
-  // 1) Prefer orderbook midpoint (fast + stable when available)
+  // Skip tokens we already know are expired — prevents the CLOB client
+  // library from logging "[CLOB Client] request error" every poll cycle.
+  if (_expiredTokenIds.has(String(tokenID))) {
+    return { mark: null, tradable: false };
+  }
+
+  // 1) Prefer orderbook midpoint via raw fetch (avoids CLOB client library's
+  //    noisy "[CLOB Client] request error" log on 404s for expired tokens).
   try {
-    const book = await client.getOrderBook(String(tokenID));
+    const book = await fetchOrderBookQuiet(tokenID);
     const bestBid = Array.isArray(book?.bids) && book.bids.length ? toNum(book.bids[0]?.price) : null;
     const bestAsk = Array.isArray(book?.asks) && book.asks.length ? toNum(book.asks[0]?.price) : null;
 
-    // If the orderbook exists but is empty, it's effectively not tradable right now.
     const tradable = Boolean(bestBid !== null || bestAsk !== null);
 
     if (bestBid !== null && bestAsk !== null) return { mark: (bestBid + bestAsk) / 2, tradable };
@@ -96,9 +124,10 @@ async function fetchMarkBestEffort(client, tokenID) {
 
     return { mark: null, tradable: false };
   } catch (e) {
-    // If there's no orderbook for the token (404), it's expired/non-tradable.
-    // Return silently without error logging—this is expected for old tokens.
-    if (e?.response?.status === 404 || e?.status === 404 || String(e?.message).includes('404')) {
+    // No orderbook for this token (404) → expired/non-tradable. Cache it.
+    if (e?.status === 404 || String(e?.message).includes('404')) {
+      _expiredTokenIds.add(String(tokenID));
+      console.debug(`Cached expired token (no orderbook): ${String(tokenID).slice(0, 12)}…`);
       return { mark: null, tradable: false };
     }
     // For other errors, continue to fallback

@@ -15,12 +15,61 @@ document.addEventListener('DOMContentLoaded', () => {
   const kpiWinrate = document.getElementById('kpi-winrate');
   const kpiProfitFactor = document.getElementById('kpi-profit-factor');
 
-  // top right pill
-  const uiPortPill = document.getElementById('ui-port-pill');
-  if (uiPortPill) {
-    const p = window.location.port ? `:${window.location.port}` : '';
-    uiPortPill.textContent = `UI${p}`;
+  // ── Trading controls ──────────────────────────────────────────
+  const startBtn = document.getElementById('start-trading');
+  const stopBtn = document.getElementById('stop-trading');
+  const tradingStatusEl = document.getElementById('trading-status');
+  const modeSelect = document.getElementById('mode-select');
+
+  function updateTradingStatus(enabled) {
+    if (tradingStatusEl) {
+      tradingStatusEl.textContent = enabled ? 'ACTIVE' : 'STOPPED';
+      tradingStatusEl.classList.toggle('status--active', enabled);
+      tradingStatusEl.classList.toggle('status--stopped', !enabled);
+    }
+    if (startBtn) startBtn.disabled = enabled;
+    if (stopBtn) stopBtn.disabled = !enabled;
   }
+
+  startBtn?.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/trading/start', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) updateTradingStatus(true);
+    } catch (e) { console.error('Start trading failed:', e); }
+  });
+
+  stopBtn?.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/trading/stop', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) updateTradingStatus(false);
+    } catch (e) { console.error('Stop trading failed:', e); }
+  });
+
+  modeSelect?.addEventListener('change', async () => {
+    try {
+      const res = await fetch('/api/mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: modeSelect.value }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        updateTradingStatus(json.data.tradingEnabled);
+      } else {
+        // Revert select on failure
+        const statusRes = await fetch('/api/trading/status');
+        const statusJson = await statusRes.json();
+        if (statusJson.success && modeSelect) {
+          modeSelect.value = statusJson.data.mode || 'paper';
+        }
+        alert(json.error || 'Mode switch failed');
+      }
+    } catch (e) { console.error('Mode switch failed:', e); }
+  });
+
+  // top right pill (removed — replaced by trading controls)
 
   // Analytics elements
   const analyticsOverviewDiv = document.getElementById('analytics-overview');
@@ -90,6 +139,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const ensureCharts = () => {
     if (!window.Chart) return;
+
+    // Register "No data yet" plugin (once)
+    if (!Chart.registry?.plugins?.get?.('noDataMessage')) {
+      const noDataPlugin = {
+        id: 'noDataMessage',
+        afterDraw(chart) {
+          const hasData = chart.data.datasets.some(ds => ds.data && ds.data.length > 0);
+          if (!hasData) {
+            const { ctx, width, height } = chart;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '14px ' + getComputedStyle(document.body).fontFamily;
+            ctx.fillStyle = 'rgba(155,176,209,0.5)';
+            ctx.fillText('No data yet', width / 2, height / 2);
+            ctx.restore();
+          }
+        }
+      };
+      Chart.register(noDataPlugin);
+    }
 
     const baseOpts = {
       responsive: true,
@@ -300,9 +370,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- status ----
     try {
       const statusResponse = await fetch('/api/status');
-      const statusData = await statusResponse.json();
-      if (!statusResponse.ok) throw new Error('status endpoint returned non-200');
+      const statusJson = await statusResponse.json();
+      if (!statusResponse.ok || !statusJson.success) throw new Error(statusJson.error || 'status endpoint failed');
+      const statusData = statusJson.data;
       lastStatusCache = statusData;
+
+      // Update trading controls from status
+      updateTradingStatus(statusData.tradingEnabled ?? false);
+      if (modeSelect) modeSelect.value = (statusData.mode || 'PAPER').toLowerCase();
 
       const rt = statusData.runtime;
       const mode = statusData.mode || 'PAPER';
@@ -333,6 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'N/A';
 
         const rows = [
+          ['Mode', `<strong>${mode}</strong> ${statusData.tradingEnabled ? '<span style="color:var(--good)">ACTIVE</span>' : '<span style="color:var(--bad)">STOPPED</span>'}`],
           ['Polymarket URL', pmUrl ? `<a href="${pmUrl}" target="_blank" rel="noreferrer">${pmUrl}</a>` : 'N/A'],
           ['Market', rt.marketSlug || 'N/A'],
           ['Time left', timeLeft],
@@ -356,11 +432,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('/api/live/open-orders'),
             fetch('/api/live/positions')
           ]);
-          const open = await oRes.json();
-          const pos = await pRes.json();
+          const openJson = await oRes.json();
+          const posJson = await pRes.json();
+          const open = openJson.success ? openJson.data : openJson;
+          const pos = posJson.success ? posJson.data : posJson;
 
-          const openCount = open?.count ?? (Array.isArray(open) ? open.length : 0);
-          const firstOpen = Array.isArray(open?.data) ? open.data[0] : (Array.isArray(open) ? open[0] : null);
+          const openCount = Array.isArray(open) ? open.length : (open?.count ?? 0);
+          const firstOpen = Array.isArray(open) ? open[0] : null;
 
           const positions = Array.isArray(pos?.tradable) ? pos.tradable : (Array.isArray(pos) ? pos : []);
           const nonTradableCount = (typeof pos?.nonTradableCount === 'number') ? pos.nonTradableCount : 0;
@@ -483,8 +561,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (analyticsByExitBody) analyticsByExitBody.innerHTML = '<tr><td colspan="3">—</td></tr>';
       } else {
         const aRes = await fetch('/api/analytics');
-        const analytics = await aRes.json();
-        if (!aRes.ok) throw new Error('analytics endpoint returned non-200');
+        const aJson = await aRes.json();
+        if (!aRes.ok || !aJson.success) throw new Error(aJson.error || 'analytics endpoint failed');
+        const analytics = aJson.data;
         lastAnalyticsCache = analytics;
 
       const fmt = (n, d = 2) => (typeof n === 'number' && Number.isFinite(n)) ? n.toFixed(d) : 'N/A';
@@ -553,8 +632,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const modeNow = (lastStatusCache?.mode || 'PAPER');
       const tradesUrl = modeNow === 'LIVE' ? '/api/live/trades' : '/api/trades';
       const tradesResponse = await fetch(tradesUrl);
-      const trades = await tradesResponse.json();
-      if (!tradesResponse.ok) throw new Error('trades endpoint returned non-200');
+      const tradesJson = await tradesResponse.json();
+      if (!tradesResponse.ok || !tradesJson.success) throw new Error(tradesJson.error || 'trades endpoint failed');
+      const trades = tradesJson.data;
       lastTradesCache = Array.isArray(trades) ? trades : [];
 
       // Render trades table
@@ -625,28 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
   tradesOnlyLosses?.addEventListener('change', rerender);
 
   fetchData();
-  setInterval(fetchData, 5000);
+  setInterval(fetchData, 1500);
 });
 
-let tradingEnabled = false;
-
-async function startTrading() {
-    tradingEnabled = true;
-    const trader = await initializeLiveTrader();
-    trader.processSignals(signals);  // Pass current market signals to the trader
-    console.log('Trading has started successfully!');
-    console.log('Trading started!');
-    // Add your logic to start trading here
-}
-
-async function stopTrading() {
-    tradingEnabled = false;
-    // Implement logic to halt trading here
-    console.log('Trading stopped!');
-    // Add your logic to stop trading here
-}
-
-// Event listeners for the buttons
-
-document.getElementById('start-trading').addEventListener('click', startTrading);
-document.getElementById('stop-trading').addEventListener('click', stopTrading);
