@@ -31,64 +31,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (stopBtn) stopBtn.disabled = !enabled;
   }
 
-  // Guard: while a user-initiated start/stop is in-flight, prevent the
-  // polling loop from overwriting the trading status (avoids ACTIVE/STOPPED oscillation).
-  let _tradingToggleInFlight = false;
-
-  // Stabilization: only update mode / tradingEnabled in the UI when the
-  // server returns the SAME value for N consecutive polls.  This prevents
-  // visual oscillation caused by multiple server instances, restarts, or
-  // any other source of inconsistent responses.
-  const _STABLE = 2; // require 2 identical consecutive polls
-  let _stableMode = { value: null, count: 0 };
-  let _stableTrading = { value: null, count: 0 };
+  // ── First-poll-only sync ────────────────────────────────────
+  // Mode and tradingEnabled are ONLY synced from the server on the very
+  // first poll after page load.  After that, these values are exclusively
+  // controlled by user actions (buttons / dropdown).  This eliminates
+  // oscillation caused by multiple server instances, restarts, or any
+  // other source of inconsistent responses — the polling loop never
+  // overwrites these two fields after the initial sync.
+  let _initialSyncDone = false;
 
   startBtn?.addEventListener('click', async () => {
-    _tradingToggleInFlight = true;
     try {
       const res = await fetch('/api/trading/start', { method: 'POST' });
       const json = await res.json();
-      if (json.success) {
-        updateTradingStatus(true);
-        _stableTrading = { value: true, count: _STABLE }; // align stabilizer
-      }
+      if (json.success) updateTradingStatus(true);
     } catch (e) { console.error('Start trading failed:', e); }
-    _tradingToggleInFlight = false;
   });
 
   stopBtn?.addEventListener('click', async () => {
-    _tradingToggleInFlight = true;
     try {
       const res = await fetch('/api/trading/stop', { method: 'POST' });
       const json = await res.json();
-      if (json.success) {
-        updateTradingStatus(false);
-        _stableTrading = { value: false, count: _STABLE }; // align stabilizer
-      }
+      if (json.success) updateTradingStatus(false);
     } catch (e) { console.error('Stop trading failed:', e); }
-    _tradingToggleInFlight = false;
   });
 
-  // Guard: while a user-initiated mode switch is in-flight, prevent the
-  // polling loop from overwriting the dropdown value (avoids visual oscillation).
-  let _modeSwitchInFlight = false;
-
   modeSelect?.addEventListener('change', async () => {
-    _modeSwitchInFlight = true;
+    const desiredMode = modeSelect.value;
     try {
       const res = await fetch('/api/mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: modeSelect.value }),
+        body: JSON.stringify({ mode: desiredMode }),
       });
       const json = await res.json();
       if (json.success) {
         updateTradingStatus(json.data.tradingEnabled);
-        // Align stabilizers with the values the server just confirmed
-        _stableMode = { value: (json.data.mode || modeSelect.value).toLowerCase(), count: _STABLE };
-        _stableTrading = { value: json.data.tradingEnabled ?? false, count: _STABLE };
       } else {
-        // Revert select on failure
+        // Revert dropdown on failure
         const statusRes = await fetch('/api/trading/status');
         const statusJson = await statusRes.json();
         if (statusJson.success && modeSelect) {
@@ -96,8 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         alert(json.error || 'Mode switch failed');
       }
-    } catch (e) { console.error('Mode switch failed:', e); }
-    _modeSwitchInFlight = false;
+    } catch (e) {
+      console.error('Mode switch failed:', e);
+    }
   });
 
   // top right pill (removed — replaced by trading controls)
@@ -313,30 +294,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const statusData = statusJson.data;
       lastStatusCache = statusData;
 
-      // ── Stabilized UI sync ──────────────────────────────────
-      // Only apply server values after they are stable for _STABLE
-      // consecutive polls.  This filters out oscillation from multiple
-      // server instances, restarts, or transient inconsistencies.
-      const serverTrading = statusData.tradingEnabled ?? false;
-      if (serverTrading === _stableTrading.value) {
-        _stableTrading.count++;
-      } else {
-        _stableTrading = { value: serverTrading, count: 1 };
-      }
-      if (!_tradingToggleInFlight && _stableTrading.count >= _STABLE) {
-        updateTradingStatus(serverTrading);
-      }
-
-      const serverMode = (statusData.mode || 'PAPER').toLowerCase();
-      if (serverMode === _stableMode.value) {
-        _stableMode.count++;
-      } else {
-        _stableMode = { value: serverMode, count: 1 };
-      }
-      if (modeSelect && !_modeSwitchInFlight && _stableMode.count >= _STABLE) {
-        if (modeSelect.value !== serverMode) {
-          modeSelect.value = serverMode;
+      // ── First-poll-only sync ────────────────────────────────
+      // Sync mode + tradingEnabled from the server ONCE on page load.
+      // After that, these are only changed by user actions (buttons /
+      // dropdown).  The polling loop never overwrites them again.
+      if (!_initialSyncDone) {
+        updateTradingStatus(statusData.tradingEnabled ?? false);
+        if (modeSelect) {
+          const serverMode = (statusData.mode || 'PAPER').toLowerCase();
+          if (modeSelect.value !== serverMode) {
+            modeSelect.value = serverMode;
+          }
         }
+        _initialSyncDone = true;
       }
 
       const rt = statusData.runtime;
