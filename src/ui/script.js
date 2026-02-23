@@ -333,15 +333,29 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
       } else if (_lockedInstanceId === null) {
-        // First poll — lock to this instance
+        // First poll (or re-entering after seeking set lock to null).
+        // After initial sync, validate mode+trading match before locking.
+        if (_initialSyncDone) {
+          const localEnabled = tradingStatusEl?.textContent === 'ACTIVE';
+          const serverEnabled = statusData.tradingEnabled ?? false;
+          const localMode = (modeSelect?.value || 'paper').toUpperCase();
+          const serverMode = (statusData.mode || 'PAPER').toUpperCase();
+          if (localEnabled !== serverEnabled || localMode !== serverMode) {
+            return; // skip — wrong instance
+          }
+        }
         _lockedInstanceId = respInstanceId;
         _foreignInstanceCount = 0;
       } else if (respInstanceId && respInstanceId !== _lockedInstanceId) {
         _foreignInstanceCount++;
         if (_foreignInstanceCount >= _INSTANCE_SWITCH_THRESHOLD) {
-          console.warn(`[UI] Switching to new server instance ${respInstanceId} (old: ${_lockedInstanceId})`);
-          _lockedInstanceId = respInstanceId;
+          // Original instance is gone. Enter seeking mode so the next lock
+          // must pass mode + tradingEnabled validation (not blind switch).
+          console.warn(`[UI] Lost instance ${_lockedInstanceId}, entering seeking mode`);
+          _lockedInstanceId = null;
           _foreignInstanceCount = 0;
+          _seekingInstance = true;
+          return;
         } else {
           return;
         }
