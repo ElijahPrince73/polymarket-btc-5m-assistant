@@ -1,7 +1,14 @@
+import crypto from 'crypto';
 import { CONFIG } from '../config.js';
 import { initializeLedger, getLedger, recalculateSummary, getOpenTrade } from '../paper_trading/ledger.js';
 import { fetchCollateralBalance } from '../live_trading/clob.js';
 import { getLiveLedger } from '../live_trading/ledger.js';
+
+// Diagnostic: unique ID per process instance + boot timestamp.
+// If the UI sees different instanceIds across consecutive polls, there are
+// multiple instances or the app is crash-restarting.
+const _instanceId = crypto.randomBytes(4).toString('hex');
+const _bootedAtMs = Date.now();
 
 export async function assembleStatus() {
   await initializeLedger();
@@ -40,7 +47,7 @@ export async function assembleStatus() {
   const dailyPnl = engine?.state?.todayRealizedPnl ?? null;
 
   return {
-    status: { ok: true, updatedAt: new Date().toISOString() },
+    status: { ok: true, updatedAt: new Date().toISOString(), _instanceId, _uptimeS: Math.round((Date.now() - _bootedAtMs) / 1000) },
     mode: modeManager?.getMode()?.toUpperCase() ?? (CONFIG.liveTrading?.enabled ? 'LIVE' : 'PAPER'),
     tradingEnabled: engine?.tradingEnabled ?? false,
     openTrade,

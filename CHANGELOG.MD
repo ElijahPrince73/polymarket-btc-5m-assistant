@@ -2,6 +2,14 @@
 
 ## CHANGELOG
 
+### 2026-02-23
+
+#### Fix: Poll Stabilization for Mode / Trading Status Oscillation
+- **Root cause:** Frontend polling loop blindly mirrored whatever the server returned every 1.5s. If the server returned inconsistent values across consecutive polls (e.g., multiple instances, restarts, or transient fallback values), the UI visually oscillated between Paper/Live and ACTIVE/STOPPED.
+- **Fix:** Added poll stabilization — mode and tradingEnabled are only applied to the UI after the server returns the **same value for 2 consecutive polls**. User-initiated actions (button clicks, mode switch) still update immediately.
+- **Server diagnostics:** Added `_instanceId` and `_uptimeS` to `/api/status` response to detect multiple instances or crash-restart cycles.
+- **Cache-busting:** Static files now served with `no-cache, no-store, must-revalidate` headers to prevent stale JS/CSS after deployments.
+
 ### 2026-02-22
 
 #### Dashboard Redesign

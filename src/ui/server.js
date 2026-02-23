@@ -34,7 +34,7 @@ const uiPath = path.join(__dirname, '..', 'ui');
 if (!fs.existsSync(uiPath)) {
   fs.mkdirSync(uiPath);
 }
-app.use(express.static(uiPath));
+app.use(express.static(uiPath, { etag: false, lastModified: false, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
 
 // --- API Routes ---
 
