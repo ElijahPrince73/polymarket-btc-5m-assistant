@@ -11,6 +11,11 @@
 - **Benefit:** All three lock paths (seeking, first-poll, fallback) now validate mode+trading. Eliminates oscillation, "waiting for server sync…" stuck state, and cross-mode data leaks (e.g., LIVE "Position open: 95" showing in PAPER mode). Seeking timeout prevents deadlock.
 - **Implementation:** `_resetInstanceLock()` called after Start/Stop/Mode POSTs. Seeking mode checks both `tradingEnabled` and `mode` match before locking. Fallback switch enters seeking mode (not blind lock). First-poll validates after `_initialSyncDone`. `_seekingPollCount` increments each poll; at 20 (`_SEEKING_TIMEOUT_POLLS`), accepts current instance with console warning.
 
+#### Fix: Filter Stale "Trading disabled" Blocker in Entry Debug
+- **Root cause:** After seeking timeout accepts an instance that never received the Start POST, or when the locked instance restarts (losing its in-memory `tradingEnabled` state), the server's `entryDebug` contains "Trading disabled" even though the local trading pill correctly shows ACTIVE.
+- **Fix:** When rendering "Why no entry?", if the local pill says ACTIVE, filter out any blocker matching `/trading disabled/i`. If all blockers are filtered out, show ELIGIBLE instead. The trading pill (user-controlled, never overwritten by server after first sync) is the source of truth.
+- **Benefit:** "Why no entry?" now stays consistent with the trading pill across all multi-instance edge cases (seeking timeout, instance restart, load-balancer split).
+
 #### Fix: Definitive Oscillation Fix — First-Poll-Only Sync
 - **Root cause:** The polling loop overwrote mode and tradingEnabled from the server every 1.5s. If the server returned inconsistent values (multiple instances, restarts, fallback values), the UI oscillated. Previous guard-based and stabilization-based approaches were insufficient.
 - **Fix:** Mode and tradingEnabled are now synced from the server **only once on page load** (first poll). After that, these values are exclusively controlled by user actions (Start/Stop buttons, mode dropdown). The polling loop never touches them again. This eliminates oscillation regardless of server-side inconsistencies.

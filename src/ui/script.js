@@ -414,13 +414,26 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'N/A';
 
         const entryDbg = statusData.entryDebug || null;
-        const entryReason = entryDbg
-          ? (entryDbg.eligible
-            ? 'ELIGIBLE (will enter if Rec=ENTER + thresholds hit)'
-            : (Array.isArray(entryDbg.blockers) && entryDbg.blockers.length
-              ? entryDbg.blockers.join('; ')
-              : 'Not eligible'))
-          : 'N/A';
+        // If the local pill says ACTIVE, filter out the stale "Trading disabled"
+        // blocker that can arrive from a server instance that never received the
+        // Start command (seeking timeout, instance restart, load-balancer split).
+        const locallyActive = tradingStatusEl?.textContent === 'ACTIVE';
+        let entryReason;
+        if (!entryDbg) {
+          entryReason = 'N/A';
+        } else if (entryDbg.eligible) {
+          entryReason = 'ELIGIBLE (will enter if Rec=ENTER + thresholds hit)';
+        } else if (Array.isArray(entryDbg.blockers) && entryDbg.blockers.length) {
+          let blockers = entryDbg.blockers;
+          if (locallyActive) {
+            blockers = blockers.filter(b => !/trading disabled/i.test(b));
+          }
+          entryReason = blockers.length
+            ? blockers.join('; ')
+            : 'ELIGIBLE (will enter if Rec=ENTER + thresholds hit)';
+        } else {
+          entryReason = 'Not eligible';
+        }
 
         const rows = [
           ['Mode', `<strong>${mode}</strong> ${tradingStatusEl?.textContent === 'ACTIVE' ? '<span style="color:var(--good)">ACTIVE</span>' : '<span style="color:var(--bad)">STOPPED</span>'}`],
