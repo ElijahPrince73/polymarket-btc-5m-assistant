@@ -5,6 +5,34 @@ function toNumber(x) {
   return Number.isFinite(n) ? n : null;
 }
 
+// ── CLOB circuit breaker ──────────────────────────────────────────
+// After 3 consecutive CLOB failures, stop making requests for an
+// exponentially increasing backoff period (5s → 10s → 20s → … → 60s cap).
+const _cb = {
+  failures: 0,
+  threshold: 3,
+  openUntilMs: 0,
+  backoffMs: 5_000,
+  backoffCap: 60_000,
+};
+
+function _cbRecordSuccess() {
+  _cb.failures = 0;
+  _cb.backoffMs = 5_000;
+}
+
+function _cbRecordFailure() {
+  _cb.failures += 1;
+  if (_cb.failures >= _cb.threshold) {
+    _cb.openUntilMs = Date.now() + _cb.backoffMs;
+    _cb.backoffMs = Math.min(_cb.backoffMs * 2, _cb.backoffCap);
+  }
+}
+
+export function isClobCircuitOpen() {
+  return _cb.failures >= _cb.threshold && Date.now() < _cb.openUntilMs;
+}
+
 export async function fetchMarketBySlug(slug) {
   const url = new URL("/markets", CONFIG.gammaBaseUrl);
   url.searchParams.set("slug", slug);
@@ -142,27 +170,54 @@ export function filterBtcUpDown5mMarkets(markets, { seriesSlug, slugPrefix } = {
 }
 
 export async function fetchClobPrice({ tokenId, side }) {
+  if (isClobCircuitOpen()) return null;
+
   const url = new URL("/price", CONFIG.clobBaseUrl);
   url.searchParams.set("token_id", tokenId);
   url.searchParams.set("side", side);
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`CLOB price error: ${res.status} ${await res.text()}`);
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 5_000);
+  try {
+    const res = await fetch(url, { signal: ac.signal });
+    clearTimeout(timer);
+    if (!res.ok) {
+      _cbRecordFailure();
+      throw new Error(`CLOB price error: ${res.status} ${await res.text()}`);
+    }
+    const data = await res.json();
+    _cbRecordSuccess();
+    return toNumber(data.price);
+  } catch (e) {
+    clearTimeout(timer);
+    _cbRecordFailure();
+    throw e;
   }
-  const data = await res.json();
-  return toNumber(data.price);
 }
 
 export async function fetchOrderBook({ tokenId }) {
+  if (isClobCircuitOpen()) return { bids: [], asks: [] };
+
   const url = new URL("/book", CONFIG.clobBaseUrl);
   url.searchParams.set("token_id", tokenId);
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`CLOB book error: ${res.status} ${await res.text()}`);
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 5_000);
+  try {
+    const res = await fetch(url, { signal: ac.signal });
+    clearTimeout(timer);
+    if (!res.ok) {
+      _cbRecordFailure();
+      throw new Error(`CLOB book error: ${res.status} ${await res.text()}`);
+    }
+    const data = await res.json();
+    _cbRecordSuccess();
+    return data;
+  } catch (e) {
+    clearTimeout(timer);
+    _cbRecordFailure();
+    throw e;
   }
-  return await res.json();
 }
 
 // --- Market resolution helpers ---

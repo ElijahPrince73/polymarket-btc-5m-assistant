@@ -47,7 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { console.error('Stop trading failed:', e); }
   });
 
+  // Guard: while a user-initiated mode switch is in-flight, prevent the
+  // polling loop from overwriting the dropdown value (avoids visual oscillation).
+  let _modeSwitchInFlight = false;
+
   modeSelect?.addEventListener('change', async () => {
+    _modeSwitchInFlight = true;
     try {
       const res = await fetch('/api/mode', {
         method: 'POST',
@@ -67,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(json.error || 'Mode switch failed');
       }
     } catch (e) { console.error('Mode switch failed:', e); }
+    _modeSwitchInFlight = false;
   });
 
   // top right pill (removed — replaced by trading controls)
@@ -364,7 +370,16 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Main fetch loop
+  let _fetchInProgress = false;
   const fetchData = async () => {
+    // Prevent overlapping polls — if a previous fetch is still pending
+    // (e.g. CLOB timeout), skip this cycle to avoid racing UI updates.
+    if (_fetchInProgress) return;
+    _fetchInProgress = true;
+    try { await _fetchDataInner(); } finally { _fetchInProgress = false; }
+  };
+
+  const _fetchDataInner = async () => {
     ensureCharts();
 
     // ---- status ----
@@ -377,7 +392,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Update trading controls from status
       updateTradingStatus(statusData.tradingEnabled ?? false);
-      if (modeSelect) modeSelect.value = (statusData.mode || 'PAPER').toLowerCase();
+      // Only sync mode dropdown when no user-initiated switch is in-flight
+      // and the server mode actually differs — prevents visual oscillation.
+      if (modeSelect && !_modeSwitchInFlight) {
+        const serverMode = (statusData.mode || 'PAPER').toLowerCase();
+        if (modeSelect.value !== serverMode) {
+          modeSelect.value = serverMode;
+        }
+      }
 
       const rt = statusData.runtime;
       const mode = statusData.mode || 'PAPER';

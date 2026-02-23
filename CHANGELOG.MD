@@ -2,6 +2,31 @@
 
 ## CHANGELOG
 
+### 2026-02-22
+
+#### CLOB Circuit Breaker + Fetch Timeouts
+- **New: Module-level circuit breaker in `polymarket.js`** — after 3 consecutive CLOB failures, halts all CLOB requests for an exponentially increasing backoff period (5s → 10s → 20s → … → 60s cap). Resets on first success.
+- `fetchClobPrice()` returns `null` when circuit is open (callers already handle null gracefully).
+- `fetchOrderBook()` returns empty book `{ bids: [], asks: [] }` when circuit is open.
+- All CLOB fetches (`fetchClobPrice`, `fetchOrderBook`, `fetchOrderBookQuiet`) now use a 5s `AbortController` timeout to prevent stuck TLS connections from hanging the event loop.
+- Exported `isClobCircuitOpen()` for use by other modules.
+- `fetchOrderBookQuiet()` in `positions.js` checks the circuit breaker and has its own 5s abort timeout.
+
+#### LiveExecutor Memory Bounds + Circuit-Aware Polling
+- `getOpenPositions()` skips `client.getTrades()` when the CLOB circuit is open, using cached trades instead.
+- `_cachedTrades` capped at 500 entries (`.slice(-500)`) to prevent unbounded memory growth.
+- `_lastExitAttemptMsByToken` Map auto-prunes entries older than 10 minutes when the map size exceeds 50.
+
+#### Heap Safety Net
+- Start script now includes `--max-old-space-size=1024` to cap Node.js heap at 1 GB (vs. the default ~4 GB), preventing OOM crashes on long-running sessions.
+
+#### Bug Fix: Frontend Mode Oscillation
+- Fixed the UI incorrectly switching between Live and Paper mode on its own.
+- **Root cause**: the 1.5s polling loop unconditionally overwrote the mode dropdown every cycle; overlapping `fetchData()` calls (triggered when CLOB fetches hung past 1.5s) raced each other and produced conflicting updates.
+- **Fix 1**: Added `_modeSwitchInFlight` guard — the poll skips dropdown updates while a user-initiated mode switch POST is pending.
+- **Fix 2**: Mode dropdown is only updated when the server-reported mode actually differs from the current value.
+- **Fix 3**: Added `_fetchInProgress` concurrency guard — overlapping poll cycles are skipped entirely, preventing racing UI updates.
+
 ### 2026-02-20
 
 #### Dynamic Stop Loss

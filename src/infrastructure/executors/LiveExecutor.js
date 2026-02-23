@@ -13,7 +13,7 @@ import {
   computePositionsFromTrades,
   enrichPositionsWithMarks,
 } from '../../live_trading/positions.js';
-import { fetchClobPrice } from '../../data/polymarket.js';
+import { fetchClobPrice, isClobCircuitOpen } from '../../data/polymarket.js';
 import { CONFIG } from '../../config.js';
 import { FeeService } from '../fees/FeeService.js';
 import { ApprovalService } from '../approvals/ApprovalService.js';
@@ -342,13 +342,25 @@ export class LiveExecutor extends OrderExecutor {
     const interval = this._hadPositionLastLoop ? 1500 : 5000;
     const elapsed = now - this._lastTradesFetchAttemptMs;
 
-    if (elapsed >= interval) {
+    if (elapsed >= interval && !isClobCircuitOpen()) {
       this._lastTradesFetchAttemptMs = now;
       try {
-        this._cachedTrades = await this.client.getTrades();
+        const trades = await this.client.getTrades();
+        // Cap cached trades at 500 to bound memory
+        this._cachedTrades = Array.isArray(trades)
+          ? trades.slice(-500)
+          : [];
         this._lastTradesFetchSuccessMs = now;
       } catch {
         // use cached
+      }
+    }
+
+    // Auto-prune stale exit attempt timestamps (>10 min) when map is large
+    if (this._lastExitAttemptMsByToken.size > 50) {
+      const staleThreshold = now - 10 * 60_000;
+      for (const [tid, ts] of this._lastExitAttemptMsByToken) {
+        if (ts < staleThreshold) this._lastExitAttemptMsByToken.delete(tid);
       }
     }
 

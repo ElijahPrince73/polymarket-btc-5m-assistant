@@ -1,4 +1,4 @@
-import { fetchClobPrice } from '../data/polymarket.js';
+import { fetchClobPrice, isClobCircuitOpen } from '../data/polymarket.js';
 import { getClobClient } from './clob.js';
 import { CONFIG } from '../config.js';
 
@@ -13,15 +13,30 @@ function toNum(x) {
  * throwing, which we cannot suppress. Using raw fetch avoids that entirely.
  */
 async function fetchOrderBookQuiet(tokenID) {
-  const url = new URL('/book', CONFIG.clobBaseUrl);
-  url.searchParams.set('token_id', String(tokenID));
-  const res = await fetch(url);
-  if (!res.ok) {
-    const err = new Error(`CLOB book: ${res.status}`);
-    err.status = res.status;
+  if (isClobCircuitOpen()) {
+    const err = new Error('CLOB circuit open');
+    err.status = 503;
     throw err;
   }
-  return res.json();
+
+  const url = new URL('/book', CONFIG.clobBaseUrl);
+  url.searchParams.set('token_id', String(tokenID));
+
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 5_000);
+  try {
+    const res = await fetch(url, { signal: ac.signal });
+    clearTimeout(timer);
+    if (!res.ok) {
+      const err = new Error(`CLOB book: ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
+  }
 }
 
 /**
