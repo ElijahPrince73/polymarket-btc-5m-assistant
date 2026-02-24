@@ -488,8 +488,10 @@ document.addEventListener('DOMContentLoaded', () => {
         _foreignInstanceCount = 0;
       }
 
-      // If wrong instance, skip status rendering but continue to trades section
-      if (_skipStatusRender) throw new Error('__skip_status__');
+      // If wrong instance, skip this entire poll cycle (status + trades).
+      // Trades fetch would also hit the load balancer and may route to a
+      // different instance with empty/stale data, overwriting the cache.
+      if (_skipStatusRender) return;
 
       lastStatusCache = statusData;
 
@@ -860,17 +862,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     } catch (error) {
-      // __skip_status__ = instance locking skip — fall through to trades silently
-      if (error?.message !== '__skip_status__') {
-        // On transient fetch errors, preserve last good UI data instead of
-        // overwriting with error messages (prevents flash/flicker with load-balanced instances).
-        console.error('Error fetching status data:', error);
-        if (!lastStatusCache) {
-          const msg = (error && error.message) ? error.message : String(error);
-          statusMessage.textContent = `Error loading status data: ${msg}`;
-          openTradeDiv.textContent = `Error loading trade data: ${msg}`;
-          ledgerSummaryDiv.textContent = `Error loading summary data: ${msg}`;
-        }
+      // On transient fetch errors, preserve last good UI data instead of
+      // overwriting with error messages (prevents flash/flicker with load-balanced instances).
+      console.error('Error fetching status data:', error);
+      if (!lastStatusCache) {
+        const msg = (error && error.message) ? error.message : String(error);
+        statusMessage.textContent = `Error loading status data: ${msg}`;
+        openTradeDiv.textContent = `Error loading trade data: ${msg}`;
+        ledgerSummaryDiv.textContent = `Error loading summary data: ${msg}`;
       }
     }
 
