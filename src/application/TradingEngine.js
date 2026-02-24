@@ -7,7 +7,7 @@
  * Trading is OFF by default; the user must click "Start Trading" in the UI.
  */
 
-import { computeEntryBlockers } from '../domain/entryGate.js';
+import { computeEntryBlockers, computeEntryGateEvaluation } from '../domain/entryGate.js';
 import { evaluateExits } from '../domain/exitEvaluator.js';
 import { computeTradeSize } from '../domain/sizing.js';
 import { TradingState } from './TradingState.js';
@@ -123,6 +123,16 @@ export class TradingEngine {
       if (exitResult.decision) {
         const reason = exitResult.decision.reason;
 
+        // Capture exit-time indicators for trade journal enrichment
+        const exitMetadata = {
+          btcSpotAtExit: signals?.spot?.price ?? null,
+          rsiAtExit: signals?.indicators?.rsiNow ?? null,
+          macdHistAtExit: signals?.indicators?.macd?.hist ?? null,
+          vwapSlopeAtExit: signals?.indicators?.vwapSlope ?? null,
+          modelUpAtExit: signals?.modelUp ?? null,
+          modelDownAtExit: signals?.modelDown ?? null,
+        };
+
         try {
           const closeResult = await this.executor.closePosition({
             tradeId: p.id,
@@ -130,6 +140,7 @@ export class TradingEngine {
             shares: p.shares,
             reason,
             tokenID: p.tokenID || null,
+            exitMetadata,
           });
 
           if (closeResult.closed) {
@@ -245,6 +256,14 @@ export class TradingEngine {
     const marketSlug = signals.market?.slug ?? 'unknown';
     const phase = signals.rec?.phase ?? 'MID';
 
+    // Compute entry gate evaluation for trade journal enrichment
+    const gateEvaluation = computeEntryGateEvaluation(
+      signals,
+      this.config,
+      this.state,
+      candleCount,
+    );
+
     try {
       const result = await this.executor.openPosition({
         side: effectiveSide,
@@ -254,11 +273,41 @@ export class TradingEngine {
         phase,
         sideInferred,
         metadata: {
-          modelUp: signals.modelUp,
-          modelDown: signals.modelDown,
-          edge: signals.rec?.edge,
-          rsi: signals.indicators?.rsiNow,
-          vwapSlope: signals.indicators?.vwapSlope,
+          // Existing fields (preserved)
+          modelUp: signals.modelUp ?? null,
+          modelDown: signals.modelDown ?? null,
+          edge: signals.rec?.edge ?? null,
+          rsi: signals.indicators?.rsiNow ?? null,
+          vwapSlope: signals.indicators?.vwapSlope ?? null,
+          // Full MACD snapshot
+          macdValueAtEntry: signals.indicators?.macd?.value ?? null,
+          macdHistAtEntry: signals.indicators?.macd?.hist ?? null,
+          macdSignalAtEntry: signals.indicators?.macd?.signal ?? null,
+          // Market quality at entry
+          spreadAtEntry: poly?.orderbook?.[effectiveSide.toLowerCase()]?.spread ?? null,
+          liquidityAtEntry: signals.market?.liquidityNum ?? null,
+          volumeNumAtEntry: signals.market?.volumeNum ?? null,
+          // Spot price
+          btcSpotAtEntry: signals.spot?.price ?? null,
+          spotImpulsePctAtEntry: signals.spot?.delta1mPct ?? null,
+          // Entry gate evaluation snapshot (compact)
+          entryGateSnapshot: {
+            totalChecks: gateEvaluation.totalChecks,
+            passedCount: gateEvaluation.passedCount,
+            failedCount: gateEvaluation.failedCount,
+            margins: gateEvaluation.margins,
+          },
+          // Additional context
+          timeLeftMinAtEntry: signals.timeLeftMin ?? null,
+          modelProbAtEntry: effectiveSide === 'UP' ? (signals.modelUp ?? null) : (signals.modelDown ?? null),
+          edgeAtEntry: signals.rec?.edge ?? null,
+          rsiAtEntry: signals.indicators?.rsiNow ?? null,
+          vwapDistAtEntry: signals.indicators?.vwapDist ?? null,
+          heikenColorAtEntry: signals.indicators?.heikenColor ?? null,
+          heikenCountAtEntry: signals.indicators?.heikenCount ?? null,
+          rangePct20AtEntry: signals.indicators?.rangePct20 ?? null,
+          recActionAtEntry: signals.rec?.action ?? null,
+          sideInferred,
         },
       });
 

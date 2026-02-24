@@ -305,6 +305,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const _fetchDataInner = async () => {
+    // Tab-aware polling: only fetch dashboard data when dashboard tab is active.
+    // Analytics/optimizer tabs handle their own data fetching on demand (RESEARCH.md Pitfall 7).
+    // Exception: first poll always runs (syncs mode/trading state per first-poll-only pattern).
+    const activeTab = window.__activeTab || 'dashboard';
+    if (activeTab !== 'dashboard' && _initialSyncDone) return;
+
     ensureCharts();
 
     // ---- status ----

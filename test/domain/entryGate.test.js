@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   computeEntryBlockers,
   computeEffectiveThresholds,
+  computeEntryGateEvaluation,
   getPacificTimeInfo,
 } from '../../src/domain/entryGate.js';
 
@@ -270,4 +271,83 @@ test('getPacificTimeInfo returns valid shape', () => {
   assert.equal(typeof info.wd, 'string');
   assert.equal(typeof info.hour, 'number');
   assert.ok(info.hour >= 0 && info.hour <= 23);
+});
+
+// ─── computeEntryGateEvaluation ─────────────────────────────────────
+
+test('computeEntryGateEvaluation returns blockers, margins, and counts', () => {
+  const result = computeEntryGateEvaluation(happySignals(), happyConfig(), happyState(), 20);
+  assert.ok(Array.isArray(result.blockers));
+  assert.equal(typeof result.effectiveSide, 'string');
+  assert.equal(typeof result.sideInferred, 'boolean');
+  assert.equal(typeof result.margins, 'object');
+  assert.ok(result.margins !== null);
+  assert.equal(typeof result.totalChecks, 'number');
+  assert.equal(typeof result.passedCount, 'number');
+  assert.equal(typeof result.failedCount, 'number');
+});
+
+test('computeEntryGateEvaluation margins contain numeric values for valid signals', () => {
+  const result = computeEntryGateEvaluation(happySignals(), happyConfig(), happyState(), 20);
+  // With happy path signals, all margins should be numeric
+  assert.equal(typeof result.margins.prob, 'number');
+  assert.equal(typeof result.margins.edge, 'number');
+  assert.equal(typeof result.margins.rsi, 'number');
+  assert.equal(typeof result.margins.spread, 'number');
+  assert.equal(typeof result.margins.liquidity, 'number');
+  assert.equal(typeof result.margins.impulse, 'number');
+  // All margins should be positive for the happy path (passing)
+  assert.ok(result.margins.prob > 0, `prob margin should be positive, got ${result.margins.prob}`);
+  assert.ok(result.margins.edge > 0, `edge margin should be positive, got ${result.margins.edge}`);
+  assert.ok(result.margins.liquidity > 0, `liquidity margin should be positive, got ${result.margins.liquidity}`);
+});
+
+test('computeEntryGateEvaluation margins are null when signal data is missing', () => {
+  const signals = happySignals({
+    indicators: {},
+    spot: {},
+    polyMarketSnapshot: {},
+    rec: { action: 'ENTER', side: 'UP', phase: 'MID', edge: undefined },
+    modelUp: undefined,
+    modelDown: undefined,
+  });
+  const result = computeEntryGateEvaluation(signals, happyConfig(), happyState(), 20);
+  assert.equal(result.margins.prob, null);
+  assert.equal(result.margins.edge, null);
+  assert.equal(result.margins.rsi, null);
+  assert.equal(result.margins.spread, null);
+  assert.equal(result.margins.impulse, null);
+});
+
+test('computeEntryGateEvaluation passedCount + failedCount equals totalChecks', () => {
+  // Happy path: all pass
+  const result1 = computeEntryGateEvaluation(happySignals(), happyConfig(), happyState(), 20);
+  assert.equal(result1.passedCount + result1.failedCount, result1.totalChecks);
+
+  // With blockers: some fail
+  const signals = happySignals({
+    indicators: { rsiNow: 55 }, // missing vwap, macd, heiken
+  });
+  const result2 = computeEntryGateEvaluation(signals, happyConfig(), happyState(), 20);
+  assert.equal(result2.passedCount + result2.failedCount, result2.totalChecks);
+  assert.ok(result2.failedCount > 0);
+});
+
+test('computeEntryGateEvaluation RSI margin is 0 when inside no-trade band', () => {
+  const signals = happySignals({
+    indicators: {
+      rsiNow: 35, // inside [30, 45) no-trade band
+      vwapNow: 100000,
+      vwapSlope: 0.1,
+      macd: { hist: 0.5 },
+      heikenColor: 'green',
+      heikenCount: 3,
+      rangePct20: 0.005,
+      volumeRecent: 100,
+      volumeAvg: 80,
+    },
+  });
+  const config = happyConfig({ noTradeRsiMin: 30, noTradeRsiMax: 45 });
+  const result = computeEntryGateEvaluation(signals, config, happyState(), 20);
+  assert.equal(result.margins.rsi, 0);
 });

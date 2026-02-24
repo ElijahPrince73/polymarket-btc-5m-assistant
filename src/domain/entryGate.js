@@ -409,3 +409,101 @@ export function computeEntryBlockers(signals, config, state, candleCount) {
 
   return { blockers, effectiveSide, sideInferred };
 }
+
+/**
+ * Compute entry gate evaluation with margin data for analytics.
+ * Wraps computeEntryBlockers() and adds threshold margin information.
+ *
+ * @param {Object} signals       - The unified signals bundle
+ * @param {Object} config        - The merged trading config
+ * @param {Object} state         - TradingState instance (or plain object)
+ * @param {number} candleCount   - Number of 1m candles available
+ * @returns {{ blockers: string[], effectiveSide: TradeSide|null, sideInferred: boolean, margins: Object, totalChecks: number, passedCount: number, failedCount: number }}
+ */
+export function computeEntryGateEvaluation(signals, config, state, candleCount) {
+  const { blockers, effectiveSide, sideInferred } = computeEntryBlockers(signals, config, state, candleCount);
+
+  // Compute margins for key configurable thresholds
+  const margins = {};
+
+  // Prob margin: distance from minProbMid threshold
+  const rec = signals?.rec;
+  const phase = rec?.phase ?? 'MID';
+  const modelProb = effectiveSide === 'UP' ? signals?.modelUp
+    : effectiveSide === 'DOWN' ? signals?.modelDown
+      : null;
+
+  if (isNum(modelProb)) {
+    const minProb = phase === 'EARLY' ? (config.minProbEarly ?? 0.52)
+      : phase === 'LATE' ? (config.minProbLate ?? 0.55)
+        : (config.minProbMid ?? 0.53);
+    margins.prob = modelProb - minProb;
+  } else {
+    margins.prob = null;
+  }
+
+  // Edge margin: distance from edgeMid threshold
+  const edge = rec?.edge ?? null;
+  if (isNum(edge)) {
+    const edgeThreshold = phase === 'EARLY' ? (config.edgeEarly ?? 0.02)
+      : phase === 'LATE' ? (config.edgeLate ?? 0.05)
+        : (config.edgeMid ?? 0.03);
+    margins.edge = edge - edgeThreshold;
+  } else {
+    margins.edge = null;
+  }
+
+  // RSI margin: distance from no-trade RSI band
+  const rsiNow = signals?.indicators?.rsiNow ?? null;
+  const noTradeRsiMin = config.noTradeRsiMin;
+  const noTradeRsiMax = config.noTradeRsiMax;
+  if (isNum(rsiNow) && isNum(noTradeRsiMin) && isNum(noTradeRsiMax)) {
+    if (rsiNow < noTradeRsiMin) {
+      margins.rsi = noTradeRsiMin - rsiNow; // positive = safely below band
+    } else if (rsiNow >= noTradeRsiMax) {
+      margins.rsi = rsiNow - noTradeRsiMax; // positive = safely above band
+    } else {
+      margins.rsi = 0; // inside no-trade band (failed)
+    }
+  } else {
+    margins.rsi = null;
+  }
+
+  // Spread margin: distance from maxSpreadThreshold (positive = below max, good)
+  const poly = signals?.polyMarketSnapshot;
+  const spreadUp = poly?.orderbook?.up?.spread;
+  const spreadDown = poly?.orderbook?.down?.spread;
+  const effectiveMaxSpread = config.maxSpread ?? 0.012;
+  const worstSpread = [spreadUp, spreadDown].filter(isNum).length > 0
+    ? Math.max(...[spreadUp, spreadDown].filter(isNum))
+    : null;
+  if (isNum(worstSpread)) {
+    margins.spread = effectiveMaxSpread - worstSpread; // positive = below max
+  } else {
+    margins.spread = null;
+  }
+
+  // Liquidity margin: distance from minLiquidity (positive = above min, good)
+  const liquidityNum = signals?.market?.liquidityNum ?? null;
+  const effectiveMinLiquidity = config.minLiquidity ?? 0;
+  if (isNum(liquidityNum)) {
+    margins.liquidity = liquidityNum - effectiveMinLiquidity;
+  } else {
+    margins.liquidity = null;
+  }
+
+  // Impulse margin: distance from minSpotImpulse (positive = above min, good)
+  const minImpulse = config.minBtcImpulsePct1m ?? 0;
+  const spotDelta1mPct = signals?.spot?.delta1mPct ?? null;
+  if (isNum(spotDelta1mPct) && isNum(minImpulse) && minImpulse > 0) {
+    margins.impulse = Math.abs(spotDelta1mPct) - minImpulse;
+  } else {
+    margins.impulse = null;
+  }
+
+  const totalChecks = 25;
+  const failedCount = blockers.length;
+  const passedCount = totalChecks - failedCount;
+
+  return { blockers, effectiveSide, sideInferred, margins, totalChecks, passedCount, failedCount };
+}

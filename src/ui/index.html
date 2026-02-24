@@ -13,7 +13,7 @@
       <div class="header">
         <div>
           <h1>Polymarket BTC 5m Assistant</h1>
-          <div class="sub">Unified trading engine • Paper &amp; Live</div>
+          <div class="sub">Unified trading engine - Paper &amp; Live</div>
         </div>
         <div class="trading-controls">
           <select id="mode-select" class="mode-select">
@@ -26,114 +26,205 @@
         </div>
       </div>
 
-      <!-- ── Two-Column Dashboard Grid ── -->
-      <div class="dashboard-grid">
-        <!-- Left Column: What's happening now -->
-        <div class="col-left">
-          <div class="card">
-            <div class="card-title">Status</div>
-            <div id="status-message">Loading...</div>
-          </div>
+      <!-- ── Tab Navigation ── -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="analytics">Analytics</button>
+        <button class="tab-btn" data-tab="optimizer">Optimizer</button>
+      </div>
 
-          <div class="card">
-            <div class="card-title">Open Trade</div>
-            <div id="open-trade">No open trade.</div>
-          </div>
+      <!-- ── Tab: Dashboard ── -->
+      <div class="tab-content" id="tab-dashboard">
+        <div class="dashboard-grid">
+          <!-- Left Column: What's happening now -->
+          <div class="col-left">
+            <div class="card">
+              <div class="card-title">Status</div>
+              <div id="status-message">Loading...</div>
+            </div>
 
-          <div class="card">
-            <div class="card-title">
-              <div class="row-between">
-                <span>Trades</span>
-                <div class="filters">
-                  <label>
-                    Show
-                    <select id="trades-limit">
-                      <option value="25">25</option>
-                      <option value="50" selected>50</option>
-                      <option value="100">100</option>
-                      <option value="200">200</option>
-                    </select>
-                  </label>
-                  <label>
-                    Reason
-                    <select id="trades-reason">
-                      <option value="">All</option>
-                    </select>
-                  </label>
-                  <label>
-                    Side
-                    <select id="trades-side">
-                      <option value="">All</option>
-                      <option value="UP">UP</option>
-                      <option value="DOWN">DOWN</option>
-                    </select>
-                  </label>
-                  <label>
-                    <input type="checkbox" id="trades-only-losses" /> losses only
-                  </label>
+            <div class="card">
+              <div class="card-title">Open Trade</div>
+              <div id="open-trade">No open trade.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <div class="row-between">
+                  <span>Trades</span>
+                  <div class="filters">
+                    <label>
+                      Show
+                      <select id="trades-limit">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                      </select>
+                    </label>
+                    <label>
+                      Reason
+                      <select id="trades-reason">
+                        <option value="">All</option>
+                      </select>
+                    </label>
+                    <label>
+                      Side
+                      <select id="trades-side">
+                        <option value="">All</option>
+                        <option value="UP">UP</option>
+                        <option value="DOWN">DOWN</option>
+                      </select>
+                    </label>
+                    <label>
+                      <input type="checkbox" id="trades-only-losses" /> losses only
+                    </label>
+                  </div>
                 </div>
               </div>
+              <table id="recent-trades-table">
+                <thead>
+                  <tr>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Side</th>
+                    <th>Entry Price</th>
+                    <th>Exit Price</th>
+                    <th>PnL</th>
+                    <th>Status</th>
+                    <th>Exit Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-trades-body">
+                  <tr>
+                    <td colspan="8">Loading recent trades...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <table id="recent-trades-table">
-              <thead>
-                <tr>
-                  <th>Entry Time</th>
-                  <th>Exit Time</th>
-                  <th>Side</th>
-                  <th>Entry Price</th>
-                  <th>Exit Price</th>
-                  <th>PnL</th>
-                  <th>Status</th>
-                  <th>Exit Reason</th>
-                </tr>
-              </thead>
-              <tbody id="recent-trades-body">
-                <tr>
-                  <td colspan="8">Loading recent trades...</td>
-                </tr>
-              </tbody>
-            </table>
+          </div>
+
+          <!-- Right Column: How am I doing -->
+          <div class="col-right">
+            <div class="kpi-grid">
+              <div class="kpi">
+                <div class="kpi-label">Balance</div>
+                <div class="kpi-value" id="kpi-balance">--</div>
+                <div class="kpi-sub" id="kpi-realized">Realized: --</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-label">PnL (Today)</div>
+                <div class="kpi-value" id="kpi-pnl-today">--</div>
+                <div class="kpi-sub" id="kpi-trades-today">Trades: --</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-label">PnL (Yesterday)</div>
+                <div class="kpi-value" id="kpi-pnl-yesterday">--</div>
+                <div class="kpi-sub" id="kpi-trades-yesterday">Trades: --</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-label">Win Rate</div>
+                <div class="kpi-value" id="kpi-winrate">--</div>
+                <div class="kpi-sub" id="kpi-profit-factor">PF: --</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Ledger Summary</div>
+              <div id="ledger-summary">Loading summary...</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Equity Curve</div>
+              <canvas id="chart-equity" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Analytics ── -->
+      <div class="tab-content hidden" id="tab-analytics">
+        <!-- Period Performance Tables -->
+        <div class="card">
+          <div class="card-title">Period Performance</div>
+          <div class="period-tabs">
+            <button class="period-tab-btn active" data-period="day">By Day</button>
+            <button class="period-tab-btn" data-period="week">By Week</button>
+            <button class="period-tab-btn" data-period="session">By Session</button>
+          </div>
+          <div id="period-table-container">
+            <p class="muted-text">Loading analytics...</p>
           </div>
         </div>
 
-        <!-- Right Column: How am I doing -->
-        <div class="col-right">
-          <div class="kpi-grid">
-            <div class="kpi">
-              <div class="kpi-label">Balance</div>
-              <div class="kpi-value" id="kpi-balance">—</div>
-              <div class="kpi-sub" id="kpi-realized">Realized: —</div>
+        <!-- Advanced Metrics Card -->
+        <div class="card">
+          <div class="card-title">Advanced Metrics</div>
+          <div id="metrics-card" class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label">Sharpe Ratio</span>
+              <span class="metric-value" id="metric-sharpe">--</span>
             </div>
-            <div class="kpi">
-              <div class="kpi-label">PnL (Today)</div>
-              <div class="kpi-value" id="kpi-pnl-today">—</div>
-              <div class="kpi-sub" id="kpi-trades-today">Trades: —</div>
+            <div class="metric-item">
+              <span class="metric-label">Sortino Ratio</span>
+              <span class="metric-value" id="metric-sortino">--</span>
             </div>
-            <div class="kpi">
-              <div class="kpi-label">PnL (Yesterday)</div>
-              <div class="kpi-value" id="kpi-pnl-yesterday">—</div>
-              <div class="kpi-sub" id="kpi-trades-yesterday">Trades: —</div>
+            <div class="metric-item">
+              <span class="metric-label">Max Drawdown ($)</span>
+              <span class="metric-value" id="metric-dd-usd">--</span>
             </div>
-            <div class="kpi">
-              <div class="kpi-label">Win Rate</div>
-              <div class="kpi-value" id="kpi-winrate">—</div>
-              <div class="kpi-sub" id="kpi-profit-factor">PF: —</div>
+            <div class="metric-item">
+              <span class="metric-label">Max Drawdown (%)</span>
+              <span class="metric-value" id="metric-dd-pct">--</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Confidence</span>
+              <span id="metric-confidence" class="confidence-badge badge-low">LOW</span>
             </div>
           </div>
+        </div>
 
-          <div class="card">
-            <div class="card-title">Ledger Summary</div>
-            <div id="ledger-summary">Loading summary...</div>
+        <!-- Drawdown Chart -->
+        <div class="card">
+          <div class="card-title">Drawdown Chart</div>
+          <canvas id="chart-drawdown" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- ── Tab: Optimizer ── -->
+      <div class="tab-content hidden" id="tab-optimizer">
+        <!-- Current Config -->
+        <div class="card">
+          <div class="card-title">Current Config</div>
+          <div id="current-config-display" class="config-display">
+            <p class="muted-text">Loading current config...</p>
           </div>
+        </div>
 
-          <div class="card">
-            <div class="card-title">Equity Curve</div>
-            <canvas id="chart-equity" height="200"></canvas>
+        <!-- Parameter Configuration Form -->
+        <div class="card">
+          <div class="card-title">Parameter Ranges</div>
+          <div id="optimizer-form" class="optimizer-form">
+            <!-- Dynamically populated -->
+          </div>
+          <div class="optimizer-actions">
+            <button id="run-optimizer" class="action-button action-button--start">Run Optimizer</button>
+            <button id="revert-config" class="action-button action-button--stop" style="display:none">Revert Config</button>
+            <span id="optimizer-status" class="muted-text"></span>
+          </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card">
+          <div class="card-title">Optimizer Results</div>
+          <div id="optimizer-results">
+            <p class="muted-text">Run the optimizer to see results.</p>
           </div>
         </div>
       </div>
     </div>
 
     <script src="script.js"></script>
+    <script src="analytics.js"></script>
   </body>
 </html>

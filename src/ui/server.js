@@ -9,6 +9,8 @@ import { initializeLiveLedger } from '../live_trading/ledger.js';
 import { readLiquiditySamples, computeLiquidityStats } from '../analytics/liquiditySampler.js';
 
 import { computeAnalytics } from '../services/analyticsService.js';
+import { runBacktest } from '../services/backtestService.js';
+import { gridSearch, generateParamRanges, DEFAULT_PARAM_RANGES } from '../domain/optimizer.js';
 import { assembleStatus } from '../services/statusService.js';
 import { fetchLiveTrades, fetchLiveOpenOrders, fetchLivePositions, fetchLiveAnalytics } from '../services/liveService.js';
 import { TradingState } from '../application/TradingState.js';
@@ -77,6 +79,46 @@ app.get('/api/analytics', async (req, res) => {
   } catch (error) {
     console.error('Error fetching analytics:', error.message);
     res.status(500).json(fail('Failed to fetch analytics data.'));
+  }
+});
+
+// ─── Backtest endpoint ───────────────────────────────────────────
+const BACKTEST_ALLOWED_KEYS = new Set([
+  'minProbMid', 'edgeMid', 'noTradeRsiMin', 'noTradeRsiMax',
+  'maxSpreadThreshold', 'minLiquidity', 'minSpotImpulse', 'maxEntryPolyPrice',
+]);
+
+app.post('/api/backtest', async (req, res) => {
+  try {
+    const params = req.body?.params;
+
+    // Empty or missing params is valid: runs backtest with base config
+    if (params !== undefined && params !== null && (typeof params !== 'object' || Array.isArray(params))) {
+      return res.status(400).json(fail('params must be a plain object'));
+    }
+
+    // Whitelist and validate override keys
+    const validatedParams = {};
+    if (params && typeof params === 'object') {
+      for (const [key, value] of Object.entries(params)) {
+        if (!BACKTEST_ALLOWED_KEYS.has(key)) continue; // silently ignore non-whitelisted keys
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+          return res.status(400).json(fail(`Invalid value for ${key}: must be a finite number`));
+        }
+        validatedParams[key] = value;
+      }
+    }
+
+    const result = await runBacktest(validatedParams);
+
+    if (result?.error) {
+      return res.status(500).json(fail(result.message || 'Backtest failed'));
+    }
+
+    res.json(ok(result));
+  } catch (error) {
+    console.error('Error running backtest:', error.message);
+    res.status(500).json(fail('Failed to run backtest.'));
   }
 });
 
@@ -322,6 +364,167 @@ app.get('/api/diagnostics', (req, res) => {
   } catch (error) {
     console.error('Error fetching diagnostics:', error.message);
     res.status(500).json(fail('Failed to fetch diagnostics.'));
+  }
+});
+
+// ─── Optimizer endpoint ─────────────────────────────────────────
+
+const OPTIMIZER_ALLOWED_KEYS = new Set([
+  'minProbMid', 'edgeMid', 'noTradeRsiMin', 'noTradeRsiMax',
+  'maxSpreadThreshold', 'minLiquidity', 'minSpotImpulse', 'maxEntryPolyPrice',
+]);
+
+app.post('/api/optimizer', async (req, res) => {
+  try {
+    const { paramRanges: userParamRanges, minTrades } = req.body || {};
+
+    // Use user-provided ranges or defaults
+    const rangeConfig = (userParamRanges && typeof userParamRanges === 'object')
+      ? userParamRanges
+      : DEFAULT_PARAM_RANGES;
+
+    // Generate explicit value arrays from range config
+    const paramRanges = generateParamRanges(rangeConfig);
+
+    // Load trades from paper ledger
+    await initializeLedger();
+    const ledgerData = getLedger();
+    const trades = Array.isArray(ledgerData.trades) ? ledgerData.trades : [];
+
+    // Build base config
+    const paperConfig = CONFIG.paperTrading || {};
+    const baseConfig = {
+      minProbMid: paperConfig.minProbMid,
+      edgeMid: paperConfig.edgeMid,
+      noTradeRsiMin: paperConfig.noTradeRsiMin,
+      noTradeRsiMax: paperConfig.noTradeRsiMax,
+      maxSpreadThreshold: paperConfig.maxSpread,
+      minLiquidity: paperConfig.minLiquidity,
+      minSpotImpulse: paperConfig.minBtcImpulsePct1m,
+      maxEntryPolyPrice: paperConfig.maxEntryPolyPrice,
+    };
+
+    const minTradesPerCombo = (typeof minTrades === 'number' && Number.isFinite(minTrades) && minTrades > 0)
+      ? minTrades : 30;
+
+    const result = gridSearch(trades, baseConfig, paramRanges, minTradesPerCombo);
+
+    // Include current config for comparison
+    const currentConfig = { ...baseConfig };
+
+    res.json(ok({ ...result, currentConfig }));
+  } catch (error) {
+    const msg = error?.message || String(error);
+    if (msg.includes('10,000')) {
+      return res.status(400).json(fail(msg));
+    }
+    console.error('Error running optimizer:', msg);
+    res.status(500).json(fail('Failed to run optimizer.'));
+  }
+});
+
+// ─── Config apply/revert endpoints ──────────────────────────────
+
+app.post('/api/config', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    if (!engine) return res.status(503).json(fail('Engine not initialized'));
+
+    const params = req.body?.params;
+    if (!params || typeof params !== 'object' || Array.isArray(params)) {
+      return res.status(400).json(fail('params must be a plain object'));
+    }
+
+    // Whitelist allowed keys
+    const validatedParams = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (!OPTIMIZER_ALLOWED_KEYS.has(key)) continue;
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return res.status(400).json(fail(`Invalid value for ${key}: must be a finite number`));
+      }
+      validatedParams[key] = value;
+    }
+
+    if (Object.keys(validatedParams).length === 0) {
+      return res.status(400).json(fail('No valid parameters to apply'));
+    }
+
+    // Store previous config for revert
+    const previousConfig = {};
+    for (const key of OPTIMIZER_ALLOWED_KEYS) {
+      if (engine.config && key in engine.config) {
+        previousConfig[key] = engine.config[key];
+      }
+    }
+    globalThis.__previousConfig = previousConfig;
+
+    // Apply to engine config
+    Object.assign(engine.config, validatedParams);
+
+    // Safety: warn if live mode is active
+    const isLive = engine.executor?.getMode?.() === 'live';
+    const response = {
+      applied: validatedParams,
+      revertAvailable: true,
+    };
+    if (isLive) {
+      response.warning = 'Live mode active -- parameters affect real trading';
+    }
+
+    res.json(ok(response));
+  } catch (error) {
+    console.error('Error applying config:', error.message);
+    res.status(500).json(fail('Failed to apply config.'));
+  }
+});
+
+app.post('/api/config/revert', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    if (!engine) return res.status(503).json(fail('Engine not initialized'));
+
+    const previousConfig = globalThis.__previousConfig;
+    if (!previousConfig || typeof previousConfig !== 'object' || Object.keys(previousConfig).length === 0) {
+      return res.status(400).json(fail('No previous config available to revert'));
+    }
+
+    Object.assign(engine.config, previousConfig);
+    globalThis.__previousConfig = null;
+
+    res.json(ok({ reverted: true }));
+  } catch (error) {
+    console.error('Error reverting config:', error.message);
+    res.status(500).json(fail('Failed to revert config.'));
+  }
+});
+
+app.get('/api/config/current', (req, res) => {
+  try {
+    const engine = globalThis.__tradingEngine;
+    const config = engine?.config || CONFIG.paperTrading || {};
+
+    const currentConfig = {};
+    for (const key of OPTIMIZER_ALLOWED_KEYS) {
+      if (key in config) {
+        currentConfig[key] = config[key];
+      }
+    }
+
+    // Also map alternative key names used in the config
+    if (!('maxSpreadThreshold' in currentConfig) && 'maxSpread' in config) {
+      currentConfig.maxSpreadThreshold = config.maxSpread;
+    }
+    if (!('minSpotImpulse' in currentConfig) && 'minBtcImpulsePct1m' in config) {
+      currentConfig.minSpotImpulse = config.minBtcImpulsePct1m;
+    }
+
+    res.json(ok({
+      currentConfig,
+      revertAvailable: !!(globalThis.__previousConfig && Object.keys(globalThis.__previousConfig).length > 0),
+    }));
+  } catch (error) {
+    console.error('Error fetching current config:', error.message);
+    res.status(500).json(fail('Failed to fetch current config.'));
   }
 });
 

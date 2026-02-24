@@ -162,7 +162,7 @@ export class PaperExecutor extends OrderExecutor {
    * @returns {Promise<CloseResult>}
    */
   async closePosition(request) {
-    const { tradeId, side, shares, reason, tokenID } = request;
+    const { tradeId, side, shares, reason, tokenID, exitMetadata } = request;
     const trade = this.openTrade;
 
     if (!trade) {
@@ -221,12 +221,17 @@ export class PaperExecutor extends OrderExecutor {
       finalReason = `Max Loss ($${maxLossAbs.toFixed(2)})`;
     }
 
-    // Update trade in ledger
+    // Update trade in ledger (spread exit metadata for trade journal enrichment)
     trade.exitPrice = cappedExitPrice;
     trade.exitTime = new Date().toISOString();
     trade.pnl = Number(pnl.toFixed(2));
     trade.status = 'CLOSED';
     trade.exitReason = finalReason;
+
+    // Spread exit-time indicator snapshots onto the trade
+    if (exitMetadata && typeof exitMetadata === 'object') {
+      Object.assign(trade, exitMetadata);
+    }
 
     await updateTrade(trade.id, trade);
     this.openTrade = null;
