@@ -4,17 +4,18 @@ import { sleep } from '../utils.js';
 
 const MEMORY_DIR = './memory'; // Assuming memory directory is accessible or relevant
 
-// Ledger path can be overridden for A/B tests or multiple instances.
-// Example: LEDGER_PATH=./paper_trading/trades.breakout.json
-const TRADES_FILE = process.env.LEDGER_PATH || './paper_trading/trades.json';
+// Ledger path: use DATA_DIR (persistent volume on DO) if set,
+// otherwise fall back to local ./paper_trading/ for development.
+const DATA_DIR = process.env.DATA_DIR || null;
+const TRADES_FILE = process.env.LEDGER_PATH
+  || (DATA_DIR ? path.join(DATA_DIR, 'paper_ledger.json') : './paper_trading/trades.json');
 
 // Ensure directories exist
 function ensureDirs() {
-  if (!fs.existsSync('./paper_trading')) {
-    fs.mkdirSync('./paper_trading');
+  const dir = path.dirname(TRADES_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
-  // If MEMORY_DIR is intended for this, adjust path accordingly.
-  // For simplicity, placing trades.json in paper_trading folder.
 }
 
 // Load trades and summary from JSON file
