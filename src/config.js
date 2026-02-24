@@ -245,17 +245,15 @@ export const CONFIG = {
     minVolumeRatio: Number(process.env.MIN_VOLUME_RATIO) || 0,
 
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
-    // Example: 0.002 = 0.2¢
-    // Avoid "dust" Polymarket prices where spread/tick noise dominates.
-    // 0.005 = 0.5¢
-    // 5m markets often have tiny prices; allow smaller but avoid true dust.
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.002,
-    maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.98,
-    // Profitability filter: avoid paying up in 5m (most losses came from >=0.5¢ entries)
-    // Entry price cap (dollars). 0.0055 = 0.55¢
-    maxEntryPolyPrice: Number(process.env.MAX_ENTRY_POLY_PRICE) || 0.0055,
+    // Polymarket prices are decimal (0–1): 0.56 = 56¢.
+    // Avoid dust prices where spread/tick noise dominates.
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.05,
+    maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.95,
+    // Profitability filter: cap entry price to avoid overpaying.
+    // For 5m BTC markets, prices hover around 0.45–0.55 (45–55¢).
+    maxEntryPolyPrice: Number(process.env.MAX_ENTRY_POLY_PRICE) || 0.65,
     // Avoid extremely skewed markets where one side is near-zero.
-    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.002,
+    minOppositePolyPrice: Number(process.env.MIN_OPPOSITE_POLY_PRICE) || 0.10,
 
     // Chop/volatility filter (BTC reference): block entries when recent movement is too small.
     // rangePct20 = (max(close,last20) - min(close,last20)) / lastClose
