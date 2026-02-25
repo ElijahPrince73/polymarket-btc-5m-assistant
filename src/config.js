@@ -145,6 +145,11 @@ export const CONFIG = {
     // Alias: DAILY_LOSS_LIMIT overrides LIVE_MAX_DAILY_LOSS_USD for unified behavior
     maxDailyLossUsd: Number(process.env.DAILY_LOSS_LIMIT || process.env.MAX_DAILY_LOSS_USD) || 50,
 
+    // Kill-switch for paper mode: disabled by default for testing flexibility.
+    // Set PAPER_KILL_SWITCH_ENABLED=true to re-enable.
+    paperKillSwitchEnabled:
+      (process.env.PAPER_KILL_SWITCH_ENABLED || 'false').toLowerCase() === 'true',
+
     // Kill-switch override buffer: 10% additional loss allowed after override
     killSwitchOverrideBufferPct: Number(process.env.KILL_SWITCH_OVERRIDE_BUFFER_PCT) || 0.10,
 

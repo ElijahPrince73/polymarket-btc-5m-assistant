@@ -265,9 +265,10 @@ async function startApp() {
   });
 
   const activeExecutor = modeManager.getActiveExecutor();
-  const activeConfig = modeManager.getMode() === 'live'
-    ? { ...CONFIG.paperTrading, ...CONFIG.liveTrading }
-    : { ...CONFIG.paperTrading };
+  const currentMode = modeManager.getMode();
+  const activeConfig = currentMode === 'live'
+    ? { ...CONFIG.paperTrading, ...CONFIG.liveTrading, _mode: 'live' }
+    : { ...CONFIG.paperTrading, _mode: 'paper' };
 
   const engine = new TradingEngine({
     executor: activeExecutor,

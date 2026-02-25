@@ -176,11 +176,13 @@ export function computeEntryBlockers(signals, config, state, candleCount) {
   }
 
   // ── 3b. Candle freshness ───────────────────────────────────────
+  // Use closeTime if available (more accurate), otherwise openTime + 60s buffer.
   const lastKline = signals.kline ?? null;
   if (lastKline) {
-    const klineTs = lastKline.t ?? lastKline.openTime ?? null;
-    if (isNum(klineTs) && (Date.now() - klineTs) > 120_000) {
-      blockers.push("Stale candle data (last candle >2m old)");
+    const klineTs = lastKline.closeTime ?? lastKline.t ?? lastKline.openTime ?? null;
+    const staleThresholdMs = 180_000; // 3 minutes — allows for candle duration + stream lag
+    if (isNum(klineTs) && (Date.now() - klineTs) > staleThresholdMs) {
+      blockers.push(`Stale candle data (last candle >${Math.round(staleThresholdMs / 60_000)}m old)`);
     }
   }
 
@@ -422,8 +424,10 @@ export function computeEntryBlockers(signals, config, state, candleCount) {
   }
 
   // ── 25. Daily loss kill-switch (Phase 3: uses domain killSwitch module) ────
+  // Skip kill-switch in paper mode when paperKillSwitchEnabled is false (default: off for testing)
+  const paperKillSwitchDisabled = (config.paperKillSwitchEnabled === false) && (config._mode === 'paper');
   const maxDailyLossUsd = config.maxDailyLossUsd ?? null;
-  if (isNum(maxDailyLossUsd) && maxDailyLossUsd > 0) {
+  if (!paperKillSwitchDisabled && isNum(maxDailyLossUsd) && maxDailyLossUsd > 0) {
     // Use checkKillSwitch from TradingState if available (Phase 3 integration)
     if (typeof state.checkKillSwitch === 'function') {
       const ksResult = state.checkKillSwitch(maxDailyLossUsd, {
