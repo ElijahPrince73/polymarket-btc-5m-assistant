@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { TradeStore } from '../../src/infrastructure/persistence/tradeStore.js';
+
+// Skip all tests if better-sqlite3 is not installed (replaced by Supabase in v1.1)
+let TradeStore;
+let SKIP = false;
+try {
+  const mod = await import('../../src/infrastructure/persistence/tradeStore.js');
+  TradeStore = mod.TradeStore;
+} catch {
+  SKIP = true;
+}
+
+if (SKIP) {
+  test('TradeStore: SKIPPED — better-sqlite3 not installed (replaced by Supabase)', { skip: true }, () => {});
+} else {
 
 // All tests use in-memory DB to avoid file system side effects
 
@@ -353,3 +366,5 @@ test('TradeStore: deleteAll clears all trades', () => {
   assert.strictEqual(store.getTradeCount(), 0);
   store.close();
 });
+
+} // end else (SKIP)

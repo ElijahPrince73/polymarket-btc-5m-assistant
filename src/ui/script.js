@@ -179,9 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // SQLite
+    // Supabase
     if (sbSqliteValue && m) {
-      const sqliteOk = m.persistence?.sqlite;
+      const sqliteOk = m.persistence?.supabase;
       sbSqliteValue.textContent = sqliteOk ? 'Connected' : 'Fallback (JSON)';
       sbSqliteValue.className = 'sb-value ' + (sqliteOk ? 'sb-ok' : 'sb-degraded');
 
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // If wrong instance, skip STATUS rendering but still fetch trades.
-      // Trades are read from persistent SQLite, so they're consistent
+      // Trades are read from persistent Supabase, so they're consistent
       // regardless of which server instance serves the request.
       if (_skipStatusRender) throw new Error('__skip_status__');
 

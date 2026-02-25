@@ -13,6 +13,7 @@
 | 3 | Live Trading Hardening | Production-ready CLOB execution and order lifecycle | LIVE-01..05 | Large |
 | 4 | Infrastructure & Monitoring | Alerting, recovery, persistence, deployment hardening | INFRA-05..08 | Medium |
 | 5 | Integration & Polish | End-to-end validation, docs, production deploy readiness | Cross-cutting | Small |
+| 6 | Supabase Persistence | Replace SQLite with hosted PostgreSQL for deploy-proof trade history | DB-01..05, CFG-01..02 | Small |
 
 ---
 
@@ -183,6 +184,40 @@ Plans:
 
 ---
 
+---
+
+## Phase 6: Supabase Persistence
+
+**Goal:** Replace ephemeral SQLite with Supabase (hosted PostgreSQL) so trade history survives DigitalOcean deploys permanently.
+
+**Requirements:**
+- DB-01: Every trade insert/update written to Supabase in real-time
+- DB-02: All trade reads routed through Supabase client
+- DB-03: Automatic migration of JSON ledger trades on first empty-table startup
+- DB-04: JSON ledger retained as offline/fallback when Supabase unavailable
+- DB-05: Supabase connection status logged on startup
+- CFG-01: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY documented in .env.example
+- CFG-02: package.json updated (add @supabase/supabase-js, remove better-sqlite3)
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md -- Supabase trade store + server.js integration + migration
+
+**Success Criteria:**
+1. Paper trade recorded during a session appears in Supabase `trades` table immediately after it closes
+2. After a simulated "deploy" (server restart with empty disk), all prior trades are still visible in the dashboard
+3. When `SUPABASE_URL` is unset, system starts normally using JSON ledger fallback with a clear warning log
+4. `npm test` passes with no regressions
+
+**Key Risks:**
+- Supabase async API requires updating all callers of `getAllTrades()`, `insertTrade()` etc. from sync to async
+- `better-sqlite3` removal may break preflight script or other references
+
+**Dependencies:** Phase 4 (tradeStore interface), Phase 5 (integration tests must pass after)
+
+---
+
 ## Phase Dependency Graph
 
 ```
@@ -198,4 +233,4 @@ Phase 5 depends on all prior phases.
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-02-23 after Phase 5 completion — all phases complete*
+*Last updated: 2026-02-24 — Phase 6 (Supabase Persistence) added for v1.1 milestone*

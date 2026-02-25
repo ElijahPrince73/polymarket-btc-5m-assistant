@@ -8,6 +8,16 @@ A high-frequency automated trading bot for Polymarket's 5-minute BTC Up/Down pre
 
 Profitable automated BTC contract trading with configurable risk controls that protect capital while maximizing opportunity capture across market conditions.
 
+## Current Milestone: v1.1 Supabase Persistence
+
+**Goal:** Replace ephemeral SQLite with Supabase (hosted PostgreSQL) so trade history survives DigitalOcean deploys permanently.
+
+**Target features:**
+- Supabase trade store replacing better-sqlite3
+- All trade reads/writes routed through Supabase client
+- JSON ledger retained as offline fallback
+- Migration of existing trades on first run
+
 ## Requirements
 
 ### Validated
@@ -91,6 +101,7 @@ Profitable automated BTC contract trading with configurable risk controls that p
 - **Memory**: 1GB heap cap (--max-old-space-size=1024)
 - **Latency**: 1s main loop, 1.5s UI poll interval -- cannot be slower
 - **Data**: Paper ledger is JSON file; not shared across instances
+- **Persistence Gap**: DigitalOcean Amsterdam does not support persistent volumes → SQLite wiped on every deploy → migrating to Supabase for hosted PostgreSQL
 
 ## Key Decisions
 
@@ -103,7 +114,9 @@ Profitable automated BTC contract trading with configurable risk controls that p
 | First-poll-only sync | Mode/trading only synced once, then user-controlled | Good |
 | 25 entry blockers (all must pass) | Conservative by design, protects capital | Revisit -- may be too strict |
 | JSON paper ledger | Simple persistence, no DB needed | Revisit -- not shared across instances |
+| SQLite (better-sqlite3) | Synchronous, fast, simple | ⚠️ Revisit — ephemeral on DO; migrating to Supabase |
+| Supabase for v1.1 | Hosted PostgreSQL, survives deploys, DO-compatible | — Pending |
 | Vanilla JS dashboard | No build step, simple deployment | Pending |
 
 ---
-*Last updated: 2026-02-23 after GSD project initialization*
+*Last updated: 2026-02-24 after v1.1 milestone started — Supabase persistence*

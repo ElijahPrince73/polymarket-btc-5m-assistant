@@ -4,7 +4,7 @@
  * Connects the pure-function backtester (domain layer) to I/O sources
  * (trade store / ledger data, config). Application layer -- no direct external API calls.
  *
- * Phase 4: Reads from SQLite trade store (primary) with JSON ledger fallback.
+ * Phase 6: Reads from Supabase trade store (primary) with JSON ledger fallback.
  */
 
 import { initializeLedger, getLedger } from '../paper_trading/ledger.js';
@@ -12,28 +12,21 @@ import { CONFIG } from '../config.js';
 import { replayTrades } from '../domain/backtester.js';
 
 /**
- * Load trades from SQLite trade store (primary) with JSON ledger fallback.
- * @returns {Object[]}
+ * Load trades from Supabase trade store (primary) with JSON ledger fallback.
+ * @returns {Promise<Object[]>}
  */
-function loadTrades() {
+async function loadTrades() {
   try {
-    const { getTradeStore } = require_tradeStore();
-    const store = getTradeStore();
-    return store.getAllTrades();
+    if (globalThis.__tradeStore_getTradeStore) {
+      const store = globalThis.__tradeStore_getTradeStore();
+      return await store.getAllTrades();
+    }
   } catch {
-    // Fallback to JSON ledger if SQLite unavailable
+    // Fallback to JSON ledger if Supabase unavailable
   }
 
   const ledger = getLedger();
   return Array.isArray(ledger.trades) ? ledger.trades : [];
-}
-
-/**
- * Lazy-import trade store to avoid crashing if better-sqlite3 not installed.
- */
-function require_tradeStore() {
-  // Dynamic import workaround for ESM
-  return { getTradeStore: globalThis.__tradeStore_getTradeStore };
 }
 
 /**
@@ -103,7 +96,7 @@ export async function runBacktest(overrideConfig) {
 
   let trades;
   try {
-    trades = loadTrades();
+    trades = await loadTrades();
   } catch (err) {
     return {
       error: true,

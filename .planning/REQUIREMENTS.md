@@ -36,6 +36,23 @@ Requirements for next development cycle. Each maps to roadmap phases.
 - [x] **INFRA-07**: Trade history persisted in structured format (SQLite or append-only log) beyond JSON ledger
 - [x] **INFRA-08**: Deployment supports zero-downtime updates with instance coordination
 
+## v1.1 Requirements
+
+Requirements for the Supabase persistence milestone. Replaces ephemeral SQLite with hosted PostgreSQL so trade history survives DigitalOcean deploys.
+
+### Database Persistence
+
+- [ ] **DB-01**: Every trade insert and update is written to Supabase `trades` table in real-time
+- [ ] **DB-02**: All trade read endpoints (`/api/trades`, `/api/paper/trades`, analytics, backtest) read from Supabase
+- [ ] **DB-03**: On first startup with an empty Supabase table, existing JSON ledger trades are migrated automatically
+- [ ] **DB-04**: When Supabase is unavailable (missing env vars or connection failure), system falls back to JSON ledger without crashing
+- [ ] **DB-05**: Supabase connection status is logged on startup (`[TradeStore] Supabase initialized` or fallback warning)
+
+### Configuration
+
+- [ ] **CFG-01**: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` documented in `.env.example` with setup instructions
+- [ ] **CFG-02**: `package.json` updated to add `@supabase/supabase-js` and remove `better-sqlite3`
+
 ## v2 Requirements
 
 Deferred to future milestone. Tracked but not in current roadmap.
@@ -92,6 +109,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Mapped to phases: 17
 - Unmapped: 0
 
+### v1.1 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DB-01 | Phase 6 | Pending |
+| DB-02 | Phase 6 | Pending |
+| DB-03 | Phase 6 | Pending |
+| DB-04 | Phase 6 | Pending |
+| DB-05 | Phase 6 | Pending |
+| CFG-01 | Phase 6 | Pending |
+| CFG-02 | Phase 6 | Pending |
+
+**v1.1 Coverage:**
+- v1.1 requirements: 7 total
+- Mapped to phases: 7
+- Unmapped: 0
+
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 after Phase 5 completion — all 17 v1 requirements complete*
+*Last updated: 2026-02-24 — v1.1 Supabase persistence requirements added*

@@ -1,0 +1,58 @@
+-- Supabase schema for polymarket-btc-5m-assistant
+-- Run this in the Supabase SQL editor: https://app.supabase.com → SQL Editor
+
+CREATE TABLE IF NOT EXISTS trades (
+  id TEXT PRIMARY KEY,
+  timestamp TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'OPEN',
+  side TEXT,
+  "entryPrice" REAL,
+  "exitPrice" REAL,
+  shares REAL,
+  "contractSize" REAL,
+  pnl REAL DEFAULT 0,
+  "entryTime" TEXT,
+  "exitTime" TEXT,
+  "exitReason" TEXT,
+  "entryPhase" TEXT,
+  "marketSlug" TEXT,
+  "sideInferred" BOOLEAN,
+  "modelProbAtEntry" REAL,
+  "edgeAtEntry" REAL,
+  "rsiAtEntry" REAL,
+  "vwapDistAtEntry" REAL,
+  "spreadAtEntry" REAL,
+  "liquidityAtEntry" REAL,
+  "volumeNumAtEntry" REAL,
+  "btcSpotAtEntry" REAL,
+  "spotImpulsePctAtEntry" REAL,
+  "heikenColorAtEntry" TEXT,
+  "heikenCountAtEntry" INTEGER,
+  "rangePct20AtEntry" REAL,
+  "recActionAtEntry" TEXT,
+  "macdValueAtEntry" REAL,
+  "macdHistAtEntry" REAL,
+  "macdSignalAtEntry" REAL,
+  "vwapSlopeAtEntry" REAL,
+  "modelUpAtEntry" REAL,
+  "modelDownAtEntry" REAL,
+  "timeLeftMinAtEntry" REAL,
+  "maxEntryPolyPriceAtEntry" REAL,
+  "btcSpotAtExit" REAL,
+  "rsiAtExit" REAL,
+  "macdHistAtExit" REAL,
+  "vwapSlopeAtExit" REAL,
+  "modelUpAtExit" REAL,
+  "modelDownAtExit" REAL,
+  "maxUnrealizedPnl" REAL,
+  "minUnrealizedPnl" REAL,
+  "entryGateSnapshot" TEXT,
+  mode TEXT DEFAULT 'paper',
+  "extraJson" TEXT,
+  "createdAt" TIMESTAMPTZ DEFAULT now(),
+  "updatedAt" TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status);
+CREATE INDEX IF NOT EXISTS idx_trades_timestamp ON trades(timestamp);
+CREATE INDEX IF NOT EXISTS idx_trades_mode ON trades(mode);

@@ -99,8 +99,8 @@ test('Crash Recovery E2E: state persistence and restoration', () => {
     const persisted = JSON.parse(fs.readFileSync(statePath, 'utf8'));
     assert.strictEqual(persisted.todayRealizedPnl, -25, 'PnL should be persisted');
     assert.strictEqual(persisted.consecutiveLosses, 3, 'Consecutive losses should be persisted');
-    assert.ok(persisted.killSwitchState, 'Kill-switch state should be persisted');
-    assert.strictEqual(persisted.killSwitchState.active, true, 'Kill-switch active flag should be persisted');
+    assert.ok(persisted.killSwitch, 'Kill-switch state should be persisted');
+    assert.strictEqual(persisted.killSwitch.active, true, 'Kill-switch active flag should be persisted');
   } finally {
     resetStateManager();
     cleanupDir(tmpDir);

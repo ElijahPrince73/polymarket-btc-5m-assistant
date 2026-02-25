@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@polymarket/clob-client": "^5.2.3",
-    "better-sqlite3": "^12.6.2",
+    "@supabase/supabase-js": "^2.50.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "ethers": "^5.8.0",

@@ -7,7 +7,7 @@
  *   1. All tests pass (runs `npm test`)
  *   2. Required environment variables are set
  *   3. Optional environment variables are checked with warnings
- *   4. SQLite database is accessible (if better-sqlite3 installed)
+ *   4. Supabase credentials are present (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
  *   5. Config values are sane (no obvious misconfigurations)
  *   6. Webhook URL is reachable (if configured)
  *
@@ -124,30 +124,21 @@ if (getEnv('LIVE_TRADING_ENABLED') === 'true') {
   }
 }
 
-// ── 3. SQLite Availability ────────────────────────────────────────
+// ── 3. Supabase Availability ─────────────────────────────────────
 
-console.log('\n3. Checking SQLite...\n');
+console.log('\n3. Checking Supabase...\n');
 
-try {
-  // Dynamic import to check if better-sqlite3 is available
-  await import('better-sqlite3');
-  pass('better-sqlite3 is installed');
+const supabaseUrl = getEnv('SUPABASE_URL');
+const supabaseKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
 
-  // Check if data directory exists/is writable
-  const dataDir = getEnv('DATA_DIR') || './data';
-  if (!fs.existsSync(dataDir)) {
-    try {
-      fs.mkdirSync(dataDir, { recursive: true });
-      pass(`Data directory created: ${dataDir}`);
-    } catch {
-      warn(`Cannot create data directory: ${dataDir}`);
-    }
-  } else {
-    pass(`Data directory exists: ${dataDir}`);
-  }
-} catch {
-  warn('better-sqlite3 is NOT installed — will use JSON ledger fallback');
-  info('Install with: npm install better-sqlite3');
+if (supabaseUrl && supabaseKey) {
+  pass('SUPABASE_URL is set');
+  pass('SUPABASE_SERVICE_ROLE_KEY is set');
+} else {
+  if (!supabaseUrl) warn('SUPABASE_URL is not set — trade history will not survive deploys');
+  if (!supabaseKey) warn('SUPABASE_SERVICE_ROLE_KEY is not set — trade history will not survive deploys');
+  info('Create a project at https://supabase.com and add credentials to .env');
+  info('Run the SQL schema from .planning/supabase-schema.sql in the Supabase SQL editor');
 }
 
 // ── 4. Config Sanity ──────────────────────────────────────────────

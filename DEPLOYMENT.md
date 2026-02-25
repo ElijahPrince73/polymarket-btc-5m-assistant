@@ -10,7 +10,7 @@ Operational runbook for deploying Polymarket BTC 5m Assistant to production.
 4. [DigitalOcean App Platform](#digitalocean-app-platform)
 5. [Health Checks & Monitoring](#health-checks--monitoring)
 6. [Webhook Configuration](#webhook-configuration)
-7. [SQLite Data Persistence](#sqlite-data-persistence)
+7. [Supabase Data Persistence](#supabase-data-persistence)
 8. [Graceful Shutdown & Zero-Downtime Deploys](#graceful-shutdown--zero-downtime-deploys)
 9. [Crash Recovery](#crash-recovery)
 10. [Troubleshooting](#troubleshooting)
@@ -21,13 +21,11 @@ Operational runbook for deploying Polymarket BTC 5m Assistant to production.
 
 - **Node.js 18+** (recommended: 20 LTS)
 - **npm** (bundled with Node.js)
-- **better-sqlite3** (optional but recommended for structured trade persistence)
+- **Supabase account** (free tier) — for persistent trade history that survives deploys
 - **PM2** or equivalent process manager (recommended for production)
 
 ```bash
 npm install
-# Optional: install native SQLite driver
-npm install better-sqlite3
 ```
 
 ## Environment Variables
@@ -151,14 +149,7 @@ services:
 
 2. **Health check**: The `/health` endpoint returns JSON with status, uptime, mode, and persistence info. Configure the load balancer to probe this path.
 
-3. **Volume mount**: For SQLite persistence across deploys, mount a volume at the `DATA_DIR` path:
-
-```yaml
-    volumes:
-      - name: bot-data
-        mount_path: /app/data
-        size: 1Gi
-```
+3. **Supabase persistence**: Trade history is stored in Supabase (hosted PostgreSQL) and survives deploys automatically. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — no volume mount needed.
 
 4. **Graceful shutdown**: DigitalOcean sends SIGTERM before stopping. The bot will:
    - Stop accepting new trades
@@ -177,7 +168,7 @@ services:
 |----------|--------|---------|
 | `/health` | GET | Load balancer probe (status, uptime, mode, memory, PID) |
 | `/api/status` | GET | Full engine state (signals, positions, entry debug) |
-| `/api/metrics` | GET | Operational metrics (uptime, memory, circuit breaker, SQLite status) |
+| `/api/metrics` | GET | Operational metrics (uptime, memory, circuit breaker, Supabase status) |
 | `/api/diagnostics` | GET | Entry blocker diagnostics with effective thresholds |
 | `/api/kill-switch/status` | GET | Daily PnL vs. limit, override state |
 
@@ -195,7 +186,7 @@ services:
     "tradingEnabled": true,
     "memoryMb": 85.5,
     "pid": 12345,
-    "persistence": { "sqlite": true }
+    "persistence": { "supabase": true }
   }
 }
 ```
@@ -204,7 +195,7 @@ services:
 
 - Alert on `/health` returning non-200 or uptime dropping to 0 (crash restart)
 - Monitor `memoryMb` for memory leaks (heap capped at 1 GB)
-- Watch `persistence.sqlite` — if false, trades are only in JSON ledger
+- Watch `persistence.supabase` — if false, trades are only in JSON ledger (won't survive deploys)
 - Check `lastTick` freshness — if stale by more than 30s, the main loop may be stuck
 
 ## Webhook Configuration
@@ -232,27 +223,30 @@ services:
 
 Alerts are fire-and-forget with 60-second deduplication per event type to prevent alert storms.
 
-## SQLite Data Persistence
+## Supabase Data Persistence
+
+Trade history is stored in Supabase (hosted PostgreSQL) so it survives DigitalOcean deploys, server restarts, and region moves.
 
 ### Setup
 
-```bash
-npm install better-sqlite3
-```
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Open **SQL Editor** and run the schema from `.planning/supabase-schema.sql`
+3. Go to **Project Settings → API** and copy:
+   - **Project URL** → set as `SUPABASE_URL`
+   - **service_role** key → set as `SUPABASE_SERVICE_ROLE_KEY`
+4. Add both to your `.env` and DigitalOcean App Spec environment variables
+
+### Behavior
 
 The bot automatically:
-1. Creates `data/trades.db` on first run
-2. Migrates existing JSON ledger trades to SQLite
-3. Uses SQLite for all reads (JSON becomes backup)
-4. Falls back to JSON if better-sqlite3 is not installed
-
-### Schema
-
-The SQLite database stores trades with 20+ enriched fields per trade, enabling SQL-based analytics queries. The `extraJson` column stores forward-compatible fields.
+1. Connects to Supabase on startup
+2. Migrates existing JSON ledger trades to Supabase (one-time, only if table is empty)
+3. Writes every new trade to Supabase in real-time
+4. Falls back to JSON ledger if `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` are not set
 
 ### Backup
 
-SQLite database file is at `DATA_DIR/trades.db` (default: `./data/trades.db`). Back up this file regularly. The JSON ledger at `data/paper_trading/ledger.json` serves as a secondary backup.
+The JSON ledger at `data/paper_trading/ledger.json` serves as a secondary backup for local development. Supabase provides built-in backups on paid plans.
 
 ## Graceful Shutdown & Zero-Downtime Deploys
 
@@ -265,7 +259,7 @@ When SIGTERM is received:
 3. Critical state persisted to `data/state.json`
 4. Trading lock released
 5. HTTP server closed
-6. SQLite connections closed
+6. Supabase client released (no-op — connection pool managed automatically)
 7. Process exits with code 0
 
 ### Trading Lock
@@ -326,12 +320,13 @@ On startup, the state manager checks for a stale PID lock file. If the PID in th
    - "Spread too wide" — Polymarket orderbook spread exceeds `MAX_SPREAD`
    - "Kill-switch active" — daily loss limit hit, override or wait for midnight reset
 
-### SQLite Not Working
+### Supabase Not Working
 
-1. Check if `better-sqlite3` is installed: `npm ls better-sqlite3`
-2. Check `/api/metrics` — `persistence.sqlite` should be `true`
-3. Dashboard shows "SQLite: Fallback (JSON)" banner if unavailable
-4. Reinstall: `npm install better-sqlite3`
+1. Check that `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set in your environment
+2. Check `/api/metrics` — `persistence.supabase` should be `true`
+3. Dashboard shows "Supabase: Fallback (JSON)" banner if unavailable
+4. Verify the SQL schema was run in Supabase SQL editor (`.planning/supabase-schema.sql`)
+5. Confirm the `trades` table exists: Supabase dashboard → Table Editor → `trades`
 
 ### Webhook Alerts Not Firing
 
