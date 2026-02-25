@@ -59,11 +59,15 @@ export async function startChainlinkPriceStream({
     };
   }
 
-  // Resolve the real aggregator from the proxy (aggregators rotate on upgrade)
-  const rpcUrl = CONFIG.chainlink.polygonRpcUrl
-    || wssUrls[0]?.replace('wss://', 'https://').replace('/ws/', '/')
-    || 'https://polygon-rpc.com';
+  // Resolve the real aggregator from the proxy (aggregators rotate on upgrade).
+  // Prefer deriving HTTPS from the WSS URL (Alchemy/Infura work this way).
+  // Fall back to configured RPC URL, then public polygon-rpc.com.
+  const derivedRpc = wssUrls[0]?.replace('wss://', 'https://').replace('/ws/', '/') || null;
+  const rpcUrl = derivedRpc || CONFIG.chainlink.polygonRpcUrl || 'https://polygon-rpc.com';
+  console.log(`[ChainlinkWS] RPC URL for aggregator resolve: ${rpcUrl}`);
+  console.log(`[ChainlinkWS] Proxy address: ${proxyAddress}`);
   const aggregator = await resolveAggregator(proxyAddress, rpcUrl);
+  console.log(`[ChainlinkWS] Will subscribe to aggregator: ${aggregator}`);
 
   let ws = null;
   let closed = false;
