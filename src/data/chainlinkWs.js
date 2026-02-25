@@ -5,6 +5,23 @@ import { wsAgentForUrl } from "../net/proxy.js";
 
 const ANSWER_UPDATED_TOPIC0 = ethers.utils.id("AnswerUpdated(int256,uint256,uint256)");
 
+/**
+ * Resolve the current aggregator address from the Chainlink proxy contract.
+ * The proxy is stable; the aggregator rotates when Chainlink upgrades.
+ */
+async function resolveAggregator(proxyAddress, rpcUrl) {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const proxy = new ethers.Contract(proxyAddress, ['function aggregator() view returns (address)'], provider);
+    const agg = await proxy.aggregator();
+    console.log(`[ChainlinkWS] Resolved aggregator: ${agg} (from proxy ${proxyAddress})`);
+    return agg;
+  } catch (e) {
+    console.warn(`[ChainlinkWS] Failed to resolve aggregator, using proxy address: ${e.message}`);
+    return proxyAddress;
+  }
+}
+
 function getWssCandidates() {
   const fromList = Array.isArray(CONFIG.chainlink.polygonWssUrls) ? CONFIG.chainlink.polygonWssUrls : [];
   const single = CONFIG.chainlink.polygonWssUrl ? [CONFIG.chainlink.polygonWssUrl] : [];
@@ -25,13 +42,15 @@ function toNumber(x) {
   return Number.isFinite(n) ? n : null;
 }
 
-export function startChainlinkPriceStream({
-  aggregator = CONFIG.chainlink.btcUsdAggregator,
+export async function startChainlinkPriceStream({
+  aggregator: aggregatorOverride,
   decimals = 8,
   onUpdate
 } = {}) {
   const wssUrls = getWssCandidates();
-  if (!aggregator || wssUrls.length === 0) {
+  const proxyAddress = aggregatorOverride || CONFIG.chainlink.btcUsdAggregator;
+
+  if (!proxyAddress || wssUrls.length === 0) {
     return {
       getLast() {
         return { price: null, updatedAt: null, source: "chainlink_ws" };
@@ -39,6 +58,12 @@ export function startChainlinkPriceStream({
       close() {}
     };
   }
+
+  // Resolve the real aggregator from the proxy (aggregators rotate on upgrade)
+  const rpcUrl = CONFIG.chainlink.polygonRpcUrl
+    || wssUrls[0]?.replace('wss://', 'https://').replace('/ws/', '/')
+    || 'https://polygon-rpc.com';
+  const aggregator = await resolveAggregator(proxyAddress, rpcUrl);
 
   let ws = null;
   let closed = false;

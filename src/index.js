@@ -341,7 +341,7 @@ async function startApp() {
     }
   };
 
-  const chainlinkStream = startChainlinkPriceStream({ onUpdate: pushChainlinkTick });
+  const chainlinkStream = await startChainlinkPriceStream({ onUpdate: pushChainlinkTick });
 
   // Prime candles with an initial REST fetch so indicators can start without WS.
   try {
