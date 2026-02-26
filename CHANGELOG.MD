@@ -2,6 +2,24 @@
 
 All notable changes to Polymarket BTC 5m Assistant are documented in this file.
 
+## [1.0.7] - 2026-02-26
+
+### Changed (data-driven tuning from 234-trade analysis)
+
+- **Raised min entry price floor**: minPolyPrice 0.35→0.40. Entries <40¢ had 29% WR and -$107 PnL across 38 trades all-time.
+- **Tightened max loss**: dynamicStopLossPct 0.12→0.10. Avg max loss was $9.82 across 63 trades. Saves ~$1-2 per loss.
+- **Added RSI directional bias**: When RSI < 40, only DOWN entries allowed. When RSI > 60, only UP entries allowed. Aligns trade direction with momentum — RSI<40 UP entries were the worst performers.
+- **Widened trailing TP drawdown**: $2.00→$2.50. Trailing TP had 16 losses from tight tolerance. Wider room lets more recover. Big winners ($25-$47) prove the engine can capture large moves.
+- **Lowered EARLY edge requirement**: edgeEarly 0.02→0.015. 84% of trades are EARLY phase with PF near 1.0. Slightly looser lets more volume through.
+
+### Analysis Notes (234 trades, 2026-02-26)
+- v1.0.5 (146 trades): 46% WR, PF 0.97, -$19.60 (near breakeven)
+- Trailing TP: 81% WR (67W/16L), +$599 net — the profit engine
+- Max Loss: 0% WR (0W/63L), -$618 net — the sole loss source
+- RSI >60 entries: 51% WR (best). RSI <40: 39% WR (worst)
+- Entry price >55¢: 55% WR. Entry <40¢: 31% WR
+- UP trades profitable post-v1.0.5 (53% WR). DOWN trades bled (42% WR)
+
 ## [1.0.6] - 2026-02-26
 
 ### Added

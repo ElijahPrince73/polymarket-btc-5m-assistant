@@ -92,7 +92,9 @@ export const CONFIG = {
     minProbMid: Number(process.env.MIN_PROB_MID) || 0.58,
     minProbLate: Number(process.env.MIN_PROB_LATE) || 0.60,
 
-    edgeEarly: Number(process.env.EDGE_EARLY) || 0.02,
+    // Lowered from 0.02 to 0.015: 84% of trades are EARLY phase with PF near 1.0.
+    // Slightly looser edge lets more volume through where timing advantage is highest.
+    edgeEarly: Number(process.env.EDGE_EARLY) || 0.015,
     edgeMid: Number(process.env.EDGE_MID) || 0.03,
     edgeLate: Number(process.env.EDGE_LATE) || 0.05,
 
@@ -121,7 +123,8 @@ export const CONFIG = {
     // Example: $80 trade * 0.20 = $16 max loss; $250 trade * 0.20 = $40 (ceiling).
     dynamicStopLossEnabled:
       (process.env.DYNAMIC_STOP_LOSS_ENABLED || 'true').toLowerCase() === 'true',
-    dynamicStopLossPct: Number(process.env.DYNAMIC_STOP_LOSS_PCT) || 0.12,
+    // Tightened from 0.12 to 0.10: avg max loss was $9.82 across 63 trades. Shaves ~$1-2 per loss.
+    dynamicStopLossPct: Number(process.env.DYNAMIC_STOP_LOSS_PCT) || 0.10,
     minMaxLossUsd: Number(process.env.MIN_MAX_LOSS_USD) || 8,
     maxMaxLossUsd: Number(process.env.MAX_MAX_LOSS_USD) || 20,
 
@@ -186,10 +189,10 @@ export const CONFIG = {
       (process.env.TRAILING_TAKE_PROFIT_ENABLED || 'true').toLowerCase() ===
       'true',
     trailingStartUsd: Number(process.env.TRAILING_TAKE_PROFIT_START_USD) || 3,
-    // Widened from 1.50 to 2.00: trailing TP had 16 losses averaging -$2.47,
-    // many of which would have recovered with slightly more room.
+    // Widened from 2.00 to 2.50: trailing TP had 16 losses in v1.0.5 (234-trade analysis).
+    // Wider drawdown lets more trades recover. Big winners ($25-$47) prove the engine can find large moves.
     trailingDrawdownUsd:
-      Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 2.00,
+      Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 2.50,
 
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
@@ -256,8 +259,8 @@ export const CONFIG = {
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
     // Polymarket prices are decimal (0–1): 0.56 = 56¢.
     // Avoid dust prices where spread/tick noise dominates.
-    // Raised from 0.05 to 0.35: entries below 35¢ had 27% WR and -$72.60 PnL across 22 trades.
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.35,
+    // Raised from 0.35 to 0.40: entries below 40¢ had 29% WR and -$107 PnL across 38 trades (234-trade analysis).
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.40,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.95,
     // Profitability filter: cap entry price to avoid overpaying.
     // For 5m BTC markets, prices hover around 0.45–0.55 (45–55¢).
@@ -282,6 +285,14 @@ export const CONFIG = {
     // RSI overbought/oversold directional filter
     noTradeRsiOverbought: Number(process.env.NO_TRADE_RSI_OVERBOUGHT) || 78,
     noTradeRsiOversold: Number(process.env.NO_TRADE_RSI_OVERSOLD) || 22,
+
+    // RSI directional bias: align trade direction with momentum.
+    // RSI < 40 → only DOWN allowed. RSI > 60 → only UP allowed.
+    // 234-trade data: RSI<40 UP entries were worst performers.
+    rsiDirectionalBiasEnabled:
+      (process.env.RSI_DIRECTIONAL_BIAS_ENABLED || 'true').toLowerCase() === 'true',
+    rsiBearishThreshold: Number(process.env.RSI_BEARISH_THRESHOLD) || 40,
+    rsiBullishThreshold: Number(process.env.RSI_BULLISH_THRESHOLD) || 60,
 
     // Time filters
     // For 5m, avoid new entries too close to settlement (rollover risk)

@@ -367,6 +367,21 @@ export function computeEntryBlockers(signals, config, state, candleCount) {
     blockers.push(`RSI oversold for DOWN entry (RSI ${rsiNow.toFixed(1)} < ${noTradeRsiOversold})`);
   }
 
+  // ── 19c. RSI directional bias — align trade direction with momentum ──
+  // When RSI < 40, only allow DOWN (bearish momentum). When RSI > 60, only allow UP (bullish momentum).
+  // 234-trade data: RSI<40 UP entries had worst WR; RSI>60 UP entries had best.
+  const rsiBiasEnabled = config.rsiDirectionalBiasEnabled !== false;
+  const rsiBearishThreshold = config.rsiBearishThreshold ?? 40;
+  const rsiBullishThreshold = config.rsiBullishThreshold ?? 60;
+  if (rsiBiasEnabled && isNum(rsiNow)) {
+    if (rsiNow < rsiBearishThreshold && effectiveSide === "UP") {
+      blockers.push(`RSI bearish bias blocks UP (RSI ${rsiNow.toFixed(1)} < ${rsiBearishThreshold})`);
+    }
+    if (rsiNow > rsiBullishThreshold && effectiveSide === "DOWN") {
+      blockers.push(`RSI bullish bias blocks DOWN (RSI ${rsiNow.toFixed(1)} > ${rsiBullishThreshold})`);
+    }
+  }
+
   // ── 20. Polymarket price bounds ────────────────────────────────
   const minPoly = config.minPolyPrice ?? 0.002;
   const maxPoly = config.maxPolyPrice ?? 0.98;
@@ -538,7 +553,7 @@ export function computeEntryGateEvaluation(signals, config, state, candleCount) 
     margins.impulse = null;
   }
 
-  const totalChecks = 27;
+  const totalChecks = 28; // Added RSI directional bias blocker
   const failedCount = blockers.length;
   const passedCount = totalChecks - failedCount;
 
