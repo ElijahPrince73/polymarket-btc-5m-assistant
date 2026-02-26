@@ -269,7 +269,12 @@ async function startApp() {
   const currentMode = modeManager.getMode();
   const activeConfig = currentMode === 'live'
     ? { ...CONFIG.paperTrading, ...CONFIG.liveTrading, _mode: 'live' }
-    : { ...CONFIG.paperTrading, _mode: 'paper' };
+    : {
+      ...CONFIG.paperTrading,
+      _mode: 'paper',
+      // Fully disable kill switch in paper mode when paperKillSwitchEnabled is false
+      ...(CONFIG.paperTrading.paperKillSwitchEnabled === false ? { maxDailyLossUsd: 0 } : {}),
+    };
 
   const engine = new TradingEngine({
     executor: activeExecutor,
