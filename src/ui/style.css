@@ -30,6 +30,11 @@ body {
   line-height: 1.5;
 }
 
+button,
+select {
+  min-height: 44px;
+}
+
 /* ── Container ── */
 .container {
   max-width: 1440px;
@@ -207,6 +212,7 @@ h1 {
 .kv-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .kv-table td {
@@ -228,6 +234,7 @@ h1 {
 .kv-table td.v {
   color: var(--text);
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .kv-table a {
@@ -245,6 +252,7 @@ h1 {
   font-size: 13px;
   white-space: pre-wrap;
   word-wrap: break-word;
+  overflow-wrap: anywhere;
   line-height: 1.6;
 }
 
@@ -275,6 +283,11 @@ h1 {
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 12px;
+}
+
+.filters label {
+  display: inline-flex;
+  align-items: center;
 }
 
 .filters select,
@@ -320,6 +333,35 @@ h1 {
   background: rgba(255,255,255,0.02);
 }
 
+.table-scroll {
+  position: relative;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll::before,
+.table-scroll::after {
+  content: "";
+  position: sticky;
+  top: 0;
+  width: 14px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.table-scroll::before {
+  left: 0;
+  float: left;
+  box-shadow: inset 10px 0 8px -8px rgba(0,0,0,0.6);
+}
+
+.table-scroll::after {
+  right: 0;
+  float: right;
+  box-shadow: inset -10px 0 8px -8px rgba(0,0,0,0.6);
+}
+
 /* ── PnL colors ── */
 .positive { color: var(--good); }
 .negative { color: var(--bad); }
@@ -355,6 +397,9 @@ h1 {
   background: var(--bg);
   z-index: 10;
   padding-top: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-wrap: nowrap;
 }
 
 .tab-btn {
@@ -368,6 +413,8 @@ h1 {
   color: var(--muted);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .tab-btn:hover {
@@ -879,7 +926,7 @@ h1 {
 }
 
 @media (max-width: 500px) {
-  body { padding: 12px; }
+  body { padding: 16px; }
 
   .kpi-grid {
     grid-template-columns: 1fr;
@@ -932,6 +979,10 @@ h1 {
 
   .param-ranges-grid {
     grid-template-columns: 1fr;
+  }
+
+  .kpi-value {
+    font-size: 22px;
   }
 }
 
@@ -1164,3 +1215,80 @@ h1 {
 .lifecycle-badge--TIMED_OUT { background: rgba(210, 153, 34, 0.2); color: var(--warn); }
 .lifecycle-badge--CANCELLED { background: rgba(139, 148, 158, 0.2); color: var(--muted); }
 .lifecycle-badge--FAILED    { background: rgba(248, 81, 73, 0.2); color: var(--bad); }
+
+@media (max-width: 700px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .trading-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .trading-controls .mode-select,
+  .trading-controls .trading-status,
+  .trading-controls .action-button {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .card,
+  .kpi {
+    padding: 14px;
+  }
+
+  .filters {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .filters label {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .filters label:has(input[type="checkbox"]) {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .filters select {
+    min-width: 120px;
+  }
+
+  #open-trade,
+  #ledger-summary,
+  #order-lifecycle-panel {
+    overflow-wrap: anywhere;
+  }
+
+  #chart-equity {
+    min-height: 200px;
+    height: 220px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  #recent-trades-table {
+    min-width: 100%;
+  }
+
+  #recent-trades-table .hide-mobile {
+    display: none;
+  }
+
+  #recent-trades-table th:nth-child(2),
+  #recent-trades-table td:nth-child(2),
+  #recent-trades-table th:nth-child(4),
+  #recent-trades-table td:nth-child(4),
+  #recent-trades-table th:nth-child(5),
+  #recent-trades-table td:nth-child(5),
+  #recent-trades-table .hide-mobile-status,
+  #recent-trades-table th:nth-child(7),
+  #recent-trades-table td:nth-child(7) {
+    display: none;
+  }
+}

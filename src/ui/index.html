@@ -142,25 +142,27 @@
                   </div>
                 </div>
               </div>
-              <table id="recent-trades-table">
-                <thead>
-                  <tr>
-                    <th>Entry Time</th>
-                    <th>Exit Time</th>
-                    <th>Side</th>
-                    <th>Entry Price</th>
-                    <th>Exit Price</th>
-                    <th>PnL</th>
-                    <th>Status</th>
-                    <th>Exit Reason</th>
-                  </tr>
-                </thead>
-                <tbody id="recent-trades-body">
-                  <tr>
-                    <td colspan="8">Loading recent trades...</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="table-scroll">
+                <table id="recent-trades-table">
+                  <thead>
+                    <tr>
+                      <th>Entry Time</th>
+                      <th class="hide-mobile">Exit Time</th>
+                      <th>Side</th>
+                      <th class="hide-mobile">Entry Price</th>
+                      <th class="hide-mobile">Exit Price</th>
+                      <th>PnL</th>
+                      <th class="hide-mobile-status">Status</th>
+                      <th>Exit Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-trades-body">
+                    <tr>
+                      <td colspan="8">Loading recent trades...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
