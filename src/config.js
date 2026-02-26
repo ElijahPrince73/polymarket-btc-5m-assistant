@@ -86,9 +86,11 @@ export const CONFIG = {
 
     // Thresholds (higher = more hesitation)
     // 5m defaults tuned for higher-frequency paper trading
-    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.52,
-    minProbMid: Number(process.env.MIN_PROB_MID) || 0.53,
-    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.55,
+    // Raised from 0.52/0.53/0.55 based on 84-trade analysis:
+    // entries at >60¢ (higher conviction) had 63% WR vs 27% at <40¢.
+    minProbEarly: Number(process.env.MIN_PROB_EARLY) || 0.57,
+    minProbMid: Number(process.env.MIN_PROB_MID) || 0.58,
+    minProbLate: Number(process.env.MIN_PROB_LATE) || 0.60,
 
     edgeEarly: Number(process.env.EDGE_EARLY) || 0.02,
     edgeMid: Number(process.env.EDGE_MID) || 0.03,
@@ -184,8 +186,10 @@ export const CONFIG = {
       (process.env.TRAILING_TAKE_PROFIT_ENABLED || 'true').toLowerCase() ===
       'true',
     trailingStartUsd: Number(process.env.TRAILING_TAKE_PROFIT_START_USD) || 3,
+    // Widened from 1.50 to 2.00: trailing TP had 16 losses averaging -$2.47,
+    // many of which would have recovered with slightly more room.
     trailingDrawdownUsd:
-      Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 1.50,
+      Number(process.env.TRAILING_TAKE_PROFIT_DRAWDOWN_USD) || 2.00,
 
     // Legacy/unused
     takeProfitPct: Number(process.env.TAKE_PROFIT_PCT) || 0.08,
@@ -252,7 +256,8 @@ export const CONFIG = {
     // Polymarket price sanity (dollars, 0..1). Prevent "0.00" entries.
     // Polymarket prices are decimal (0–1): 0.56 = 56¢.
     // Avoid dust prices where spread/tick noise dominates.
-    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.05,
+    // Raised from 0.05 to 0.35: entries below 35¢ had 27% WR and -$72.60 PnL across 22 trades.
+    minPolyPrice: Number(process.env.MIN_POLY_PRICE) || 0.35,
     maxPolyPrice: Number(process.env.MAX_POLY_PRICE) || 0.95,
     // Profitability filter: cap entry price to avoid overpaying.
     // For 5m BTC markets, prices hover around 0.45–0.55 (45–55¢).

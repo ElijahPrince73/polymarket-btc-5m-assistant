@@ -2,6 +2,21 @@
 
 All notable changes to Polymarket BTC 5m Assistant are documented in this file.
 
+## [1.0.5] - 2026-02-26
+
+### Changed (data-driven tuning from 84-trade analysis)
+
+- **Raised probability thresholds**: minProbEarly 0.52→0.57, minProbMid 0.53→0.58, minProbLate 0.55→0.60. Higher conviction entries had 63% WR (>60¢ entries) vs 27% WR (<40¢ entries). This filters out low-confidence setups that were going straight to max loss.
+- **Raised minimum entry price floor**: minPolyPrice 0.05→0.35. Entries below 40¢ had 27% WR and -$72.60 PnL across 22 trades — cheap long-shot contracts that rarely paid off.
+- **Widened trailing TP drawdown**: trailingDrawdownUsd $1.50→$2.00. Trailing TP had 16 losses averaging -$2.47 from tight drawdown tolerance. Slightly more room should let more trades recover. Big winners ($47, $32, $25) show the trailing TP engine works well when given space.
+
+### Analysis Notes (84 trades, 2026-02-25)
+- Overall: 37% WR, -$116.83 PnL, 0.72 profit factor
+- DOWN trades profitable: 45% WR, +$29.62 PnL (31 trades)
+- UP trades bleeding: 32% WR, -$155.92 PnL (53 trades)
+- Trailing TP net: +$243.50 (working well). Max Loss net: -$368.26 (the problem)
+- EARLY phase: 40% WR but -$76.65 PnL (67 trades) — volume is there but quality needs filtering
+
 ## [1.0.4] - 2026-02-25
 
 ### Fixed
