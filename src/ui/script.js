@@ -592,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const thr = statusData.entryThresholds;
         if (thr && rt) {
           // Helpers
-          const pass = ok => ok ? '<span style="color:var(--good)">PASS</span>' : '<span style="color:var(--bad)">FAIL</span>';
+          const pass = ok => ok ? '<span style="color:var(--good)">✅</span>' : '<span style="color:var(--bad)">❌</span>';
           const na = '<span style="opacity:0.4">N/A</span>';
           const pct  = v => v != null ? `${(v * 100).toFixed(1)}%` : null;
           const pctS = v => v != null ? `${(v * 100).toFixed(1)}%` : '—';
