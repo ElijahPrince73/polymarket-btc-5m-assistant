@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-01T15:13:09.897794+00:00",
+  "window": {
+    "from": "2026-05-31T08:00:00+00:00",
+    "to": "2026-06-01T08:00:00+00:00"
+  },
+  "model": "NeoQuasar/Kronos-small",
+  "samples": 20,
+  "metrics": null,
+  "trades": [],
+  "note": "no trades in window"
+}
